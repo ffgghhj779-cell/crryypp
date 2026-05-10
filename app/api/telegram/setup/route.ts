@@ -1,0 +1,18 @@
+export async function GET(req: Request) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const appUrl = process.env.APP_URL;
+
+  if (!token || !appUrl) {
+    return Response.json({ error: 'Missing TELEGRAM_BOT_TOKEN or APP_URL environment variables.' }, { status: 400 });
+  }
+
+  const webhookUrl = `${appUrl}/api/telegram`;
+  
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${token}/setWebhook?url=${webhookUrl}`);
+    const data = await response.json();
+    return Response.json(data);
+  } catch (error: any) {
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+}
