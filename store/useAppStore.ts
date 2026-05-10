@@ -2,8 +2,13 @@ import { create } from 'zustand';
 import { supabase } from '@/lib/supabase';
 
 interface AppState {
-  activeModal: 'none' | 'risk_calculator' | 'daily_briefing' | 'sessions' | 'calendar' | 'favorites' | 'market_cap';
+  activeModal: 'none' | 'risk_calculator' | 'daily_briefing' | 'sessions' | 'calendar' | 'favorites' | 'market_cap' | 'tool';
   setActiveModal: (modal: AppState['activeModal']) => void;
+
+  // Active analysis tool — drives ToolModal content
+  activeTool: string | null;
+  setActiveTool: (tool: string | null) => void;
+
   favoriteAssets: string[];
   toggleFavorite: (asset: string, telegramUserId?: number) => void;
   loadFavorites: (telegramUserId: number) => void;
@@ -12,6 +17,10 @@ interface AppState {
 export const useAppStore = create<AppState>((set, get) => ({
   activeModal: 'none',
   setActiveModal: (activeModal) => set({ activeModal }),
+
+  activeTool: null,
+  setActiveTool: (tool) => set({ activeTool: tool, activeModal: tool ? 'tool' : 'none' }),
+
   favoriteAssets: ['BTCUSDT'],
 
   loadFavorites: async (telegramUserId: number) => {
@@ -27,16 +36,15 @@ export const useAppStore = create<AppState>((set, get) => ({
   toggleFavorite: async (asset: string, telegramUserId?: number) => {
     const { favoriteAssets } = get();
     const isAdding = !favoriteAssets.includes(asset);
-    
-    // Optimistic update
+
     set({
       favoriteAssets: isAdding
         ? [...favoriteAssets, asset]
         : favoriteAssets.filter(a => a !== asset),
     });
-    
+
     if (!telegramUserId) return;
-    
+
     if (isAdding) {
       await supabase.from('user_favorites').insert({ telegram_user_id: telegramUserId, asset });
     } else {

@@ -6,19 +6,23 @@ import { createChart, ColorType, AreaSeries } from 'lightweight-charts';
 import { fetchKlines } from '@/lib/binance';
 import { fetchFearGreedIndex } from '@/lib/fearGreed';
 import { fetchGlobalData } from '@/lib/coingecko';
+import { useAppStore } from '@/store/useAppStore';
+import { ChevronRight } from 'lucide-react';
 
-const ANALYSIS_TOOLS = [
-  'SMC Order Blocks', 'Triple Lens', 'Scalping Engine', 'VWAP Bands',
-  'Liquidations Map', 'Whale Tracker', 'Funding Rate', 'Open Interest',
-  'CVD Divergence', 'Delta Flow', 'Stochastic RSI', 'Market Structure',
-  'Fair Value Gaps', 'BOS & ChoCH', 'Imbalance Zones', 'Premium Discount',
-  'MACD Divergence', 'Heatmap Levels', 'Bollinger Bands', 'Keltner Channel',
-  'Ichimoku Cloud', 'Fibonacci Retracement', 'Elliott Wave', 'Wyckoff Method',
-  'Volume Profile', 'OBV Flow', 'Cumulative Delta', 'Footprint Chart',
-  'Options Flow', 'Gamma Exposure', 'Put/Call Ratio', 'DeFi Metrics',
-  'BTC Correlation', 'Altcoin Season Index', 'Fear & Greed', 'Sentiment Scanner',
-  'Social Volume', 'Google Trends', 'Exchange Flows', 'Miner Activity',
-  'Realized PnL', 'SOPR Metric', 'MVRV Ratio', 'NVT Signal',
+// ── Spot Market & Technical Analysis tools only (Futures/Options removed) ──
+const ANALYSIS_TOOLS: { name: string; tag: string }[] = [
+  { name: 'SMC Order Blocks',      tag: 'Smart Money' },
+  { name: 'Fair Value Gaps',        tag: 'Smart Money' },
+  { name: 'Market Structure',       tag: 'Smart Money' },
+  { name: 'Fibonacci Retracement',  tag: 'TA Classic'  },
+  { name: 'Volume Profile',         tag: 'Volume'      },
+  { name: 'VWAP Bands',             tag: 'Volume'      },
+  { name: 'Stochastic RSI',         tag: 'Momentum'    },
+  { name: 'MACD Divergence',        tag: 'Momentum'    },
+  { name: 'Bollinger Bands',        tag: 'Volatility'  },
+  { name: 'Ichimoku Cloud',         tag: 'Trend'       },
+  { name: 'Fear & Greed Index',     tag: 'Sentiment'   },
+  { name: 'BTC Correlation',        tag: 'Macro'       },
 ];
 
 export function Dashboard() {
@@ -157,20 +161,7 @@ export function Dashboard() {
       </div>
 
       {/* ── Tools Grid ── */}
-      <div>
-        <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-3 ml-1">Analysis Arsenal</h3>
-        <div className="grid grid-cols-2 gap-2">
-          {ANALYSIS_TOOLS.map((tool, i) => (
-            <button
-              key={i}
-              className="p-3 text-left bg-white/[0.025] hover:bg-white/[0.06] active:scale-[0.98] transition-all duration-150 rounded-xl border border-white/[0.05] hover:border-orange-500/20 flex items-center justify-between group"
-            >
-              <span className="text-sm font-medium text-white/70 group-hover:text-white transition-colors">{tool}</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-500/20 group-hover:bg-orange-500 transition-colors shrink-0" />
-            </button>
-          ))}
-        </div>
-      </div>
+      <ToolsGrid />
 
     </div>
   );
@@ -320,4 +311,60 @@ function LightweightAreaChart({ symbol, livePrice }: { symbol: string; livePrice
   }, [livePrice]);
 
   return <div ref={chartContainerRef} className="w-full h-full" />;
+}
+
+// ─── Tag colour map ───────────────────────────────────────────────────────────
+const TAG_COLORS: Record<string, string> = {
+  'Smart Money': 'text-violet-400  bg-violet-500/10  border-violet-500/20',
+  'TA Classic':  'text-sky-400     bg-sky-500/10     border-sky-500/20',
+  'Volume':      'text-blue-400    bg-blue-500/10    border-blue-500/20',
+  'Momentum':    'text-amber-400   bg-amber-500/10   border-amber-500/20',
+  'Volatility':  'text-pink-400    bg-pink-500/10    border-pink-500/20',
+  'Trend':       'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+  'Sentiment':   'text-orange-400  bg-orange-500/10  border-orange-500/20',
+  'Macro':       'text-rose-400    bg-rose-500/10    border-rose-500/20',
+};
+
+function ToolsGrid() {
+  const setActiveTool = useAppStore(s => s.setActiveTool);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3 ml-1">
+        <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-widest">
+          Analysis Arsenal
+        </h3>
+        <span className="text-[10px] text-white/20 tabular-nums">
+          {ANALYSIS_TOOLS.length} tools · Spot / TA
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2">
+        {ANALYSIS_TOOLS.map(({ name, tag }) => (
+          <button
+            key={name}
+            onClick={() => setActiveTool(name)}
+            className="group relative p-3.5 text-left rounded-xl border border-white/[0.05] bg-white/[0.02]
+                       hover:bg-white/[0.06] hover:border-orange-500/25
+                       active:scale-[0.97] transition-all duration-150 overflow-hidden"
+          >
+            {/* Hover glow */}
+            <span className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300
+                             bg-[radial-gradient(ellipse_at_bottom-right,rgba(249,115,22,0.08),transparent_70%)]" />
+
+            <div className="flex items-start justify-between gap-1 mb-2">
+              <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md border ${TAG_COLORS[tag] ?? 'text-white/30 bg-white/5 border-white/10'}`}>
+                {tag}
+              </span>
+              <ChevronRight className="w-3.5 h-3.5 text-white/20 group-hover:text-orange-400 transition-colors shrink-0 mt-0.5" />
+            </div>
+
+            <span className="text-sm font-semibold text-white/70 group-hover:text-white transition-colors leading-tight">
+              {name}
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }

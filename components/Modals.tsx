@@ -1,15 +1,20 @@
 'use client';
 
 import { useAppStore } from '@/store/useAppStore';
-import { X, AlertTriangle, TrendingUp, TrendingDown, RefreshCcw, Calendar, Star, BarChart2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { X, AlertTriangle, TrendingUp, TrendingDown, RefreshCcw, Calendar, Star, BarChart2, BarChart } from 'lucide-react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { fetchKlines, calculateRSI } from '@/lib/binance';
 import { fetchFearGreedIndex } from '@/lib/fearGreed';
+import { TOOL_DESCRIPTIONS } from '@/components/TradingViewWidget';
+
+// Lazy-load the TradingView widget so it doesn't block the main bundle
+const TradingViewWidget = lazy(() => import('@/components/TradingViewWidget'));
 
 // ─── Shared modal header label map ────────────────────────────────────────────
 const MODAL_TITLES: Record<string, string> = {
   risk_calculator: 'Risk Calculator',
   daily_briefing:  'Daily Briefing',
+  tool:            'Analysis Tool',
   sessions:        'Active Sessions',
   calendar:        'Economic Calendar',
   favorites:       'Favorite Assets',
@@ -17,7 +22,7 @@ const MODAL_TITLES: Record<string, string> = {
 };
 
 export function ModalsWrapper() {
-  const { activeModal, setActiveModal } = useAppStore();
+  const { activeModal, setActiveModal, activeTool, setActiveTool } = useAppStore();
   if (activeModal === 'none') return null;
 
   return (
@@ -53,32 +58,41 @@ export function ModalsWrapper() {
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
-          <h2 className="text-white font-bold text-base flex items-center gap-2.5">
-            {activeModal === 'risk_calculator' && <AlertTriangle className="w-5 h-5 text-orange-500" />}
-            {activeModal === 'daily_briefing'  && <TrendingUp   className="w-5 h-5 text-orange-500" />}
-            {activeModal === 'sessions'        && <RefreshCcw   className="w-5 h-5 text-orange-500" />}
-            {activeModal === 'calendar'        && <Calendar     className="w-5 h-5 text-orange-500" />}
-            {activeModal === 'favorites'       && <Star         className="w-5 h-5 text-orange-500" />}
-            {activeModal === 'market_cap'      && <BarChart2    className="w-5 h-5 text-orange-500" />}
-            {MODAL_TITLES[activeModal] ?? activeModal}
+          <h2 className="text-white font-bold text-base flex items-center gap-2.5 min-w-0">
+            {activeModal === 'risk_calculator' && <AlertTriangle className="w-5 h-5 text-orange-500 shrink-0" />}
+            {activeModal === 'daily_briefing'  && <TrendingUp   className="w-5 h-5 text-orange-500 shrink-0" />}
+            {activeModal === 'sessions'        && <RefreshCcw   className="w-5 h-5 text-orange-500 shrink-0" />}
+            {activeModal === 'calendar'        && <Calendar     className="w-5 h-5 text-orange-500 shrink-0" />}
+            {activeModal === 'favorites'       && <Star         className="w-5 h-5 text-orange-500 shrink-0" />}
+            {activeModal === 'market_cap'      && <BarChart2    className="w-5 h-5 text-orange-500 shrink-0" />}
+            {activeModal === 'tool'            && <BarChart     className="w-5 h-5 text-orange-500 shrink-0" />}
+            <span className="truncate">
+              {activeModal === 'tool' ? (activeTool ?? 'Tool') : (MODAL_TITLES[activeModal] ?? activeModal)}
+            </span>
           </h2>
           <button
-            onClick={() => setActiveModal('none')}
+            onClick={() => activeModal === 'tool' ? setActiveTool(null) : setActiveModal('none')}
             aria-label="Close"
-            className="p-1.5 text-white/40 hover:text-white bg-white/[0.05] hover:bg-white/10 rounded-full transition-all active:scale-95"
+            className="shrink-0 ml-2 p-1.5 text-white/40 hover:text-white bg-white/[0.05] hover:bg-white/10 rounded-full transition-all active:scale-95"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Scrollable body */}
-        <div className="overflow-y-auto overscroll-contain p-5 flex-1" style={{ WebkitOverflowScrolling: 'touch' } as any}>
+        {/* Scrollable body — ToolModal uses full height, others scroll */}
+        <div
+          className={`overscroll-contain flex-1 ${
+            activeModal === 'tool' ? 'overflow-hidden p-0 flex flex-col' : 'overflow-y-auto p-5'
+          }`}
+          style={{ WebkitOverflowScrolling: 'touch' } as any}
+        >
           {activeModal === 'risk_calculator' && <RiskCalculator />}
           {activeModal === 'daily_briefing'  && <DailyBriefing />}
           {activeModal === 'sessions'        && <ActiveSessions />}
           {activeModal === 'calendar'        && <EconomicCalendar />}
           {activeModal === 'favorites'       && <Favorites />}
           {activeModal === 'market_cap'      && <MarketCap />}
+          {activeModal === 'tool' && activeTool && <ToolModal toolName={activeTool} />}
         </div>
       </div>
     </div>
@@ -360,3 +374,112 @@ function MarketCap() {
 }
 
 const CalendarIcon = Calendar;
+
+// ─── Tool Modal ──────────────────────────────────────────────────────────────────────────
+function ToolModal({ toolName }: { toolName: string }) {
+  const description = TOOL_DESCRIPTIONS[toolName];
+  const isFearGreed = toolName === 'Fear & Greed Index';
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Description strip */}
+      {description && (
+        <div className="px-4 py-2.5 bg-orange-500/[0.06] border-b border-orange-500/10 shrink-0">
+          <p className="text-xs text-white/50 leading-relaxed">{description}</p>
+        </div>
+      )}
+
+      {/* Chart or custom view */}
+      <div className="flex-1 overflow-hidden" style={{ minHeight: 0 }}>
+        {isFearGreed ? (
+          <FearGreedDetail />
+        ) : (
+          <Suspense
+            fallback={
+              <div className="flex flex-col items-center justify-center h-full gap-3">
+                <div className="w-6 h-6 border-2 border-orange-500/40 border-t-orange-500 rounded-full animate-spin" />
+                <p className="text-white/30 text-xs">Loading TradingView chart...</p>
+              </div>
+            }
+          >
+            <TradingViewWidget toolName={toolName} />
+          </Suspense>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Fear & Greed standalone view (used when TV chart is not relevant) ─────────
+function FearGreedDetail() {
+  const [data, setData] = useState<{ value: number; label: string; prevValue: number } | null>(null);
+
+  useEffect(() => {
+    // Fetch both today and yesterday to show trend
+    fetch('https://api.alternative.me/fng/?limit=2')
+      .then(r => r.json())
+      .then(json => {
+        const today = parseInt(json.data[0].value, 10);
+        const prev  = parseInt(json.data[1].value, 10);
+        const label = json.data[0].value_classification;
+        setData({ value: today, label, prevValue: prev });
+      })
+      .catch(console.error);
+  }, []);
+
+  if (!data) return (
+    <div className="flex flex-col items-center justify-center h-full gap-3">
+      <div className="w-6 h-6 border-2 border-orange-500/40 border-t-orange-500 rounded-full animate-spin" />
+      <p className="text-white/30 text-xs">Fetching sentiment data...</p>
+    </div>
+  );
+
+  const delta = data.value - data.prevValue;
+  const color = data.value < 25 ? '#ef4444' : data.value < 45 ? '#f97316' : data.value < 55 ? '#eab308' : data.value < 75 ? '#22c55e' : '#16a34a';
+  const angle = (data.value / 100) * 180 - 90;
+  const r = 72; const cx = 100; const cy = 100;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const nx = cx + r * Math.cos(toRad(angle));
+  const ny = cy + r * Math.sin(toRad(angle));
+
+  return (
+    <div className="flex flex-col items-center justify-center h-full px-6 gap-6 py-4">
+      <svg viewBox="0 0 200 115" className="w-64 overflow-visible">
+        <path d="M 28 100 A 72 72 0 0 1 172 100" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="18" strokeLinecap="round" />
+        {[
+          { c: '#ef4444', s: 180, e: 144 }, { c: '#f97316', s: 144, e: 108 },
+          { c: '#eab308', s: 108, e: 72 },  { c: '#22c55e', s: 72,  e: 36 },
+          { c: '#16a34a', s: 36,  e: 0 },
+        ].map(({ c, s, e }, i) => {
+          const x1 = cx + r * Math.cos(toRad(s)); const y1 = cy + r * Math.sin(toRad(s));
+          const x2 = cx + r * Math.cos(toRad(e)); const y2 = cy + r * Math.sin(toRad(e));
+          return <path key={i} d={`M ${x1} ${y1} A ${r} ${r} 0 0 0 ${x2} ${y2}`} fill="none" stroke={c} strokeWidth="18" strokeLinecap="butt" opacity="0.3" />;
+        })}
+        <line x1={cx} y1={cy} x2={nx} y2={ny} stroke={color} strokeWidth="3" strokeLinecap="round" />
+        <circle cx={cx} cy={cy} r="6" fill={color} />
+        <circle cx={cx} cy={cy} r="3" fill="#000" />
+      </svg>
+
+      <div className="text-center">
+        <p className="text-7xl font-mono font-black tabular-nums" style={{ color }}>{data.value}</p>
+        <p className="text-sm font-bold uppercase tracking-widest mt-1" style={{ color }}>{data.label}</p>
+      </div>
+
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-white/30">vs yesterday:</span>
+        <span className={`font-mono font-bold tabular-nums ${
+          delta > 0 ? 'text-emerald-400' : delta < 0 ? 'text-red-400' : 'text-white/40'
+        }`}>
+          {delta > 0 ? '+' : ''}{delta} ({data.prevValue})
+        </span>
+      </div>
+
+      {/* Scale labels */}
+      <div className="grid grid-cols-5 w-full gap-1 text-center">
+        {['Extr. Fear', 'Fear', 'Neutral', 'Greed', 'Extr. Greed'].map((l, i) => (
+          <span key={i} className="text-[9px] text-white/20 font-semibold uppercase leading-tight">{l}</span>
+        ))}
+      </div>
+    </div>
+  );
+}
