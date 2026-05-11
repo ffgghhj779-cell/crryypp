@@ -22,6 +22,15 @@ import type {
 import {
   RsiResultCard, MacdResultCard, BollingerResultCard,
 } from '@/components/tools/MomentumResultCards';
+import {
+  analyzeFVG, analyzeLiquiditySweep, analyzeCVDProxy,
+} from '@/lib/algorithms/orderflow';
+import type {
+  FVGResult, SweepResult, CVDResult,
+} from '@/lib/algorithms/orderflow';
+import {
+  FvgResultCard, SweepResultCard, CvdResultCard,
+} from '@/components/tools/OrderFlowResultCards';
 
 // ─── Tool Dictionary ──────────────────────────────────────────────────────────
 export type ToolCategory = 'pattern' | 'smc' | 'math' | 'momentum' | 'widget';
@@ -218,15 +227,18 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
   const [priceEnd,   setPriceEnd]   = useState('');
   const [period,     setPeriod]     = useState('14');
   const [direction,  setDirection]  = useState('Bullish ↑');
-  const [phase,          setPhase]         = useState<'idle' | 'scanning' | 'done'>('idle');
-  const [result,         setResult]        = useState<ScanResult    | null>(null);
-  const [smcResult,      setSmcResult]     = useState<SMCResult     | null>(null);
-  const [garchResult,    setGarchResult]   = useState<GarchResult   | null>(null);
-  const [wedgeResult,    setWedgeResult]   = useState<PatternResult | null>(null);
-  const [rsiResult,      setRsiResult]     = useState<RSIResult     | null>(null);
-  const [macdResult,     setMacdResult]    = useState<MACDResult    | null>(null);
-  const [bollingerResult,setBollingerResult]= useState<BollingerResult|null>(null);
-  const [fetchErr,       setFetchErr]      = useState<string | null>(null);
+  const [phase,            setPhase]           = useState<'idle' | 'scanning' | 'done'>('idle');
+  const [result,           setResult]          = useState<ScanResult    | null>(null);
+  const [smcResult,        setSmcResult]       = useState<SMCResult     | null>(null);
+  const [garchResult,      setGarchResult]     = useState<GarchResult   | null>(null);
+  const [wedgeResult,      setWedgeResult]     = useState<PatternResult | null>(null);
+  const [rsiResult,        setRsiResult]       = useState<RSIResult     | null>(null);
+  const [macdResult,       setMacdResult]      = useState<MACDResult    | null>(null);
+  const [bollingerResult,  setBollingerResult] = useState<BollingerResult|null>(null);
+  const [fvgResult,        setFvgResult]       = useState<FVGResult     | null>(null);
+  const [sweepResult,      setSweepResult]     = useState<SweepResult   | null>(null);
+  const [cvdResult,        setCvdResult]       = useState<CVDResult     | null>(null);
+  const [fetchErr,         setFetchErr]        = useState<string | null>(null);
 
   const isWidget = tool.category === 'widget';
 
@@ -251,6 +263,9 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
     setRsiResult(null);
     setMacdResult(null);
     setBollingerResult(null);
+    setFvgResult(null);
+    setSweepResult(null);
+    setCvdResult(null);
     setFetchErr(null);
 
     if (!isWidget) {
@@ -302,6 +317,29 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
           const klines = await fetchKlines(symbol, timeframe, 100);
           console.info(`[BB] ✓ ${symbol} ${timeframe}`);
           setBollingerResult(analyzeBollinger(klines));
+          setPhase('done');
+          return;
+        }
+
+        // ── Order Flow Batch — 150 candles → FVG / Sweep / CVD ───────────────
+        if (tool.name === 'FVG Scanner') {
+          const klines = await fetchKlines(symbol, timeframe, 150);
+          console.info(`[FVG] ✓ ${symbol} ${timeframe}`);
+          setFvgResult(analyzeFVG(klines));
+          setPhase('done');
+          return;
+        }
+        if (tool.name === 'Liquidity Sweep') {
+          const klines = await fetchKlines(symbol, timeframe, 150);
+          console.info(`[Sweep] ✓ ${symbol} ${timeframe}`);
+          setSweepResult(analyzeLiquiditySweep(klines));
+          setPhase('done');
+          return;
+        }
+        if (tool.name === 'Order Flow CDD') {
+          const klines = await fetchKlines(symbol, timeframe, 150);
+          console.info(`[CVD] ✓ ${symbol} ${timeframe}`);
+          setCvdResult(analyzeCVDProxy(klines));
           setPhase('done');
           return;
         }
@@ -507,10 +545,26 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
                 <BollingerResultCard data={bollingerResult} symbol={symbol} timeframe={timeframe} />
               )}
 
+              {/* Result — FVG Scanner */}
+              {phase === 'done' && fvgResult && tool.name === 'FVG Scanner' && (
+                <FvgResultCard data={fvgResult} symbol={symbol} timeframe={timeframe} />
+              )}
+
+              {/* Result — Liquidity Sweep */}
+              {phase === 'done' && sweepResult && tool.name === 'Liquidity Sweep' && (
+                <SweepResultCard data={sweepResult} symbol={symbol} timeframe={timeframe} />
+              )}
+
+              {/* Result — CVD Proxy (Order Flow CDD) */}
+              {phase === 'done' && cvdResult && tool.name === 'Order Flow CDD' && (
+                <CvdResultCard data={cvdResult} symbol={symbol} timeframe={timeframe} />
+              )}
+
               {/* Result — all other tools (mocked) */}
               {phase === 'done' && result && ![
                 'SMC Order Blocks','GARCH','Wedge Scanner',
                 'Divergence Scanner','CHOP Index','4x4 Confluence',
+                'FVG Scanner','Liquidity Sweep','Order Flow CDD',
               ].includes(tool.name) && (
                 <div style={{ animation: 'slide-up 0.3s cubic-bezier(0.16,1,0.3,1) forwards' }}>
                   <ResultCard result={result} tool={tool} />
