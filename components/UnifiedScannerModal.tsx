@@ -10,6 +10,9 @@ import { calculateGARCH }  from '@/lib/algorithms/quant';
 import type { GarchResult } from '@/lib/algorithms/quant';
 import { GarchResultCard } from '@/components/tools/GarchResultCard';
 import { VIPResultCard }   from '@/components/tools/VIPResultCard';
+import { detectWedge }     from '@/lib/algorithms/patterns';
+import type { PatternResult } from '@/lib/algorithms/patterns';
+import { WedgeResultCard } from '@/components/tools/WedgeResultCard';
 
 // ─── Tool Dictionary ──────────────────────────────────────────────────────────
 export type ToolCategory = 'pattern' | 'smc' | 'math' | 'momentum' | 'widget';
@@ -206,11 +209,12 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
   const [priceEnd,   setPriceEnd]   = useState('');
   const [period,     setPeriod]     = useState('14');
   const [direction,  setDirection]  = useState('Bullish ↑');
-  const [phase,       setPhase]      = useState<'idle' | 'scanning' | 'done'>('idle');
-  const [result,      setResult]     = useState<ScanResult | null>(null);
-  const [smcResult,   setSmcResult]  = useState<SMCResult  | null>(null);
-  const [garchResult, setGarchResult]= useState<GarchResult| null>(null);
-  const [fetchErr,    setFetchErr]   = useState<string | null>(null);
+  const [phase,        setPhase]       = useState<'idle' | 'scanning' | 'done'>('idle');
+  const [result,       setResult]      = useState<ScanResult    | null>(null);
+  const [smcResult,    setSmcResult]   = useState<SMCResult     | null>(null);
+  const [garchResult,  setGarchResult] = useState<GarchResult   | null>(null);
+  const [wedgeResult,  setWedgeResult] = useState<PatternResult | null>(null);
+  const [fetchErr,     setFetchErr]    = useState<string | null>(null);
 
   const isWidget = tool.category === 'widget';
 
@@ -231,6 +235,7 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
     setResult(null);
     setSmcResult(null);
     setGarchResult(null);
+    setWedgeResult(null);
     setFetchErr(null);
 
     if (!isWidget) {
@@ -248,9 +253,17 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
         if (tool.name === 'GARCH') {
           const klines = await fetchKlines(symbol, timeframe, 100);
           console.info(`[GARCH] ✓ ${symbol} ${timeframe} — last close: $${klines[klines.length-1]?.close.toLocaleString()}`);
-          // barsPerYear depends on timeframe
           const barsPerYear: Record<string, number> = { '15m': 365*24*4, '1H': 365*24, '4H': 365*6, '1D': 365 };
           setGarchResult(calculateGARCH(klines, barsPerYear[timeframe] ?? 365*24));
+          setPhase('done');
+          return;
+        }
+
+        // ── Wedge Scanner — 400 candles on 4H → pivot regression ────────────
+        if (tool.name === 'Wedge Scanner') {
+          const klines = await fetchKlines(symbol, '4h', 400);
+          console.info(`[Wedge] ✓ ${symbol} 4H — ${klines.length} candles`);
+          setWedgeResult(detectWedge(klines));
           setPhase('done');
           return;
         }
@@ -436,8 +449,13 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
                 <GarchResultCard data={garchResult} symbol={symbol} />
               )}
 
+              {/* Result — Wedge Scanner */}
+              {phase === 'done' && wedgeResult && tool.name === 'Wedge Scanner' && (
+                <WedgeResultCard data={wedgeResult} symbol={symbol} />
+              )}
+
               {/* Result — all other tools (mocked) */}
-              {phase === 'done' && result && !['SMC Order Blocks','GARCH'].includes(tool.name) && (
+              {phase === 'done' && result && !['SMC Order Blocks','GARCH','Wedge Scanner'].includes(tool.name) && (
                 <div style={{ animation: 'slide-up 0.3s cubic-bezier(0.16,1,0.3,1) forwards' }}>
                   <ResultCard result={result} tool={tool} />
                 </div>
