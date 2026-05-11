@@ -9,6 +9,7 @@ import { SMCResultCard }   from '@/components/tools/SMCResultCard';
 import { calculateGARCH }  from '@/lib/algorithms/quant';
 import type { GarchResult } from '@/lib/algorithms/quant';
 import { GarchResultCard } from '@/components/tools/GarchResultCard';
+import { VIPResultCard }   from '@/components/tools/VIPResultCard';
 
 // ─── Tool Dictionary ──────────────────────────────────────────────────────────
 export type ToolCategory = 'pattern' | 'smc' | 'math' | 'momentum' | 'widget';
@@ -309,8 +310,13 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
             tool.name === 'Economic Calendar' ? <EconomicCalendarWidget /> : <HeatmapWidget />
           )}
 
-          {/* Scanner inputs */}
-          {!isWidget && (
+          {/* VIP tools — self-contained card with its own fetch trigger */}
+          {!isWidget && /^Trading VIP/.test(tool.name) && (
+            <VIPResultCard symbol={symbol} />
+          )}
+
+          {/* All other non-widget tools — standard inputs + scan button */}
+          {!isWidget && !/^Trading VIP/.test(tool.name) && (
             <>
               {/* Tag + category strip */}
               <div className="flex items-center gap-2 flex-wrap">
