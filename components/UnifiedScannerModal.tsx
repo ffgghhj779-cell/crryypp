@@ -2,7 +2,10 @@
 
 import { useState } from 'react';
 import { X, Zap, Globe, BarChart2, AlertTriangle } from 'lucide-react';
-import { fetchKlines } from '@/lib/binance/fetcher';
+import { fetchKlines }    from '@/lib/binance/fetcher';
+import { calculateSMC }  from '@/lib/algorithms/smc';
+import type { SMCResult } from '@/lib/algorithms/smc';
+import { SMCResultCard } from '@/components/tools/SMCResultCard';
 
 // ─── Tool Dictionary ──────────────────────────────────────────────────────────
 export type ToolCategory = 'pattern' | 'smc' | 'math' | 'momentum' | 'widget';
@@ -201,6 +204,7 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
   const [direction,  setDirection]  = useState('Bullish ↑');
   const [phase,     setPhase]     = useState<'idle' | 'scanning' | 'done'>('idle');
   const [result,    setResult]    = useState<ScanResult | null>(null);
+  const [smcResult, setSmcResult] = useState<SMCResult | null>(null);
   const [fetchErr,  setFetchErr]  = useState<string | null>(null);
 
   const isWidget = tool.category === 'widget';
@@ -220,17 +224,26 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
   async function handleScan() {
     setPhase('scanning');
     setResult(null);
+    setSmcResult(null);
     setFetchErr(null);
 
-    // ── Live Binance connection test ─────────────────────────────────────────
-    // Widgets have no symbol input — skip the fetch for them.
     if (!isWidget) {
       try {
+        // SMC Order Blocks — full quantitative path (300 candles)
+        if (tool.name === 'SMC Order Blocks') {
+          const klines = await fetchKlines(symbol, timeframe, 300);
+          const lastClose = klines[klines.length - 1]?.close;
+          console.info(`[SMC] ✓ ${symbol} ${timeframe} — last close: $${lastClose?.toLocaleString()}`);
+          const smc = calculateSMC(klines, symbol);
+          setSmcResult(smc);
+          setPhase('done');
+          return;
+        }
+
+        // All other tools — live connection test + mock result
         const klines = await fetchKlines(symbol, timeframe, 100);
         const lastClose = klines[klines.length - 1]?.close;
-        console.info(
-          `[BinanceFetcher] ✓ ${symbol} ${timeframe} — last close: $${lastClose?.toLocaleString()}`,
-        );
+        console.info(`[BinanceFetcher] ✓ ${symbol} ${timeframe} — last close: $${lastClose?.toLocaleString()}`);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Unknown fetch error';
         setFetchErr(msg);
@@ -239,11 +252,11 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
       }
     }
 
-    // ── Mocked quant result (placeholder until real algorithms land) ─────────
+    // Mocked quant result for all non-SMC tools
     setTimeout(() => {
       setResult(simulateScan(tool.name, symbol, timeframe));
       setPhase('done');
-    }, 400 + Math.random() * 300); // shorter delay — real latency already paid above
+    }, 400 + Math.random() * 300);
   }
 
   return (
@@ -394,8 +407,13 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
                 )}
               </button>
 
-              {/* Result */}
-              {phase === 'done' && result && (
+              {/* Result — SMC Order Blocks (live quant) */}
+              {phase === 'done' && smcResult && tool.name === 'SMC Order Blocks' && (
+                <SMCResultCard data={smcResult} symbol={symbol} />
+              )}
+
+              {/* Result — all other tools (mocked) */}
+              {phase === 'done' && result && tool.name !== 'SMC Order Blocks' && (
                 <div style={{ animation: 'slide-up 0.3s cubic-bezier(0.16,1,0.3,1) forwards' }}>
                   <ResultCard result={result} tool={tool} />
                 </div>
