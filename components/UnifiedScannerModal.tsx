@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Zap, Globe, BarChart2 } from 'lucide-react';
+import { X, Zap, Globe, BarChart2, AlertTriangle } from 'lucide-react';
+import { fetchKlines } from '@/lib/binance/fetcher';
 
 // ─── Tool Dictionary ──────────────────────────────────────────────────────────
 export type ToolCategory = 'pattern' | 'smc' | 'math' | 'momentum' | 'widget';
@@ -198,8 +199,9 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
   const [priceEnd,   setPriceEnd]   = useState('');
   const [period,     setPeriod]     = useState('14');
   const [direction,  setDirection]  = useState('Bullish ↑');
-  const [phase, setPhase] = useState<'idle' | 'scanning' | 'done'>('idle');
-  const [result, setResult] = useState<ScanResult | null>(null);
+  const [phase,     setPhase]     = useState<'idle' | 'scanning' | 'done'>('idle');
+  const [result,    setResult]    = useState<ScanResult | null>(null);
+  const [fetchErr,  setFetchErr]  = useState<string | null>(null);
 
   const isWidget = tool.category === 'widget';
 
@@ -215,13 +217,33 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
     }
   }
 
-  function handleScan() {
+  async function handleScan() {
     setPhase('scanning');
     setResult(null);
+    setFetchErr(null);
+
+    // ── Live Binance connection test ─────────────────────────────────────────
+    // Widgets have no symbol input — skip the fetch for them.
+    if (!isWidget) {
+      try {
+        const klines = await fetchKlines(symbol, timeframe, 100);
+        const lastClose = klines[klines.length - 1]?.close;
+        console.info(
+          `[BinanceFetcher] ✓ ${symbol} ${timeframe} — last close: $${lastClose?.toLocaleString()}`,
+        );
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Unknown fetch error';
+        setFetchErr(msg);
+        setPhase('idle');
+        return;
+      }
+    }
+
+    // ── Mocked quant result (placeholder until real algorithms land) ─────────
     setTimeout(() => {
       setResult(simulateScan(tool.name, symbol, timeframe));
       setPhase('done');
-    }, 1800 + Math.random() * 800);
+    }, 400 + Math.random() * 300); // shorter delay — real latency already paid above
   }
 
   return (
@@ -335,6 +357,20 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
                 })}
               </div>
 
+              {/* Error toast */}
+              {fetchErr && (
+                <div
+                  className="flex items-start gap-3 px-4 py-3 rounded-2xl border border-red-500/30 bg-red-500/[0.07]"
+                  style={{ animation: 'slide-up 0.25s cubic-bezier(0.16,1,0.3,1) forwards' }}
+                >
+                  <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-bold text-red-400 uppercase tracking-wider">Fetch Error</p>
+                    <p className="text-[11px] text-red-300/80 mt-0.5 leading-snug">{fetchErr}</p>
+                  </div>
+                </div>
+              )}
+
               {/* Scan Button */}
               <button
                 onClick={handleScan}
@@ -351,7 +387,7 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
                 {phase === 'scanning' ? (
                   <span className="flex items-center justify-center gap-2.5">
                     <span className="w-4 h-4 border-2 border-orange-300/40 border-t-orange-200 rounded-full animate-spin" />
-                    <span className="animate-pulse tracking-[0.2em] text-sm">SCANNING ALGORITHMS...</span>
+                    <span className="animate-pulse tracking-[0.2em] text-sm">FETCHING LIVE DATA...</span>
                   </span>
                 ) : (
                   <span className="tracking-[0.15em]">⚡ START SCAN · تحليل</span>
