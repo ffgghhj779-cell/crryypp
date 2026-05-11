@@ -2,10 +2,13 @@
 
 import { useState } from 'react';
 import { X, Zap, Globe, BarChart2, AlertTriangle } from 'lucide-react';
-import { fetchKlines }    from '@/lib/binance/fetcher';
-import { calculateSMC }  from '@/lib/algorithms/smc';
-import type { SMCResult } from '@/lib/algorithms/smc';
-import { SMCResultCard } from '@/components/tools/SMCResultCard';
+import { fetchKlines }      from '@/lib/binance/fetcher';
+import { calculateSMC }    from '@/lib/algorithms/smc';
+import type { SMCResult }  from '@/lib/algorithms/smc';
+import { SMCResultCard }   from '@/components/tools/SMCResultCard';
+import { calculateGARCH }  from '@/lib/algorithms/quant';
+import type { GarchResult } from '@/lib/algorithms/quant';
+import { GarchResultCard } from '@/components/tools/GarchResultCard';
 
 // ─── Tool Dictionary ──────────────────────────────────────────────────────────
 export type ToolCategory = 'pattern' | 'smc' | 'math' | 'momentum' | 'widget';
@@ -202,10 +205,11 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
   const [priceEnd,   setPriceEnd]   = useState('');
   const [period,     setPeriod]     = useState('14');
   const [direction,  setDirection]  = useState('Bullish ↑');
-  const [phase,     setPhase]     = useState<'idle' | 'scanning' | 'done'>('idle');
-  const [result,    setResult]    = useState<ScanResult | null>(null);
-  const [smcResult, setSmcResult] = useState<SMCResult | null>(null);
-  const [fetchErr,  setFetchErr]  = useState<string | null>(null);
+  const [phase,       setPhase]      = useState<'idle' | 'scanning' | 'done'>('idle');
+  const [result,      setResult]     = useState<ScanResult | null>(null);
+  const [smcResult,   setSmcResult]  = useState<SMCResult  | null>(null);
+  const [garchResult, setGarchResult]= useState<GarchResult| null>(null);
+  const [fetchErr,    setFetchErr]   = useState<string | null>(null);
 
   const isWidget = tool.category === 'widget';
 
@@ -225,25 +229,34 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
     setPhase('scanning');
     setResult(null);
     setSmcResult(null);
+    setGarchResult(null);
     setFetchErr(null);
 
     if (!isWidget) {
       try {
-        // SMC Order Blocks — full quantitative path (300 candles)
+        // ── SMC Order Blocks — 300 candles → full OB algorithm ──────────────
         if (tool.name === 'SMC Order Blocks') {
           const klines = await fetchKlines(symbol, timeframe, 300);
-          const lastClose = klines[klines.length - 1]?.close;
-          console.info(`[SMC] ✓ ${symbol} ${timeframe} — last close: $${lastClose?.toLocaleString()}`);
-          const smc = calculateSMC(klines, symbol);
-          setSmcResult(smc);
+          console.info(`[SMC] ✓ ${symbol} ${timeframe} — last close: $${klines[klines.length-1]?.close.toLocaleString()}`);
+          setSmcResult(calculateSMC(klines, symbol));
           setPhase('done');
           return;
         }
 
-        // All other tools — live connection test + mock result
+        // ── GARCH — 100 candles → volatility band algorithm ─────────────────
+        if (tool.name === 'GARCH') {
+          const klines = await fetchKlines(symbol, timeframe, 100);
+          console.info(`[GARCH] ✓ ${symbol} ${timeframe} — last close: $${klines[klines.length-1]?.close.toLocaleString()}`);
+          // barsPerYear depends on timeframe
+          const barsPerYear: Record<string, number> = { '15m': 365*24*4, '1H': 365*24, '4H': 365*6, '1D': 365 };
+          setGarchResult(calculateGARCH(klines, barsPerYear[timeframe] ?? 365*24));
+          setPhase('done');
+          return;
+        }
+
+        // ── All other tools — live connection test + mock result ─────────────
         const klines = await fetchKlines(symbol, timeframe, 100);
-        const lastClose = klines[klines.length - 1]?.close;
-        console.info(`[BinanceFetcher] ✓ ${symbol} ${timeframe} — last close: $${lastClose?.toLocaleString()}`);
+        console.info(`[BinanceFetcher] ✓ ${symbol} ${timeframe} — last close: $${klines[klines.length-1]?.close.toLocaleString()}`);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Unknown fetch error';
         setFetchErr(msg);
@@ -252,7 +265,7 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
       }
     }
 
-    // Mocked quant result for all non-SMC tools
+    // Mocked quant result for non-quantitative tools
     setTimeout(() => {
       setResult(simulateScan(tool.name, symbol, timeframe));
       setPhase('done');
@@ -407,13 +420,18 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
                 )}
               </button>
 
-              {/* Result — SMC Order Blocks (live quant) */}
+              {/* Result — SMC Order Blocks */}
               {phase === 'done' && smcResult && tool.name === 'SMC Order Blocks' && (
                 <SMCResultCard data={smcResult} symbol={symbol} />
               )}
 
+              {/* Result — GARCH Volatility */}
+              {phase === 'done' && garchResult && tool.name === 'GARCH' && (
+                <GarchResultCard data={garchResult} symbol={symbol} />
+              )}
+
               {/* Result — all other tools (mocked) */}
-              {phase === 'done' && result && tool.name !== 'SMC Order Blocks' && (
+              {phase === 'done' && result && !['SMC Order Blocks','GARCH'].includes(tool.name) && (
                 <div style={{ animation: 'slide-up 0.3s cubic-bezier(0.16,1,0.3,1) forwards' }}>
                   <ResultCard result={result} tool={tool} />
                 </div>
