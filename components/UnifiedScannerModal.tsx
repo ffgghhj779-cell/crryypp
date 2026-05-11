@@ -1,0 +1,304 @@
+'use client';
+
+import { useState } from 'react';
+import { X, Zap, Globe, BarChart2 } from 'lucide-react';
+
+// ─── Tool Dictionary ──────────────────────────────────────────────────────────
+export type ToolCategory = 'pattern' | 'smc' | 'math' | 'momentum' | 'widget';
+
+export interface ToolDef {
+  name: string;
+  tag: string;
+  category: ToolCategory;
+  subtitle: string;
+  tagColor: string;
+}
+
+export const ANALYSIS_TOOLS: ToolDef[] = [
+  // A – Pattern Recognition
+  { name: 'Wedge Scanner',            tag: 'Pattern',     category: 'pattern',  subtitle: 'Rising & Falling Wedge detector', tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
+  { name: 'Double Pattern',           tag: 'Pattern',     category: 'pattern',  subtitle: 'Double Top & Bottom formations',  tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
+  { name: 'Cup & Handle',             tag: 'Pattern',     category: 'pattern',  subtitle: 'Bullish continuation scanner',    tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
+  { name: 'Head & Shoulders',         tag: 'Pattern',     category: 'pattern',  subtitle: 'Reversal pattern identifier',     tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
+  { name: 'Triangle Predictor',       tag: 'Pattern',     category: 'pattern',  subtitle: 'Sym / Asc / Desc triangles',      tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
+  // B – Smart Money
+  { name: 'SMC Order Blocks',         tag: 'Smart Money', category: 'smc',      subtitle: 'Bullish & Bearish OB zones',      tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
+  { name: 'Market Structure',         tag: 'Smart Money', category: 'smc',      subtitle: 'BOS & CHoCH tracker',             tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
+  { name: 'Wyckoff',                  tag: 'Smart Money', category: 'smc',      subtitle: 'Accumulation / Distribution phase',tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
+  { name: 'Order Flow CDD',           tag: 'Smart Money', category: 'smc',      subtitle: 'Cumulative Delta Divergence',      tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
+  { name: 'Liquidity Sweep',          tag: 'Smart Money', category: 'smc',      subtitle: 'Stop-hunt & sweep detector',      tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
+  // C – Advanced Math
+  { name: 'Monte Carlo',              tag: 'Quant',       category: 'math',     subtitle: '1000-iteration price projection',  tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+  { name: 'GARCH',                    tag: 'Quant',       category: 'math',     subtitle: 'Volatility forecasting bands',     tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+  { name: 'Markov Model (HMM)',       tag: 'Quant',       category: 'math',     subtitle: 'Market regime classifier',         tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+  { name: 'Fourier Transform',        tag: 'Quant',       category: 'math',     subtitle: 'Cycle & time period detection',    tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+  { name: 'Linear Regression',        tag: 'Quant',       category: 'math',     subtitle: 'Fair value & channel estimation', tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+  // D – Momentum & Signals
+  { name: 'Divergence Scanner',       tag: 'Momentum',    category: 'momentum', subtitle: 'RSI & MACD hidden/regular div',   tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+  { name: 'Trading VIP 1',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+  { name: 'Trading VIP 2',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+  { name: 'Trading VIP 3',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+  { name: 'Trading VIP 4',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+  { name: 'Trading VIP 5',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+  { name: '4x4 Confluence',           tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-timeframe alignment score', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+  { name: 'CHOP Index',               tag: 'Momentum',    category: 'momentum', subtitle: 'Choppiness vs trend strength',    tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+  // E – TradingView Widgets
+  { name: 'Economic Calendar',        tag: 'Widget',      category: 'widget',   subtitle: 'Macro event calendar',            tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20' },
+  { name: 'Heatmap',                  tag: 'Widget',      category: 'widget',   subtitle: 'Crypto market heatmap',           tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20' },
+];
+
+// ─── Mock Engine ──────────────────────────────────────────────────────────────
+interface ScanResult { [key: string]: string | number | boolean }
+
+export function simulateScan(toolName: string, symbol: string, timeframe: string): ScanResult {
+  const seed = symbol.charCodeAt(0) + symbol.charCodeAt(1) + timeframe.length;
+  const bull = seed % 2 === 0;
+  const price = 103_240 + (seed * 137) % 5000;
+
+  switch (true) {
+    // Pattern Recognition
+    case toolName === 'Wedge Scanner':
+      return { pattern: bull ? 'Falling Wedge ✓' : 'Rising Wedge ✓', direction: bull ? 'BULLISH BREAKOUT' : 'BEARISH BREAKDOWN', confidence: `${72 + seed % 20}%`, neckline: `$${(price - 1200).toLocaleString()}`, target: `$${(price + 3400).toLocaleString()}`, stopLoss: `$${(price - 2100).toLocaleString()}` };
+    case toolName === 'Double Pattern':
+      return { pattern: bull ? 'Double Bottom ✓' : 'Double Top ✓', direction: bull ? 'BULLISH REVERSAL' : 'BEARISH REVERSAL', confidence: `${68 + seed % 22}%`, neckline: `$${(price - 800).toLocaleString()}`, target: `$${(price + 4100).toLocaleString()}`, stopLoss: `$${(price - 1600).toLocaleString()}` };
+    case toolName === 'Cup & Handle':
+      return { pattern: 'Cup & Handle ✓', direction: 'BULLISH CONTINUATION', confidence: `${75 + seed % 18}%`, cupDepth: `${18 + seed % 10}%`, handleDepth: `${6 + seed % 5}%`, target: `$${(price + 5200).toLocaleString()}` };
+    case toolName === 'Head & Shoulders':
+      return { pattern: bull ? 'Inverse H&S ✓' : 'Head & Shoulders ✓', direction: bull ? 'BULLISH' : 'BEARISH', confidence: `${70 + seed % 20}%`, leftShoulder: `$${(price - 2000).toLocaleString()}`, head: `$${(price + 1500).toLocaleString()}`, rightShoulder: `$${(price - 1800).toLocaleString()}`, neckline: `$${(price - 600).toLocaleString()}` };
+    case toolName === 'Triangle Predictor':
+      return { pattern: ['Symmetrical', 'Ascending', 'Descending'][seed % 3] + ' Triangle ✓', direction: bull ? 'BULLISH BREAKOUT' : 'BEARISH BREAKDOWN', confidence: `${65 + seed % 25}%`, apex: `${3 + seed % 5} candles`, target: `$${(price + 2800).toLocaleString()}` };
+
+    // SMC
+    case toolName === 'SMC Order Blocks':
+      return { bias: bull ? 'BULLISH' : 'BEARISH', bullishOB: `$${(price - 1500).toLocaleString()} – $${(price - 900).toLocaleString()}`, bearishOB: `$${(price + 1800).toLocaleString()} – $${(price + 2600).toLocaleString()}`, mitigated: bull ? 'No' : 'Yes', premium: `$${(price + 1200).toLocaleString()}`, discount: `$${(price - 1100).toLocaleString()}` };
+    case toolName === 'Market Structure':
+      return { regime: bull ? 'UPTREND' : 'DOWNTREND', lastEvent: bull ? 'Break of Structure (BOS) ↑' : 'Change of Character (CHoCH) ↓', swing_high: `$${(price + 2100).toLocaleString()}`, swing_low: `$${(price - 1800).toLocaleString()}`, trend_bias: bull ? 'BULLISH' : 'BEARISH', confirmation: bull ? 'Strong' : 'Weak' };
+    case toolName === 'Wyckoff':
+      return { phase: ['Accumulation — Phase C', 'Distribution — Phase B', 'Markup', 'Markdown'][seed % 4], bias: bull ? 'BULLISH' : 'BEARISH', spring: bull ? 'Detected ✓' : 'Not Detected', upthrust: bull ? 'Not Detected' : 'Detected ✓', composite_man: bull ? 'Accumulating' : 'Distributing' };
+    case toolName === 'Order Flow CDD':
+      return { delta: bull ? `+${12400 + seed % 5000}` : `-${11200 + seed % 4000}`, divergence: bull ? 'Bullish CDD ✓' : 'Bearish CDD ✓', strength: `${60 + seed % 30}%`, buy_vol: `${(seed * 41) % 9000 + 8000} BTC`, sell_vol: `${(seed * 37) % 9000 + 7000} BTC` };
+    case toolName === 'Liquidity Sweep':
+      return { event: bull ? 'Buy-side Liquidity Grab ✓' : 'Sell-side Liquidity Grab ✓', swept_level: `$${(price + (bull ? 800 : -800)).toLocaleString()}`, reversal_zone: `$${(price + (bull ? -400 : 400)).toLocaleString()}`, probability: `${62 + seed % 28}%`, volume_spike: `${150 + seed % 80}%` };
+
+    // Math / Quant
+    case toolName === 'Monte Carlo':
+      return { iterations: '1,000', timeframe, median: `$${price.toLocaleString()}`, high_95: `$${(price + 8200 + seed % 2000).toLocaleString()}`, low_95: `$${(price - 7100 - seed % 1500).toLocaleString()}`, upside_prob: `${45 + seed % 20}%`, sigma: `${2.1 + (seed % 10) / 10}` };
+    case toolName === 'GARCH':
+      return { model: 'GARCH(1,1)', annualized_vol: `${42 + seed % 20}%`, upper_band: `$${(price + 5400).toLocaleString()}`, lower_band: `$${(price - 4900).toLocaleString()}`, vix_equiv: `${38 + seed % 15}`, regime: seed % 2 === 0 ? 'HIGH VOLATILITY' : 'MODERATE VOLATILITY' };
+    case toolName === 'Markov Model (HMM)':
+      return { regime: ['TRENDING ↗', 'RANGING ↔', 'BREAKOUT PENDING ⚡'][seed % 3], confidence: `${70 + seed % 22}%`, state_duration: `${4 + seed % 10} candles`, transition_prob: `${seed % 2 === 0 ? 'Trend → Range' : 'Range → Trend'}: ${35 + seed % 30}%` };
+    case toolName === 'Fourier Transform':
+      return { dominant_cycle: `${14 + seed % 10} candles`, secondary_cycle: `${28 + seed % 14} candles`, next_peak: `${3 + seed % 5} candles`, next_trough: `${8 + seed % 6} candles`, cycle_strength: `${55 + seed % 35}%` };
+    case toolName === 'Linear Regression':
+      return { fair_value: `$${price.toLocaleString()}`, upper_channel: `$${(price + 3100).toLocaleString()}`, lower_channel: `$${(price - 2900).toLocaleString()}`, slope: bull ? '+' + (0.12 + (seed % 10) / 100).toFixed(2) : '-' + (0.08 + (seed % 8) / 100).toFixed(2), r_squared: (0.72 + (seed % 20) / 100).toFixed(3), deviation: `${1.8 + (seed % 12) / 10}%` };
+
+    // Momentum
+    case toolName === 'Divergence Scanner': {
+      const type = ['Regular Bullish', 'Regular Bearish', 'Hidden Bullish', 'Hidden Bearish'][seed % 4];
+      return { rsi_div: type + ' RSI Divergence ✓', macd_div: seed % 3 === 0 ? 'Hidden Bearish MACD ✓' : 'Not Detected', strength: `${65 + seed % 25}%`, direction: type.includes('Bullish') ? 'BULLISH' : 'BEARISH' };
+    }
+    case /^Trading VIP/.test(toolName): {
+      const vipNum = parseInt(toolName.slice(-1)) || 1;
+      const score = 50 + (seed * vipNum) % 40;
+      return { consensus: score >= 70 ? 'STRONG BUY 🟢' : score >= 55 ? 'BUY 🟡' : score <= 30 ? 'STRONG SELL 🔴' : 'NEUTRAL ⚪', score: `${score}/100`, rsi: `${35 + seed % 35}`, macd: bull ? 'Bullish Cross ✓' : 'Bearish Cross ✗', ema: bull ? 'Price > EMA200 ✓' : 'Price < EMA200 ✗', bb: ['Upper', 'Middle', 'Lower'][seed % 3] + ' Band', adx: `${20 + seed % 30}` };
+    }
+    case toolName === '4x4 Confluence': {
+      const tfs = ['15m','1H','4H','1D'];
+      const signals = tfs.map((tf, i) => ({ tf, signal: (seed + i) % 2 === 0 ? '🟢 BULL' : '🔴 BEAR' }));
+      const bullCount = signals.filter(s => s.signal.includes('BULL')).length;
+      return { overall: bullCount >= 3 ? 'STRONG BULLISH ✓' : bullCount <= 1 ? 'STRONG BEARISH ✗' : 'MIXED ⚠', score: `${bullCount * 25}%`, ...Object.fromEntries(signals.map(s => [s.tf, s.signal])) };
+    }
+    case toolName === 'CHOP Index': {
+      const chop = 45 + seed % 40;
+      return { chop_value: chop.toFixed(2), regime: chop > 61.8 ? 'CHOPPY / RANGING ↔' : 'TRENDING ↗', strength: chop > 61.8 ? 'Avoid momentum trades' : 'Trend-following favored', threshold: '61.8', percentile: `${30 + seed % 50}th` };
+    }
+
+    default:
+      return { status: 'COMPLETE', symbol, timeframe, result: 'Analysis complete' };
+  }
+}
+
+// ─── Result Card ─────────────────────────────────────────────────────────────
+function ResultCard({ result, tool }: { result: ScanResult; tool: ToolDef }) {
+  const isBull = JSON.stringify(result).toUpperCase().includes('BULL');
+  const isBear = JSON.stringify(result).toUpperCase().includes('BEAR');
+  const accent = isBull ? 'border-emerald-500/30 bg-emerald-500/[0.04]' : isBear ? 'border-red-500/30 bg-red-500/[0.04]' : 'border-orange-500/30 bg-orange-500/[0.04]';
+  const dotColor = isBull ? 'bg-emerald-500' : isBear ? 'bg-red-500' : 'bg-orange-500';
+
+  return (
+    <div className={`rounded-2xl border p-4 space-y-3 ${accent}`}>
+      <div className="flex items-center gap-2 mb-1">
+        <span className={`w-2 h-2 rounded-full ${dotColor} animate-pulse`} />
+        <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Scan Complete — {tool.name}</span>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {Object.entries(result).map(([k, v]) => (
+          <div key={k} className="p-2.5 rounded-xl bg-black/30 border border-white/[0.05]">
+            <p className="text-[9px] uppercase tracking-widest text-white/30 mb-1">{k.replace(/_/g, ' ')}</p>
+            <p className={`text-sm font-mono font-bold tabular-nums leading-tight ${
+              String(v).includes('BULL') || String(v).includes('BUY') || String(v).includes('✓') ? 'text-emerald-400'
+              : String(v).includes('BEAR') || String(v).includes('SELL') || String(v).includes('✗') ? 'text-red-400'
+              : 'text-orange-300'
+            }`}>
+              {String(v)}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Widget Views ─────────────────────────────────────────────────────────────
+function EconomicCalendarWidget() {
+  return (
+    <div className="rounded-2xl overflow-hidden border border-white/[0.07]" style={{ height: 420 }}>
+      <iframe
+        src="https://www.tradingview.com/embed-widget/events/?locale=en#%7B%22colorTheme%22%3A%22dark%22%2C%22isTransparent%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22100%25%22%7D"
+        className="w-full h-full border-0"
+        title="Economic Calendar"
+        allowFullScreen
+      />
+    </div>
+  );
+}
+
+function HeatmapWidget() {
+  return (
+    <div className="rounded-2xl overflow-hidden border border-white/[0.07]" style={{ height: 420 }}>
+      <iframe
+        src="https://www.tradingview.com/embed-widget/crypto-coins-heatmap/?locale=en#%7B%22dataSource%22%3A%22Crypto%22%2C%22blockSize%22%3A%22market_cap_calc%22%2C%22blockColor%22%3A%22change%22%2C%22colorTheme%22%3A%22dark%22%2C%22isTransparent%22%3Atrue%2C%22width%22%3A%22100%25%22%2C%22height%22%3A%22100%25%22%7D"
+        className="w-full h-full border-0"
+        title="Crypto Heatmap"
+        allowFullScreen
+      />
+    </div>
+  );
+}
+
+// ─── Main Modal ───────────────────────────────────────────────────────────────
+interface Props { tool: ToolDef; onClose: () => void; }
+
+export function UnifiedScannerModal({ tool, onClose }: Props) {
+  const [symbol, setSymbol] = useState('BTCUSDT');
+  const [timeframe, setTimeframe] = useState('1H');
+  const [phase, setPhase] = useState<'idle' | 'scanning' | 'done'>('idle');
+  const [result, setResult] = useState<ScanResult | null>(null);
+
+  const isWidget = tool.category === 'widget';
+
+  function handleScan() {
+    setPhase('scanning');
+    setResult(null);
+    setTimeout(() => {
+      setResult(simulateScan(tool.name, symbol, timeframe));
+      setPhase('done');
+    }, 1800 + Math.random() * 800);
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" style={{ animation: 'fade-in 0.2s ease forwards' }}>
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/75 backdrop-blur-md" onClick={onClose} />
+
+      {/* Sheet */}
+      <div
+        className="relative w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl border border-white/[0.08] shadow-2xl shadow-black/60 flex flex-col"
+        style={{ background: 'rgba(8,8,8,0.95)', backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)', maxHeight: '92dvh', animation: 'slide-up 0.32s cubic-bezier(0.16,1,0.3,1) forwards' }}
+      >
+        {/* Drag handle */}
+        <div className="flex justify-center pt-3 pb-0 sm:hidden shrink-0">
+          <div className="w-10 h-1 bg-white/20 rounded-full" />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            {tool.category === 'widget' ? <Globe className="w-5 h-5 text-orange-500 shrink-0" /> : <Zap className="w-5 h-5 text-orange-500 shrink-0" />}
+            <div className="min-w-0">
+              <h2 className="text-white font-bold text-base truncate">{tool.name}</h2>
+              <p className="text-[10px] text-white/35 truncate">{tool.subtitle}</p>
+            </div>
+          </div>
+          <button onClick={onClose} aria-label="Close" className="shrink-0 ml-2 p-1.5 text-white/40 hover:text-white bg-white/[0.05] hover:bg-white/10 rounded-full transition-all active:scale-95">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="overflow-y-auto flex-1 p-4 space-y-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+
+          {/* Widget-only view */}
+          {isWidget && (
+            tool.name === 'Economic Calendar' ? <EconomicCalendarWidget /> : <HeatmapWidget />
+          )}
+
+          {/* Scanner inputs */}
+          {!isWidget && (
+            <>
+              {/* Tag + category strip */}
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border ${tool.tagColor}`}>{tool.tag}</span>
+                <BarChart2 className="w-3.5 h-3.5 text-white/20" />
+                <span className="text-[10px] text-white/30 font-mono">{symbol} · {timeframe}</span>
+              </div>
+
+              {/* Inputs row */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1.5">Symbol</label>
+                  <input
+                    value={symbol}
+                    onChange={e => setSymbol(e.target.value.toUpperCase())}
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white font-mono text-sm focus:outline-none focus:border-orange-500/50 focus:bg-white/[0.06] transition-all tabular-nums placeholder:text-white/20"
+                    placeholder="BTCUSDT"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1.5">Timeframe</label>
+                  <select
+                    value={timeframe}
+                    onChange={e => setTimeframe(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white font-mono text-sm focus:outline-none focus:border-orange-500/50 transition-all appearance-none cursor-pointer"
+                  >
+                    {['15m', '1H', '4H', '1D'].map(tf => <option key={tf} value={tf} className="bg-zinc-900">{tf}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* Scan Button */}
+              <button
+                onClick={handleScan}
+                disabled={phase === 'scanning'}
+                className="w-full py-4 rounded-2xl font-bold text-base tracking-wider transition-all active:scale-[0.98] disabled:cursor-not-allowed relative overflow-hidden"
+                style={{
+                  background: phase === 'scanning'
+                    ? 'linear-gradient(135deg, #92400e, #78350f)'
+                    : 'linear-gradient(135deg, #f97316, #ea580c)',
+                  boxShadow: phase !== 'scanning' ? '0 0 32px rgba(249,115,22,0.3)' : 'none',
+                  color: '#fff',
+                }}
+              >
+                {phase === 'scanning' ? (
+                  <span className="flex items-center justify-center gap-2.5">
+                    <span className="w-4 h-4 border-2 border-orange-300/40 border-t-orange-200 rounded-full animate-spin" />
+                    <span className="animate-pulse tracking-[0.2em] text-sm">SCANNING ALGORITHMS...</span>
+                  </span>
+                ) : (
+                  <span className="tracking-[0.15em]">⚡ START SCAN · تحليل</span>
+                )}
+              </button>
+
+              {/* Result */}
+              {phase === 'done' && result && (
+                <div style={{ animation: 'slide-up 0.3s cubic-bezier(0.16,1,0.3,1) forwards' }}>
+                  <ResultCard result={result} tool={tool} />
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
