@@ -10,9 +10,18 @@ import { calculateGARCH }  from '@/lib/algorithms/quant';
 import type { GarchResult } from '@/lib/algorithms/quant';
 import { GarchResultCard } from '@/components/tools/GarchResultCard';
 import { VIPResultCard }   from '@/components/tools/VIPResultCard';
-import { detectWedge }     from '@/lib/algorithms/patterns';
-import type { PatternResult } from '@/lib/algorithms/patterns';
-import { WedgeResultCard } from '@/components/tools/WedgeResultCard';
+import { detectWedge }        from '@/lib/algorithms/patterns';
+import type { PatternResult }  from '@/lib/algorithms/patterns';
+import { WedgeResultCard }     from '@/components/tools/WedgeResultCard';
+import {
+  analyzeRSI, analyzeMACD, analyzeBollinger,
+} from '@/lib/algorithms/momentum';
+import type {
+  RSIResult, MACDResult, BollingerResult,
+} from '@/lib/algorithms/momentum';
+import {
+  RsiResultCard, MacdResultCard, BollingerResultCard,
+} from '@/components/tools/MomentumResultCards';
 
 // ─── Tool Dictionary ──────────────────────────────────────────────────────────
 export type ToolCategory = 'pattern' | 'smc' | 'math' | 'momentum' | 'widget';
@@ -209,12 +218,15 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
   const [priceEnd,   setPriceEnd]   = useState('');
   const [period,     setPeriod]     = useState('14');
   const [direction,  setDirection]  = useState('Bullish ↑');
-  const [phase,        setPhase]       = useState<'idle' | 'scanning' | 'done'>('idle');
-  const [result,       setResult]      = useState<ScanResult    | null>(null);
-  const [smcResult,    setSmcResult]   = useState<SMCResult     | null>(null);
-  const [garchResult,  setGarchResult] = useState<GarchResult   | null>(null);
-  const [wedgeResult,  setWedgeResult] = useState<PatternResult | null>(null);
-  const [fetchErr,     setFetchErr]    = useState<string | null>(null);
+  const [phase,          setPhase]         = useState<'idle' | 'scanning' | 'done'>('idle');
+  const [result,         setResult]        = useState<ScanResult    | null>(null);
+  const [smcResult,      setSmcResult]     = useState<SMCResult     | null>(null);
+  const [garchResult,    setGarchResult]   = useState<GarchResult   | null>(null);
+  const [wedgeResult,    setWedgeResult]   = useState<PatternResult | null>(null);
+  const [rsiResult,      setRsiResult]     = useState<RSIResult     | null>(null);
+  const [macdResult,     setMacdResult]    = useState<MACDResult    | null>(null);
+  const [bollingerResult,setBollingerResult]= useState<BollingerResult|null>(null);
+  const [fetchErr,       setFetchErr]      = useState<string | null>(null);
 
   const isWidget = tool.category === 'widget';
 
@@ -236,6 +248,9 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
     setSmcResult(null);
     setGarchResult(null);
     setWedgeResult(null);
+    setRsiResult(null);
+    setMacdResult(null);
+    setBollingerResult(null);
     setFetchErr(null);
 
     if (!isWidget) {
@@ -264,6 +279,29 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
           const klines = await fetchKlines(symbol, '4h', 400);
           console.info(`[Wedge] ✓ ${symbol} 4H — ${klines.length} candles`);
           setWedgeResult(detectWedge(klines));
+          setPhase('done');
+          return;
+        }
+
+        // ── Momentum Batch — 100 candles → RSI / MACD / Bollinger ────────────
+        if (tool.name === 'Divergence Scanner') {
+          const klines = await fetchKlines(symbol, timeframe, 100);
+          console.info(`[RSI] ✓ ${symbol} ${timeframe}`);
+          setRsiResult(analyzeRSI(klines));
+          setPhase('done');
+          return;
+        }
+        if (tool.name === 'CHOP Index') {
+          const klines = await fetchKlines(symbol, timeframe, 100);
+          console.info(`[MACD] ✓ ${symbol} ${timeframe}`);
+          setMacdResult(analyzeMACD(klines));
+          setPhase('done');
+          return;
+        }
+        if (tool.name === '4x4 Confluence') {
+          const klines = await fetchKlines(symbol, timeframe, 100);
+          console.info(`[BB] ✓ ${symbol} ${timeframe}`);
+          setBollingerResult(analyzeBollinger(klines));
           setPhase('done');
           return;
         }
@@ -454,8 +492,26 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
                 <WedgeResultCard data={wedgeResult} symbol={symbol} />
               )}
 
+              {/* Result — RSI (Divergence Scanner) */}
+              {phase === 'done' && rsiResult && tool.name === 'Divergence Scanner' && (
+                <RsiResultCard data={rsiResult} symbol={symbol} timeframe={timeframe} />
+              )}
+
+              {/* Result — MACD (CHOP Index) */}
+              {phase === 'done' && macdResult && tool.name === 'CHOP Index' && (
+                <MacdResultCard data={macdResult} symbol={symbol} timeframe={timeframe} />
+              )}
+
+              {/* Result — Bollinger Bands (4x4 Confluence) */}
+              {phase === 'done' && bollingerResult && tool.name === '4x4 Confluence' && (
+                <BollingerResultCard data={bollingerResult} symbol={symbol} timeframe={timeframe} />
+              )}
+
               {/* Result — all other tools (mocked) */}
-              {phase === 'done' && result && !['SMC Order Blocks','GARCH','Wedge Scanner'].includes(tool.name) && (
+              {phase === 'done' && result && ![
+                'SMC Order Blocks','GARCH','Wedge Scanner',
+                'Divergence Scanner','CHOP Index','4x4 Confluence',
+              ].includes(tool.name) && (
                 <div style={{ animation: 'slide-up 0.3s cubic-bezier(0.16,1,0.3,1) forwards' }}>
                   <ResultCard result={result} tool={tool} />
                 </div>
