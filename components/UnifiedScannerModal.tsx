@@ -40,6 +40,18 @@ import type {
 import {
   MonteCarloCard, LinearRegressionCard, MarkovCard, FourierCard,
 } from '@/components/tools/QuantResultCards';
+import {
+  detectDoublePattern, detectCupHandle, detectHeadShoulders,
+  detectTriangle, analyzeMarketStructure,
+} from '@/lib/algorithms/classicPatterns';
+import type {
+  DoublePatternResult, CupHandleResult, HSResult,
+  TriangleResult, MarketStructureResult,
+} from '@/lib/algorithms/classicPatterns';
+import {
+  DoublePatternCard, CupHandleCard, HeadShouldersCard,
+  TriangleCard, MarketStructureCard,
+} from '@/components/tools/ClassicPatternCards';
 
 // ─── Tool Dictionary ──────────────────────────────────────────────────────────
 export type ToolCategory = 'pattern' | 'smc' | 'math' | 'momentum' | 'widget';
@@ -251,6 +263,11 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
   const [lrResult,         setLrResult]        = useState<LinearRegressionResult| null>(null);
   const [markovResult,     setMarkovResult]    = useState<MarkovResult           | null>(null);
   const [fourierResult,    setFourierResult]   = useState<FourierResult          | null>(null);
+  const [doubleResult,     setDoubleResult]    = useState<DoublePatternResult | null>(null);
+  const [cupResult,        setCupResult]       = useState<CupHandleResult     | null>(null);
+  const [hsResult,         setHsResult]        = useState<HSResult            | null>(null);
+  const [triangleResult,   setTriangleResult]  = useState<TriangleResult      | null>(null);
+  const [msResult,         setMsResult]        = useState<MarketStructureResult| null>(null);
   const [fetchErr,         setFetchErr]        = useState<string | null>(null);
 
   const isWidget = tool.category === 'widget';
@@ -283,6 +300,11 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
     setLrResult(null);
     setMarkovResult(null);
     setFourierResult(null);
+    setDoubleResult(null);
+    setCupResult(null);
+    setHsResult(null);
+    setTriangleResult(null);
+    setMsResult(null);
     setFetchErr(null);
 
     if (!isWidget) {
@@ -387,6 +409,43 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
           const klines = await fetchKlines(symbol, timeframe, 300);
           console.info(`[Fourier] ✓ ${symbol} ${timeframe}`);
           setFourierResult(analyzeFourier(klines));
+          setPhase('done');
+          return;
+        }
+
+        // ── Classic Pattern Batch 4 — 300 candles on 4H ──────────────────────
+        if (tool.name === 'Double Pattern') {
+          const klines = await fetchKlines(symbol, '4h', 300);
+          console.info(`[Double] ✓ ${symbol} 4H`);
+          setDoubleResult(detectDoublePattern(klines));
+          setPhase('done');
+          return;
+        }
+        if (tool.name === 'Cup & Handle') {
+          const klines = await fetchKlines(symbol, '4h', 300);
+          console.info(`[Cup] ✓ ${symbol} 4H`);
+          setCupResult(detectCupHandle(klines));
+          setPhase('done');
+          return;
+        }
+        if (tool.name === 'Head & Shoulders') {
+          const klines = await fetchKlines(symbol, '4h', 300);
+          console.info(`[H&S] ✓ ${symbol} 4H`);
+          setHsResult(detectHeadShoulders(klines));
+          setPhase('done');
+          return;
+        }
+        if (tool.name === 'Triangle Predictor') {
+          const klines = await fetchKlines(symbol, '4h', 300);
+          console.info(`[Triangle] ✓ ${symbol} 4H`);
+          setTriangleResult(detectTriangle(klines));
+          setPhase('done');
+          return;
+        }
+        if (tool.name === 'Market Structure') {
+          const klines = await fetchKlines(symbol, timeframe, 150);
+          console.info(`[MS] ✓ ${symbol} ${timeframe}`);
+          setMsResult(analyzeMarketStructure(klines));
           setPhase('done');
           return;
         }
@@ -627,12 +686,38 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
                 <FourierCard data={fourierResult} symbol={symbol} timeframe={timeframe} />
               )}
 
-              {/* Result — all other tools (mocked) */}
+              {/* Result — Double Pattern */}
+              {phase === 'done' && doubleResult && tool.name === 'Double Pattern' && (
+                <DoublePatternCard data={doubleResult} symbol={symbol} timeframe={timeframe} />
+              )}
+
+              {/* Result — Cup & Handle */}
+              {phase === 'done' && cupResult && tool.name === 'Cup & Handle' && (
+                <CupHandleCard data={cupResult} symbol={symbol} timeframe={timeframe} />
+              )}
+
+              {/* Result — Head & Shoulders */}
+              {phase === 'done' && hsResult && tool.name === 'Head & Shoulders' && (
+                <HeadShouldersCard data={hsResult} symbol={symbol} timeframe={timeframe} />
+              )}
+
+              {/* Result — Triangle Predictor */}
+              {phase === 'done' && triangleResult && tool.name === 'Triangle Predictor' && (
+                <TriangleCard data={triangleResult} symbol={symbol} timeframe={timeframe} />
+              )}
+
+              {/* Result — Market Structure */}
+              {phase === 'done' && msResult && tool.name === 'Market Structure' && (
+                <MarketStructureCard data={msResult} symbol={symbol} timeframe={timeframe} />
+              )}
+
+              {/* Result — all other tools (mocked) — Wyckoff only */}
               {phase === 'done' && result && ![
                 'SMC Order Blocks','GARCH','Wedge Scanner',
                 'Divergence Scanner','CHOP Index','4x4 Confluence',
                 'FVG Scanner','Liquidity Sweep','Order Flow CDD',
                 'Monte Carlo','Linear Regression','Markov Model (HMM)','Fourier Transform',
+                'Double Pattern','Cup & Handle','Head & Shoulders','Triangle Predictor','Market Structure',
               ].includes(tool.name) && (
                 <div style={{ animation: 'slide-up 0.3s cubic-bezier(0.16,1,0.3,1) forwards' }}>
                   <ResultCard result={result} tool={tool} />
