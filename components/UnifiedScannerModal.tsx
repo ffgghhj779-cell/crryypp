@@ -5,6 +5,7 @@ import { X, Zap, Globe, BarChart2 } from 'lucide-react';
 
 // ─── Tool Dictionary ──────────────────────────────────────────────────────────
 export type ToolCategory = 'pattern' | 'smc' | 'math' | 'momentum' | 'widget';
+export type InputType = 'symbol' | 'timeframe' | 'price_start' | 'price_end' | 'period' | 'direction';
 
 export interface ToolDef {
   name: string;
@@ -12,39 +13,40 @@ export interface ToolDef {
   category: ToolCategory;
   subtitle: string;
   tagColor: string;
+  requiredInputs: InputType[];
 }
 
 export const ANALYSIS_TOOLS: ToolDef[] = [
   // A – Pattern Recognition
-  { name: 'Wedge Scanner',            tag: 'Pattern',     category: 'pattern',  subtitle: 'Rising & Falling Wedge detector', tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
-  { name: 'Double Pattern',           tag: 'Pattern',     category: 'pattern',  subtitle: 'Double Top & Bottom formations',  tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
-  { name: 'Cup & Handle',             tag: 'Pattern',     category: 'pattern',  subtitle: 'Bullish continuation scanner',    tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
-  { name: 'Head & Shoulders',         tag: 'Pattern',     category: 'pattern',  subtitle: 'Reversal pattern identifier',     tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
-  { name: 'Triangle Predictor',       tag: 'Pattern',     category: 'pattern',  subtitle: 'Sym / Asc / Desc triangles',      tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20' },
+  { name: 'Wedge Scanner',            tag: 'Pattern',     category: 'pattern',  subtitle: 'Rising & Falling Wedge detector', tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20', requiredInputs: ['symbol', 'timeframe'] },
+  { name: 'Double Pattern',           tag: 'Pattern',     category: 'pattern',  subtitle: 'Double Top & Bottom formations',  tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20', requiredInputs: ['symbol', 'timeframe'] },
+  { name: 'Cup & Handle',             tag: 'Pattern',     category: 'pattern',  subtitle: 'Bullish continuation scanner',    tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20', requiredInputs: ['symbol', 'timeframe', 'direction'] },
+  { name: 'Head & Shoulders',         tag: 'Pattern',     category: 'pattern',  subtitle: 'Reversal pattern identifier',     tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20', requiredInputs: ['symbol', 'timeframe', 'direction'] },
+  { name: 'Triangle Predictor',       tag: 'Pattern',     category: 'pattern',  subtitle: 'Sym / Asc / Desc triangles',      tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20', requiredInputs: ['symbol', 'timeframe', 'direction'] },
   // B – Smart Money
-  { name: 'SMC Order Blocks',         tag: 'Smart Money', category: 'smc',      subtitle: 'Bullish & Bearish OB zones',      tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
-  { name: 'Market Structure',         tag: 'Smart Money', category: 'smc',      subtitle: 'BOS & CHoCH tracker',             tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
-  { name: 'Wyckoff',                  tag: 'Smart Money', category: 'smc',      subtitle: 'Accumulation / Distribution phase',tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
-  { name: 'Order Flow CDD',           tag: 'Smart Money', category: 'smc',      subtitle: 'Cumulative Delta Divergence',      tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
-  { name: 'Liquidity Sweep',          tag: 'Smart Money', category: 'smc',      subtitle: 'Stop-hunt & sweep detector',      tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
+  { name: 'SMC Order Blocks',         tag: 'Smart Money', category: 'smc',      subtitle: 'Bullish & Bearish OB zones',      tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20',         requiredInputs: ['symbol', 'timeframe'] },
+  { name: 'Market Structure',         tag: 'Smart Money', category: 'smc',      subtitle: 'BOS & CHoCH tracker',             tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20',         requiredInputs: ['symbol', 'timeframe'] },
+  { name: 'Wyckoff',                  tag: 'Smart Money', category: 'smc',      subtitle: 'Accumulation / Distribution phase',tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20',         requiredInputs: ['symbol', 'timeframe', 'direction'] },
+  { name: 'Order Flow CDD',           tag: 'Smart Money', category: 'smc',      subtitle: 'Cumulative Delta Divergence',      tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20',         requiredInputs: ['symbol', 'timeframe', 'period'] },
+  { name: 'Liquidity Sweep',          tag: 'Smart Money', category: 'smc',      subtitle: 'Stop-hunt & sweep detector',      tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20',         requiredInputs: ['symbol', 'timeframe'] },
   // C – Advanced Math
-  { name: 'Monte Carlo',              tag: 'Quant',       category: 'math',     subtitle: '1000-iteration price projection',  tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-  { name: 'GARCH',                    tag: 'Quant',       category: 'math',     subtitle: 'Volatility forecasting bands',     tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-  { name: 'Markov Model (HMM)',       tag: 'Quant',       category: 'math',     subtitle: 'Market regime classifier',         tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-  { name: 'Fourier Transform',        tag: 'Quant',       category: 'math',     subtitle: 'Cycle & time period detection',    tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-  { name: 'Linear Regression',        tag: 'Quant',       category: 'math',     subtitle: 'Fair value & channel estimation', tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+  { name: 'Monte Carlo',              tag: 'Quant',       category: 'math',     subtitle: '1000-iteration price projection',  tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol', 'price_start', 'price_end', 'period'] },
+  { name: 'GARCH',                    tag: 'Quant',       category: 'math',     subtitle: 'Volatility forecasting bands',     tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol', 'timeframe', 'period'] },
+  { name: 'Markov Model (HMM)',       tag: 'Quant',       category: 'math',     subtitle: 'Market regime classifier',         tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol', 'timeframe'] },
+  { name: 'Fourier Transform',        tag: 'Quant',       category: 'math',     subtitle: 'Cycle & time period detection',    tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol', 'timeframe', 'period'] },
+  { name: 'Linear Regression',        tag: 'Quant',       category: 'math',     subtitle: 'Fair value & channel estimation',  tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol', 'price_start', 'price_end', 'direction'] },
   // D – Momentum & Signals
-  { name: 'Divergence Scanner',       tag: 'Momentum',    category: 'momentum', subtitle: 'RSI & MACD hidden/regular div',   tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
-  { name: 'Trading VIP 1',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
-  { name: 'Trading VIP 2',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
-  { name: 'Trading VIP 3',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
-  { name: 'Trading VIP 4',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
-  { name: 'Trading VIP 5',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
-  { name: '4x4 Confluence',           tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-timeframe alignment score', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
-  { name: 'CHOP Index',               tag: 'Momentum',    category: 'momentum', subtitle: 'Choppiness vs trend strength',    tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+  { name: 'Divergence Scanner',       tag: 'Momentum',    category: 'momentum', subtitle: 'RSI & MACD hidden/regular div',   tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
+  { name: 'Trading VIP 1',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
+  { name: 'Trading VIP 2',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
+  { name: 'Trading VIP 3',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
+  { name: 'Trading VIP 4',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
+  { name: 'Trading VIP 5',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
+  { name: '4x4 Confluence',           tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-timeframe alignment score',  tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol'] },
+  { name: 'CHOP Index',               tag: 'Momentum',    category: 'momentum', subtitle: 'Choppiness vs trend strength',    tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
   // E – TradingView Widgets
-  { name: 'Economic Calendar',        tag: 'Widget',      category: 'widget',   subtitle: 'Macro event calendar',            tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20' },
-  { name: 'Heatmap',                  tag: 'Widget',      category: 'widget',   subtitle: 'Crypto market heatmap',           tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20' },
+  { name: 'Economic Calendar',        tag: 'Widget',      category: 'widget',   subtitle: 'Macro event calendar',            tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20',      requiredInputs: [] },
+  { name: 'Heatmap',                  tag: 'Widget',      category: 'widget',   subtitle: 'Crypto market heatmap',           tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20',      requiredInputs: [] },
 ];
 
 // ─── Mock Engine ──────────────────────────────────────────────────────────────
@@ -179,13 +181,39 @@ function HeatmapWidget() {
 // ─── Main Modal ───────────────────────────────────────────────────────────────
 interface Props { tool: ToolDef; onClose: () => void; }
 
+// ─── Input field meta ────────────────────────────────────────────────────────
+const INPUT_META: Record<InputType, { label: string; placeholder?: string; type: 'text' | 'number' | 'select' }> = {
+  symbol:      { label: 'Symbol',      placeholder: 'BTCUSDT', type: 'text'   },
+  timeframe:   { label: 'Timeframe',                           type: 'select' },
+  price_start: { label: 'Start Price', placeholder: '100000',  type: 'number' },
+  price_end:   { label: 'End Price',   placeholder: '110000',  type: 'number' },
+  period:      { label: 'Period',      placeholder: '14',      type: 'number' },
+  direction:   { label: 'Direction',                           type: 'select' },
+};
+
 export function UnifiedScannerModal({ tool, onClose }: Props) {
-  const [symbol, setSymbol] = useState('BTCUSDT');
-  const [timeframe, setTimeframe] = useState('1H');
+  const [symbol,     setSymbol]     = useState('BTCUSDT');
+  const [timeframe,  setTimeframe]  = useState('1H');
+  const [priceStart, setPriceStart] = useState('');
+  const [priceEnd,   setPriceEnd]   = useState('');
+  const [period,     setPeriod]     = useState('14');
+  const [direction,  setDirection]  = useState('Bullish ↑');
   const [phase, setPhase] = useState<'idle' | 'scanning' | 'done'>('idle');
   const [result, setResult] = useState<ScanResult | null>(null);
 
   const isWidget = tool.category === 'widget';
+
+  // Map input key → current value (for simulateScan passthrough)
+  function getInputValue(key: InputType): string {
+    switch (key) {
+      case 'symbol':      return symbol;
+      case 'timeframe':   return timeframe;
+      case 'price_start': return priceStart || '100000';
+      case 'price_end':   return priceEnd   || '110000';
+      case 'period':      return period;
+      case 'direction':   return direction;
+    }
+  }
 
   function handleScan() {
     setPhase('scanning');
@@ -237,33 +265,74 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
           {!isWidget && (
             <>
               {/* Tag + category strip */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border ${tool.tagColor}`}>{tool.tag}</span>
                 <BarChart2 className="w-3.5 h-3.5 text-white/20" />
-                <span className="text-[10px] text-white/30 font-mono">{symbol} · {timeframe}</span>
+                <span className="text-[10px] text-white/30 font-mono">
+                  {tool.requiredInputs.map(k => getInputValue(k)).filter(Boolean).join(' · ')}
+                </span>
               </div>
 
-              {/* Inputs row */}
+              {/* Dynamic inputs */}
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1.5">Symbol</label>
-                  <input
-                    value={symbol}
-                    onChange={e => setSymbol(e.target.value.toUpperCase())}
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white font-mono text-sm focus:outline-none focus:border-orange-500/50 focus:bg-white/[0.06] transition-all tabular-nums placeholder:text-white/20"
-                    placeholder="BTCUSDT"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1.5">Timeframe</label>
-                  <select
-                    value={timeframe}
-                    onChange={e => setTimeframe(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white font-mono text-sm focus:outline-none focus:border-orange-500/50 transition-all appearance-none cursor-pointer"
-                  >
-                    {['15m', '1H', '4H', '1D'].map(tf => <option key={tf} value={tf} className="bg-zinc-900">{tf}</option>)}
-                  </select>
-                </div>
+                {tool.requiredInputs.map((key) => {
+                  const meta = INPUT_META[key];
+                  const inputClass = "w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white font-mono text-sm focus:outline-none focus:border-orange-500/60 focus:bg-white/[0.07] focus:ring-1 focus:ring-orange-500/30 transition-all placeholder:text-white/20 tabular-nums";
+
+                  if (meta.type === 'select' && key === 'timeframe') return (
+                    <div key={key}>
+                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1.5">{meta.label}</label>
+                      <select value={timeframe} onChange={e => setTimeframe(e.target.value)}
+                        className={inputClass + ' appearance-none cursor-pointer'}>
+                        {['15m','1H','4H','1D'].map(tf => <option key={tf} value={tf} className="bg-zinc-900">{tf}</option>)}
+                      </select>
+                    </div>
+                  );
+
+                  if (meta.type === 'select' && key === 'direction') return (
+                    <div key={key}>
+                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1.5">{meta.label}</label>
+                      <select value={direction} onChange={e => setDirection(e.target.value)}
+                        className={inputClass + ' appearance-none cursor-pointer'}>
+                        {['Bullish ↑','Bearish ↓'].map(d => <option key={d} value={d} className="bg-zinc-900">{d}</option>)}
+                      </select>
+                    </div>
+                  );
+
+                  if (key === 'symbol') return (
+                    <div key={key}>
+                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1.5">{meta.label}</label>
+                      <input value={symbol} onChange={e => setSymbol(e.target.value.toUpperCase())}
+                        className={inputClass} placeholder={meta.placeholder} />
+                    </div>
+                  );
+
+                  if (key === 'price_start') return (
+                    <div key={key}>
+                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1.5">{meta.label}</label>
+                      <input type="number" value={priceStart} onChange={e => setPriceStart(e.target.value)}
+                        className={inputClass} placeholder={meta.placeholder} />
+                    </div>
+                  );
+
+                  if (key === 'price_end') return (
+                    <div key={key}>
+                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1.5">{meta.label}</label>
+                      <input type="number" value={priceEnd} onChange={e => setPriceEnd(e.target.value)}
+                        className={inputClass} placeholder={meta.placeholder} />
+                    </div>
+                  );
+
+                  if (key === 'period') return (
+                    <div key={key}>
+                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1.5">{meta.label}</label>
+                      <input type="number" value={period} onChange={e => setPeriod(e.target.value)}
+                        className={inputClass} placeholder={meta.placeholder} min="1" max="200" />
+                    </div>
+                  );
+
+                  return null;
+                })}
               </div>
 
               {/* Scan Button */}
