@@ -31,6 +31,15 @@ import type {
 import {
   FvgResultCard, SweepResultCard, CvdResultCard,
 } from '@/components/tools/OrderFlowResultCards';
+import {
+  analyzeMonteCarlo, analyzeLinearRegression, analyzeMarkovModel, analyzeFourier,
+} from '@/lib/algorithms/advancedQuant';
+import type {
+  MonteCarloResult, LinearRegressionResult, MarkovResult, FourierResult,
+} from '@/lib/algorithms/advancedQuant';
+import {
+  MonteCarloCard, LinearRegressionCard, MarkovCard, FourierCard,
+} from '@/components/tools/QuantResultCards';
 
 // ─── Tool Dictionary ──────────────────────────────────────────────────────────
 export type ToolCategory = 'pattern' | 'smc' | 'math' | 'momentum' | 'widget';
@@ -238,6 +247,10 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
   const [fvgResult,        setFvgResult]       = useState<FVGResult     | null>(null);
   const [sweepResult,      setSweepResult]     = useState<SweepResult   | null>(null);
   const [cvdResult,        setCvdResult]       = useState<CVDResult     | null>(null);
+  const [mcResult,         setMcResult]        = useState<MonteCarloResult      | null>(null);
+  const [lrResult,         setLrResult]        = useState<LinearRegressionResult| null>(null);
+  const [markovResult,     setMarkovResult]    = useState<MarkovResult           | null>(null);
+  const [fourierResult,    setFourierResult]   = useState<FourierResult          | null>(null);
   const [fetchErr,         setFetchErr]        = useState<string | null>(null);
 
   const isWidget = tool.category === 'widget';
@@ -266,6 +279,10 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
     setFvgResult(null);
     setSweepResult(null);
     setCvdResult(null);
+    setMcResult(null);
+    setLrResult(null);
+    setMarkovResult(null);
+    setFourierResult(null);
     setFetchErr(null);
 
     if (!isWidget) {
@@ -340,6 +357,36 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
           const klines = await fetchKlines(symbol, timeframe, 150);
           console.info(`[CVD] ✓ ${symbol} ${timeframe}`);
           setCvdResult(analyzeCVDProxy(klines));
+          setPhase('done');
+          return;
+        }
+
+        // ── Advanced Quant Batch 3 — 200–300 candles ──────────────────────────
+        if (tool.name === 'Monte Carlo') {
+          const klines = await fetchKlines(symbol, timeframe, 200);
+          console.info(`[MC] ✓ ${symbol} ${timeframe}`);
+          setMcResult(analyzeMonteCarlo(klines));
+          setPhase('done');
+          return;
+        }
+        if (tool.name === 'Linear Regression') {
+          const klines = await fetchKlines(symbol, timeframe, 300);
+          console.info(`[LR] ✓ ${symbol} ${timeframe}`);
+          setLrResult(analyzeLinearRegression(klines));
+          setPhase('done');
+          return;
+        }
+        if (tool.name === 'Markov Model (HMM)') {
+          const klines = await fetchKlines(symbol, timeframe, 300);
+          console.info(`[Markov] ✓ ${symbol} ${timeframe}`);
+          setMarkovResult(analyzeMarkovModel(klines));
+          setPhase('done');
+          return;
+        }
+        if (tool.name === 'Fourier Transform') {
+          const klines = await fetchKlines(symbol, timeframe, 300);
+          console.info(`[Fourier] ✓ ${symbol} ${timeframe}`);
+          setFourierResult(analyzeFourier(klines));
           setPhase('done');
           return;
         }
@@ -560,11 +607,32 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
                 <CvdResultCard data={cvdResult} symbol={symbol} timeframe={timeframe} />
               )}
 
+              {/* Result — Monte Carlo */}
+              {phase === 'done' && mcResult && tool.name === 'Monte Carlo' && (
+                <MonteCarloCard data={mcResult} symbol={symbol} timeframe={timeframe} />
+              )}
+
+              {/* Result — Linear Regression */}
+              {phase === 'done' && lrResult && tool.name === 'Linear Regression' && (
+                <LinearRegressionCard data={lrResult} symbol={symbol} timeframe={timeframe} />
+              )}
+
+              {/* Result — Markov Model */}
+              {phase === 'done' && markovResult && tool.name === 'Markov Model (HMM)' && (
+                <MarkovCard data={markovResult} symbol={symbol} timeframe={timeframe} />
+              )}
+
+              {/* Result — Fourier Transform */}
+              {phase === 'done' && fourierResult && tool.name === 'Fourier Transform' && (
+                <FourierCard data={fourierResult} symbol={symbol} timeframe={timeframe} />
+              )}
+
               {/* Result — all other tools (mocked) */}
               {phase === 'done' && result && ![
                 'SMC Order Blocks','GARCH','Wedge Scanner',
                 'Divergence Scanner','CHOP Index','4x4 Confluence',
                 'FVG Scanner','Liquidity Sweep','Order Flow CDD',
+                'Monte Carlo','Linear Regression','Markov Model (HMM)','Fourier Transform',
               ].includes(tool.name) && (
                 <div style={{ animation: 'slide-up 0.3s cubic-bezier(0.16,1,0.3,1) forwards' }}>
                   <ResultCard result={result} tool={tool} />
