@@ -52,6 +52,9 @@ import {
   DoublePatternCard, CupHandleCard, HeadShouldersCard,
   TriangleCard, MarketStructureCard,
 } from '@/components/tools/ClassicPatternCards';
+import { analyzeWyckoff }   from '@/lib/algorithms/wyckoff';
+import type { WyckoffResult } from '@/lib/algorithms/wyckoff';
+import { WyckoffCard }       from '@/components/tools/WyckoffCard';
 
 // ─── Tool Dictionary ──────────────────────────────────────────────────────────
 export type ToolCategory = 'pattern' | 'smc' | 'math' | 'momentum' | 'widget';
@@ -268,6 +271,7 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
   const [hsResult,         setHsResult]        = useState<HSResult            | null>(null);
   const [triangleResult,   setTriangleResult]  = useState<TriangleResult      | null>(null);
   const [msResult,         setMsResult]        = useState<MarketStructureResult| null>(null);
+  const [wyckoffResult,    setWyckoffResult]   = useState<WyckoffResult        | null>(null);
   const [fetchErr,         setFetchErr]        = useState<string | null>(null);
 
   const isWidget = tool.category === 'widget';
@@ -305,6 +309,7 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
     setHsResult(null);
     setTriangleResult(null);
     setMsResult(null);
+    setWyckoffResult(null);
     setFetchErr(null);
 
     if (!isWidget) {
@@ -450,9 +455,19 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
           return;
         }
 
-        // ── All other tools — live connection test + mock result ─────────────
-        const klines = await fetchKlines(symbol, timeframe, 100);
-        console.info(`[BinanceFetcher] ✓ ${symbol} ${timeframe} — last close: $${klines[klines.length-1]?.close.toLocaleString()}`);
+        // ── Wyckoff — 500 candles → effort / volatility / phase classification ───
+        if (tool.name === 'Wyckoff') {
+          const klines = await fetchKlines(symbol, timeframe, 500);
+          console.info(`[Wyckoff] ✓ ${symbol} ${timeframe} — ${klines.length} candles`);
+          setWyckoffResult(analyzeWyckoff(klines));
+          setPhase('done');
+          return;
+        }
+
+        // ── Fallback fetch (keeps connection test for any remaining tools) ────────
+        await fetchKlines(symbol, timeframe, 100);
+        console.info(`[BinanceFetcher] ✓ ${symbol} ${timeframe}`);
+        setPhase('done');
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Unknown fetch error';
         setFetchErr(msg);
@@ -461,11 +476,7 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
       }
     }
 
-    // Mocked quant result for non-quantitative tools
-    setTimeout(() => {
-      setResult(simulateScan(tool.name, symbol, timeframe));
-      setPhase('done');
-    }, 400 + Math.random() * 300);
+    // All tools are now live — no mock fallback needed
   }
 
   return (
@@ -711,17 +722,9 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
                 <MarketStructureCard data={msResult} symbol={symbol} timeframe={timeframe} />
               )}
 
-              {/* Result — all other tools (mocked) — Wyckoff only */}
-              {phase === 'done' && result && ![
-                'SMC Order Blocks','GARCH','Wedge Scanner',
-                'Divergence Scanner','CHOP Index','4x4 Confluence',
-                'FVG Scanner','Liquidity Sweep','Order Flow CDD',
-                'Monte Carlo','Linear Regression','Markov Model (HMM)','Fourier Transform',
-                'Double Pattern','Cup & Handle','Head & Shoulders','Triangle Predictor','Market Structure',
-              ].includes(tool.name) && (
-                <div style={{ animation: 'slide-up 0.3s cubic-bezier(0.16,1,0.3,1) forwards' }}>
-                  <ResultCard result={result} tool={tool} />
-                </div>
+              {/* Result — Wyckoff */}
+              {phase === 'done' && wyckoffResult && tool.name === 'Wyckoff' && (
+                <WyckoffCard data={wyckoffResult} symbol={symbol} timeframe={timeframe} />
               )}
             </>
           )}
