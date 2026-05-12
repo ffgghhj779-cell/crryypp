@@ -1,43 +1,58 @@
 'use client';
 
-import { Activity, Calendar, Clock, Search, RefreshCw, BarChart2, Star, DollarSign } from 'lucide-react';
+import { Activity, Calendar, Clock, Search, RefreshCw, BarChart2, Star, DollarSign, History } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
+import { useState } from 'react';
+import { HistorySidebar } from '@/components/layout/HistorySidebar';
 
 export function TopBar() {
   const { setActiveModal } = useAppStore();
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   return (
-    <div className="sticky top-0 z-40 glass-dark border-b border-white/[0.06] px-4 py-3 flex items-center justify-between shrink-0">
-      <div className="flex flex-col">
-        <h1 className="text-white font-bold text-lg leading-none tracking-tighter">Crypto Terminal</h1>
-        <div className="flex items-center space-x-2 mt-1">
-          <span className="flex h-2 w-2 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span className="text-[10px] text-white/40 font-mono tracking-widest uppercase">Live Datafeed</span>
+    <>
+      <HistorySidebar open={historyOpen} onClose={() => setHistoryOpen(false)} />
+      <div className="sticky top-0 z-40 glass-dark border-b border-white/[0.06] px-4 py-3 flex items-center justify-between shrink-0">
+        <div className="flex flex-col">
+          <h1 className="text-white font-bold text-lg leading-none tracking-tighter">Crypto Terminal</h1>
+          <div className="flex items-center space-x-2 mt-1">
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-[10px] text-white/40 font-mono tracking-widest uppercase">Live Datafeed</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          {/* History button */}
+          <button
+            aria-label="History"
+            className="p-2 rounded-full text-white/50 hover:text-orange-400 hover:bg-orange-500/10 active:scale-95 transition-all duration-150"
+            onClick={() => setHistoryOpen(true)}
+          >
+            <History className="w-4 h-4" />
+          </button>
+
+          {[
+            { icon: <Star className="w-4 h-4" />,     modal: 'favorites'      as const, label: 'Favorites' },
+            { icon: <BarChart2 className="w-4 h-4" />, modal: 'market_cap'    as const, label: 'Market Cap' },
+            { icon: <Calendar className="w-4 h-4" />, modal: 'calendar'       as const, label: 'Calendar' },
+            { icon: <Activity className="w-4 h-4" />, modal: 'daily_briefing' as const, label: 'Briefing' },
+            { icon: <Clock className="w-4 h-4" />,    modal: 'sessions'       as const, label: 'Sessions' },
+          ].map(({ icon, modal, label }) => (
+            <button
+              key={modal}
+              aria-label={label}
+              className="p-2 rounded-full text-white/50 hover:text-orange-400 hover:bg-orange-500/10 active:scale-95 transition-all duration-150"
+              onClick={() => setActiveModal(modal)}
+            >
+              {icon}
+            </button>
+          ))}
         </div>
       </div>
-
-      <div className="flex items-center gap-1.5">
-        {[
-          { icon: <Star className="w-4 h-4" />, modal: 'favorites' as const, label: 'Favorites' },
-          { icon: <BarChart2 className="w-4 h-4" />, modal: 'market_cap' as const, label: 'Market Cap' },
-          { icon: <Calendar className="w-4 h-4" />, modal: 'calendar' as const, label: 'Calendar' },
-          { icon: <Activity className="w-4 h-4" />, modal: 'daily_briefing' as const, label: 'Briefing' },
-          { icon: <Clock className="w-4 h-4" />, modal: 'sessions' as const, label: 'Sessions' },
-        ].map(({ icon, modal, label }) => (
-          <button
-            key={modal}
-            aria-label={label}
-            className="p-2 rounded-full text-white/50 hover:text-orange-400 hover:bg-orange-500/10 active:scale-95 transition-all duration-150"
-            onClick={() => setActiveModal(modal)}
-          >
-            {icon}
-          </button>
-        ))}
-      </div>
-    </div>
+    </>
   );
 }
 

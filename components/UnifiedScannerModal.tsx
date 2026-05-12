@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Zap, Globe, BarChart2, AlertTriangle } from 'lucide-react';
 import { fetchKlines }      from '@/lib/binance/fetcher';
 import { calculateSMC }    from '@/lib/algorithms/smc';
@@ -232,7 +232,11 @@ function HeatmapWidget() {
 }
 
 // ─── Main Modal ───────────────────────────────────────────────────────────────
-interface Props { tool: ToolDef; onClose: () => void; }
+interface Props {
+  tool: ToolDef;
+  onClose: () => void;
+  onScanComplete?: (symbol: string, timeframe: string, summary: string) => void;
+}
 
 // ─── Input field meta ────────────────────────────────────────────────────────
 const INPUT_META: Record<InputType, { label: string; placeholder?: string; type: 'text' | 'number' | 'select' }> = {
@@ -244,7 +248,7 @@ const INPUT_META: Record<InputType, { label: string; placeholder?: string; type:
   direction:   { label: 'Direction',                           type: 'select' },
 };
 
-export function UnifiedScannerModal({ tool, onClose }: Props) {
+export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
   const [symbol,     setSymbol]     = useState('BTCUSDT');
   const [timeframe,  setTimeframe]  = useState('1H');
   const [priceStart, setPriceStart] = useState('');
@@ -275,6 +279,34 @@ export function UnifiedScannerModal({ tool, onClose }: Props) {
   const [fetchErr,         setFetchErr]        = useState<string | null>(null);
 
   const isWidget = tool.category === 'widget';
+
+  // ── Notify parent after every completed scan ────────────────────────────────
+  useEffect(() => {
+    if (phase !== 'done' || !onScanComplete) return;
+    // Build a 1-line summary from whichever result state is set
+    let summary = '';
+    if (smcResult)      summary = `${smcResult.verdict} — اتجاه: ${smcResult.verdict}`;
+    if (garchResult)    summary = `حالة: ${garchResult.state} — نطاق: ${garchResult.lowerBound}–${garchResult.upperBound}`;
+    if (wedgeResult)    summary = wedgeResult.detected ? `${wedgeResult.type} — اختراق محتمل` : 'لم يُرصد نموذج إسفين';
+    if (rsiResult)      summary = `RSI: ${rsiResult.value.toFixed(1)} — ${rsiResult.state}`;
+    if (macdResult)     summary = `MACD: ${macdResult.state} — هيستوغرام: ${macdResult.histogram.toFixed(4)}`;
+    if (bollingerResult)summary = `BB: ${bollingerResult.state} — عرض: ${bollingerResult.bandwidth.toFixed(4)}`;
+    if (fvgResult)      summary = fvgResult.detected ? `${fvgResult.type} FVG عند ${fvgResult.top}–${fvgResult.bottom}` : 'لم يُرصد FVG';
+    if (sweepResult)    summary = sweepResult.swept ? `${sweepResult.type} — مستوى: ${sweepResult.sweepLevel}` : 'لا يوجد اختطاف سيولة';
+    if (cvdResult)      summary = cvdResult.verdict;
+    if (mcResult)       summary = `MC: ${mcResult.verdict} — نطاق: ${mcResult.projectedLow}–${mcResult.projectedHigh}`;
+    if (lrResult)       summary = lrResult.verdict;
+    if (markovResult)   summary = markovResult.verdict;
+    if (fourierResult)  summary = fourierResult.verdict;
+    if (doubleResult)   summary = doubleResult.verdict;
+    if (cupResult)      summary = cupResult.verdict;
+    if (hsResult)       summary = hsResult.verdict;
+    if (triangleResult) summary = triangleResult.verdict;
+    if (msResult)       summary = msResult.verdict;
+    if (wyckoffResult)  summary = `مرحلة: ${wyckoffResult.phaseAr} — ثقة: ${wyckoffResult.confidence}%`;
+    if (summary) onScanComplete(symbol, timeframe, summary);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   // Map input key → current value (for simulateScan passthrough)
   function getInputValue(key: InputType): string {

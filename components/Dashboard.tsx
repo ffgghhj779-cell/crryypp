@@ -6,10 +6,12 @@ import { createChart, ColorType, AreaSeries } from 'lightweight-charts';
 import { fetchKlines } from '@/lib/binance';
 import { fetchFearGreedIndex } from '@/lib/fearGreed';
 import { fetchGlobalData } from '@/lib/coingecko';
-
-
 import { ChevronRight } from 'lucide-react';
 import { ANALYSIS_TOOLS, UnifiedScannerModal, type ToolDef } from '@/components/UnifiedScannerModal';
+import { MarketTicker } from '@/components/layout/MarketTicker';
+import { LearnHub }     from '@/components/layout/LearnHub';
+import { Footer }       from '@/components/layout/Footer';
+import { saveAnalysis } from '@/lib/utils/historyStore';
 
 // ── Analysis Arsenal — 24 Halal Spot/TA tools (imported from UnifiedScannerModal) ──
 
@@ -55,7 +57,11 @@ export function Dashboard() {
   const isPositive = ticker && parseFloat(ticker.priceChangePercent) >= 0;
 
   return (
-    <div className="w-full max-w-2xl pb-28 px-3 pt-3 space-y-3 animate-fade-in">
+    <div className="w-full max-w-2xl pb-28 animate-fade-in">
+      {/* ── Sticky Market Ticker ── */}
+      <MarketTicker />
+
+      <div className="px-3 pt-3 space-y-3">
 
       {/* ── Ticker Banner ── */}
       <div className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-gradient-to-br from-zinc-950 via-black to-zinc-900 p-5 shadow-2xl">
@@ -151,6 +157,13 @@ export function Dashboard() {
       {/* ── Tools Grid ── */}
       <ToolsGrid />
 
+      {/* ── Learn Hub ── */}
+      <LearnHub />
+
+      {/* ── Footer ── */}
+      <Footer />
+
+      </div>{/* end px-3 */}
     </div>
   );
 }
@@ -304,6 +317,11 @@ function LightweightAreaChart({ symbol, livePrice }: { symbol: string; livePrice
 function ToolsGrid() {
   const [activeScannerTool, setActiveScannerTool] = useState<ToolDef | null>(null);
 
+  function handleScanComplete(symbol: string, timeframe: string, summary: string) {
+    if (!activeScannerTool) return;
+    saveAnalysis(activeScannerTool.name, symbol, timeframe, summary);
+  }
+
   return (
     <>
       <div>
@@ -334,7 +352,11 @@ function ToolsGrid() {
       </div>
 
       {activeScannerTool && (
-        <UnifiedScannerModal tool={activeScannerTool} onClose={() => setActiveScannerTool(null)} />
+        <UnifiedScannerModal
+          tool={activeScannerTool}
+          onClose={() => setActiveScannerTool(null)}
+          onScanComplete={handleScanComplete}
+        />
       )}
     </>
   );
