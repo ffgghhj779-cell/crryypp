@@ -11,8 +11,9 @@ import { MarketTicker }      from '@/components/layout/MarketTicker';
 import { LearnHub }          from '@/components/layout/LearnHub';
 import { Footer }            from '@/components/layout/Footer';
 import { saveAnalysis }      from '@/lib/utils/historyStore';
-import { FearGreedWidget }   from '@/components/widgets/FearGreedWidget';
-import { DailyCloseWidget }  from '@/components/widgets/DailyCloseWidget';
+import { FearGreedWidget }      from '@/components/widgets/FearGreedWidget';
+import { DailyCloseWidget }     from '@/components/widgets/DailyCloseWidget';
+import { NetworkMacroModal }    from '@/components/widgets/NetworkMacroModal';
 
 // ── Analysis Arsenal — 24 Halal Spot/TA tools (imported from UnifiedScannerModal) ──
 
@@ -20,6 +21,7 @@ export function Dashboard() {
   const { ticker, connectionStatus } = useBinanceTicker('btcusdt');
   const [halvingCountdown, setHalvingCountdown] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
   const [globalData, setGlobalData] = useState({ totalMarketCap: '---', btcDominance: '---' });
+  const [networkOpen, setNetworkOpen] = useState(false);
 
   useEffect(() => {
     fetchGlobalData().then(setGlobalData).catch(console.error);
@@ -124,8 +126,12 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* ── Halving Countdown ── */}
-      <div className="rounded-2xl overflow-hidden border border-white/[0.07]">
+      {/* ── Halving Countdown (tappable → Network Macro modal) ── */}
+      <button
+        onClick={() => setNetworkOpen(true)}
+        className="w-full rounded-2xl overflow-hidden border border-white/[0.07] active:scale-[0.98] transition-transform text-left"
+        aria-label="ماكرو الشبكة والتعدين — اضغط للتفاصيل"
+      >
         {/* Orange gradient header */}
         <div
           className="px-4 py-3 text-center"
@@ -173,13 +179,22 @@ export function Dashboard() {
             بعد الهالفينج: <span className="text-orange-400 font-bold">BTC 1.5625</span>
           </p>
         </div>
-      </div>
+      </button>
 
       {/* ── Fear & Greed  +  Daily Close — live widgets side-by-side ── */}
       <div className="grid grid-cols-2 gap-3 items-stretch">
         <FearGreedWidget globalData={globalData} />
         <DailyCloseWidget />
       </div>
+
+      {/* ── Network Macro Modal ── */}
+      {networkOpen && (
+        <NetworkMacroModal
+          spotPrice={ticker?.price ? parseFloat(ticker.price) : 0}
+          halvingDays={halvingCountdown.days}
+          onClose={() => setNetworkOpen(false)}
+        />
+      )}
 
       {/* ── Tools Grid ── */}
       <ToolsGrid />
