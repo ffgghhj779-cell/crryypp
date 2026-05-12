@@ -4,51 +4,36 @@ import { useBinanceTicker } from '@/hooks/useBinanceTicker';
 import { useEffect, useRef, useState } from 'react';
 import { createChart, ColorType, AreaSeries } from 'lightweight-charts';
 import { fetchKlines } from '@/lib/binance';
-import { fetchFearGreedIndex } from '@/lib/fearGreed';
 import { fetchGlobalData } from '@/lib/coingecko';
 import { ChevronRight } from 'lucide-react';
 import { ANALYSIS_TOOLS, UnifiedScannerModal, type ToolDef } from '@/components/UnifiedScannerModal';
-import { MarketTicker } from '@/components/layout/MarketTicker';
-import { LearnHub }     from '@/components/layout/LearnHub';
-import { Footer }       from '@/components/layout/Footer';
-import { saveAnalysis } from '@/lib/utils/historyStore';
+import { MarketTicker }      from '@/components/layout/MarketTicker';
+import { LearnHub }          from '@/components/layout/LearnHub';
+import { Footer }            from '@/components/layout/Footer';
+import { saveAnalysis }      from '@/lib/utils/historyStore';
+import { FearGreedWidget }   from '@/components/widgets/FearGreedWidget';
+import { DailyCloseWidget }  from '@/components/widgets/DailyCloseWidget';
 
 // ── Analysis Arsenal — 24 Halal Spot/TA tools (imported from UnifiedScannerModal) ──
 
 export function Dashboard() {
   const { ticker, connectionStatus } = useBinanceTicker('btcusdt');
   const [halvingCountdown, setHalvingCountdown] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
-  const [candleClose, setCandleClose] = useState('--:--:--');
-  const [fearGreedIndex, setFearGreedIndex] = useState<number>(50);
   const [globalData, setGlobalData] = useState({ totalMarketCap: '---', btcDominance: '---' });
 
   useEffect(() => {
-    fetchFearGreedIndex().then(setFearGreedIndex).catch(console.error);
     fetchGlobalData().then(setGlobalData).catch(console.error);
 
     const halvingDate = new Date('2028-04-15T00:00:00Z').getTime();
-
     const interval = setInterval(() => {
       const now = Date.now();
       const distance = halvingDate - now;
-
       setHalvingCountdown({
-        days: Math.floor(distance / 86_400_000),
+        days:  Math.floor(distance / 86_400_000),
         hours: Math.floor((distance % 86_400_000) / 3_600_000),
-        mins: Math.floor((distance % 3_600_000) / 60_000),
-        secs: Math.floor((distance % 60_000) / 1000),
+        mins:  Math.floor((distance % 3_600_000) / 60_000),
+        secs:  Math.floor((distance % 60_000) / 1000),
       });
-
-      // Daily candle close: seconds remaining until next 00:00 UTC
-      const d = new Date(now);
-      const secondsLeft =
-        (23 - d.getUTCHours()) * 3600 +
-        (59 - d.getUTCMinutes()) * 60 +
-        (59 - d.getUTCSeconds());
-      const h = String(Math.floor(secondsLeft / 3600)).padStart(2, '0');
-      const m = String(Math.floor((secondsLeft % 3600) / 60)).padStart(2, '0');
-      const s = String(secondsLeft % 60).padStart(2, '0');
-      setCandleClose(`${h}:${m}:${s}`);
     }, 1000);
 
     return () => clearInterval(interval);
@@ -190,24 +175,10 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* ── Fear & Greed  +  Daily Close — side-by-side ── */}
+      {/* ── Fear & Greed  +  Daily Close — live widgets side-by-side ── */}
       <div className="grid grid-cols-2 gap-3">
-        {/* Fear & Greed */}
-        <div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-3 flex flex-col items-center" dir="rtl">
-          <p className="text-[10px] font-bold text-orange-400 mb-1 self-end">الخوف والطمع</p>
-          <FearGreedGauge value={fearGreedIndex} compact />
-        </div>
-
-        {/* Daily Close */}
-        <div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-3 flex flex-col" dir="rtl">
-          <p className="text-[10px] font-bold text-orange-400 mb-2 text-right">الإغلاق اليومي للبيتكوين</p>
-          <div className="flex-1 flex items-center justify-center">
-            <span className="text-3xl font-mono font-black tabular-nums text-white tracking-tight">
-              {candleClose}
-            </span>
-          </div>
-          <p className="text-[9px] text-white/30 text-right mt-2">متبقي على إغلاق شمعة اليوم</p>
-        </div>
+        <FearGreedWidget />
+        <DailyCloseWidget />
       </div>
 
       {/* ── Tools Grid ── */}
