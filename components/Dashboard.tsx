@@ -177,7 +177,7 @@ export function Dashboard() {
 
       {/* ── Fear & Greed  +  Daily Close — live widgets side-by-side ── */}
       <div className="grid grid-cols-2 gap-3">
-        <FearGreedWidget />
+        <FearGreedWidget globalData={globalData} />
         <DailyCloseWidget />
       </div>
 
