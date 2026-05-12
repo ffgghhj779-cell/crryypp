@@ -1,6 +1,6 @@
 'use client';
 
-import { Activity, Calendar, Clock, Search, RefreshCw, BarChart2, Star, DollarSign, History } from 'lucide-react';
+import { Activity, Calendar, Clock, Search, RefreshCw, BarChart2, Star, DollarSign, History, Home, Shield, Menu } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { useState } from 'react';
 import { HistorySidebar } from '@/components/layout/HistorySidebar';
@@ -62,17 +62,42 @@ export function BottomNav() {
   return (
     <div
       className="shrink-0 z-40 border-t border-white/[0.06] glass-dark"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}
     >
-      <div className="flex items-center justify-around px-2 py-2">
-        <NavButton icon={<Activity className="w-5 h-5" />} label="Market" active />
-        <NavButton icon={<Search className="w-5 h-5" />} label="Search" />
+      <div className="flex items-center justify-around px-1 py-1.5" dir="rtl">
+        {/* الرئيسية — Home (active) */}
         <NavButton
-          icon={<DollarSign className="w-5 h-5" />}
-          label="Risk Calc"
-          onClick={() => setActiveModal('risk_calculator')}
+          icon={<Home className="w-[22px] h-[22px]" />}
+          label="الرئيسية"
+          active
         />
-        <NavButton icon={<RefreshCw className="w-5 h-5" />} label="Refresh" onClick={() => window.location.reload()} />
+
+        {/* بحث — Search */}
+        <NavButton
+          icon={<Search className="w-[22px] h-[22px]" />}
+          label="بحث"
+        />
+
+        {/* محاضر — Modals/Tools */}
+        <NavButton
+          icon={<Shield className="w-[22px] h-[22px]" />}
+          label="محاضر"
+          onClick={() => setActiveModal('daily_briefing')}
+        />
+
+        {/* الأحدث — Latest/Refresh */}
+        <NavButton
+          icon={<RefreshCw className="w-[22px] h-[22px]" />}
+          label="الأحدث"
+          onClick={() => window.location.reload()}
+        />
+
+        {/* القائمة — Menu */}
+        <NavButton
+          icon={<Menu className="w-[22px] h-[22px]" />}
+          label="القائمة"
+          onClick={() => setActiveModal('market_cap')}
+        />
       </div>
     </div>
   );
@@ -89,7 +114,7 @@ function NavButton({
   return (
     <button
       onClick={onClick}
-      className={`relative flex flex-col items-center justify-center p-2 min-w-[68px] rounded-xl active:scale-95 transition-all duration-150 ${
+      className={`relative flex flex-col items-center justify-center pt-2 pb-1 min-w-[58px] rounded-xl active:scale-95 transition-all duration-150 ${
         active ? 'text-orange-500' : 'text-white/40 hover:text-white/70'
       }`}
     >
@@ -98,7 +123,7 @@ function NavButton({
         <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-orange-500 rounded-b-full shadow-[0_0_8px_rgba(249,115,22,0.8)]" />
       )}
       {icon}
-      <span className="text-[9px] mt-1 font-semibold tracking-wider uppercase">{label}</span>
+      <span className="text-[9px] mt-1 font-bold tracking-wide" style={{ fontFamily: 'inherit' }}>{label}</span>
     </button>
   );
 }

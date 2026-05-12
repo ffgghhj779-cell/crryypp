@@ -64,52 +64,52 @@ export function Dashboard() {
       <div className="px-3 pt-3 space-y-3">
 
       {/* ── Ticker Banner ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-gradient-to-br from-zinc-950 via-black to-zinc-900 p-5 shadow-2xl">
-        {/* Glow blob */}
+      <div className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-gradient-to-br from-zinc-950 via-black to-zinc-900 p-4 shadow-2xl">
         <div className="pointer-events-none absolute -top-12 -right-12 w-48 h-48 bg-orange-500/15 blur-3xl rounded-full" />
         <div className="pointer-events-none absolute -bottom-8 -left-8 w-32 h-32 bg-orange-500/5 blur-2xl rounded-full" />
 
-        <div className="relative z-10 flex justify-between items-start">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-white/50 font-semibold tracking-widest text-xs uppercase">BTC / USDT</span>
-              <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full border tabular-nums ${
-                isPositive
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                  : 'bg-red-500/10 text-red-400 border-red-500/20'
+        <div className="relative z-10">
+          {/* Top row: symbol + LIVE + connection */}
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <span className="text-white/50 font-bold tracking-widest text-xs uppercase">BTC/USDT</span>
+              <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full tabular-nums border ${
+                isPositive ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'
               }`}>
-                {isPositive ? '+' : ''}{ticker?.priceChangePercent ?? '0.00'}%
+                {isPositive ? '▲' : '▼'} {Math.abs(parseFloat(ticker?.priceChangePercent ?? '0')).toFixed(2)}%
               </span>
-              {/* Connection dot */}
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-black text-orange-400 tracking-widest uppercase border border-orange-500/40 bg-orange-500/10 px-2 py-0.5 rounded-full">LIVE</span>
               <span className={`w-1.5 h-1.5 rounded-full ${
-                connectionStatus === 'connected' ? 'bg-emerald-500' :
-                connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' :
-                'bg-red-500'
+                connectionStatus === 'connected' ? 'bg-emerald-500 animate-pulse' :
+                connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 'bg-red-500'
               }`} />
             </div>
-
-            <div className="flex items-baseline gap-1">
-              <span className="text-white/40 text-xl font-light">$</span>
-              <span className="text-white text-5xl font-mono font-black tracking-tighter tabular-nums">
-                {ticker ? Number(ticker.price).toLocaleString('en-US', { minimumFractionDigits: 2 }) : '──────'}
-              </span>
-            </div>
-
-            <p className={`text-sm font-mono font-semibold mt-1 tabular-nums ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
-              {isPositive ? '+' : ''}{ticker?.priceChange ?? '0.00'} USD
-            </p>
           </div>
 
-          <div className="text-right space-y-2">
+          {/* Price */}
+          <div className="flex items-baseline gap-1 mb-0.5">
+            <span className="text-white/40 text-lg font-light">$</span>
+            <span className="text-white text-[42px] font-mono font-black tracking-tighter tabular-nums leading-none">
+              {ticker ? Number(ticker.price).toLocaleString('en-US', { minimumFractionDigits: 2 }) : '──────'}
+            </span>
+          </div>
+
+          <p className="text-[9px] text-white/25 font-mono tracking-widest uppercase mb-3">HOURLY MACRO TREND (1H)</p>
+
+          {/* 24H High / Low row */}
+          <div className="flex items-center gap-4">
             <div>
-              <p className="text-[10px] text-white/30 font-mono tracking-widest uppercase">24H High</p>
-              <p className="text-sm font-mono font-semibold text-white/90 tabular-nums">
+              <p className="text-[9px] text-white/30 font-mono tracking-widest uppercase">24H HIGH</p>
+              <p className="text-sm font-mono font-bold text-white/90 tabular-nums">
                 ${ticker ? Number(ticker.high).toLocaleString('en-US') : '─────'}
               </p>
             </div>
+            <div className="w-px h-8 bg-white/10" />
             <div>
-              <p className="text-[10px] text-white/30 font-mono tracking-widest uppercase">24H Low</p>
-              <p className="text-sm font-mono font-semibold text-white/90 tabular-nums">
+              <p className="text-[9px] text-white/30 font-mono tracking-widest uppercase">24H LOW</p>
+              <p className="text-sm font-mono font-bold text-white/90 tabular-nums">
                 ${ticker ? Number(ticker.low).toLocaleString('en-US') : '─────'}
               </p>
             </div>
@@ -118,39 +118,95 @@ export function Dashboard() {
       </div>
 
       {/* ── Area Chart ── */}
-      <div className="h-[200px] w-full rounded-xl border border-white/[0.05] bg-black/50 overflow-hidden">
+      <div className="h-[185px] w-full rounded-xl border border-white/[0.05] bg-black/50 overflow-hidden">
         <LightweightAreaChart symbol="BTCUSDT" livePrice={ticker?.price ? parseFloat(ticker.price) : null} />
       </div>
 
-      {/* ── Stats Grid ── */}
-      <div className="grid grid-cols-2 gap-3">
-        <StatCard label="BTC Dominance" value={globalData.btcDominance} />
-        <StatCard label="Total Market Cap" value={`$${globalData.totalMarketCap}`} />
+      {/* ── Inline Stats Bar ── */}
+      <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-white/[0.05] bg-white/[0.02]" dir="rtl">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-white/30 font-mono">استعواذ</span>
+          <span className="text-[11px] font-mono font-bold text-orange-400 tabular-nums">
+            BTC {globalData.btcDominance}
+          </span>
+        </div>
+        <div className="w-px h-4 bg-white/10" />
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-white/30 font-mono">القيمة السوقية</span>
+          <span className="text-[11px] font-mono font-bold text-white/80 tabular-nums">
+            ${globalData.totalMarketCap}
+          </span>
+        </div>
       </div>
 
-      {/* ── Fear & Greed Gauge ── */}
-      <FearGreedGauge value={fearGreedIndex} />
-
-      {/* ── Countdowns ── */}
-      <div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Countdown Events</h3>
-          <span className="flex h-2 w-2 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
-          </span>
+      {/* ── Halving Countdown ── */}
+      <div className="rounded-2xl overflow-hidden border border-white/[0.07]">
+        {/* Orange gradient header */}
+        <div
+          className="px-4 py-3 text-center"
+          style={{ background: 'linear-gradient(135deg, #c2410c, #ea580c, #f97316)' }}
+        >
+          <p className="text-white font-black text-sm tracking-wide">العد التنازلي لهالفينج البيتكوين القادم — البلوك</p>
+          <p className="text-white/90 font-mono font-bold text-base mt-0.5 tabular-nums">1,050,000</p>
         </div>
 
-        <div className="flex items-center justify-between py-3 border-b border-white/[0.04]">
-          <span className="text-sm text-white/60">Next Halving</span>
-          <span className="font-mono text-sm text-orange-400 font-semibold tabular-nums">
-            {halvingCountdown.days}d {halvingCountdown.hours}h {halvingCountdown.mins}m {halvingCountdown.secs}s
-          </span>
+        <div className="bg-[#0a0a0a] px-3 py-4">
+          {/* Flip boxes — يوم / ساعة / دقيقة / ثانية */}
+          <div className="grid grid-cols-4 gap-2 mb-3" dir="rtl">
+            {[
+              { val: halvingCountdown.days,  label: 'يوم' },
+              { val: halvingCountdown.hours, label: 'ساعة' },
+              { val: halvingCountdown.mins,  label: 'دقيقة' },
+              { val: halvingCountdown.secs,  label: 'ثانية' },
+            ].map(({ val, label }) => (
+              <div key={label} className="flex flex-col items-center">
+                <div className="w-full rounded-xl bg-[#111] border border-white/[0.07] py-3 flex items-center justify-center shadow-inner">
+                  <span className="text-2xl font-black font-mono tabular-nums text-white">
+                    {String(val).padStart(2, '0')}
+                  </span>
+                </div>
+                <span className="text-[9px] text-white/40 mt-1.5 font-bold">{label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Progress bar */}
+          <div className="h-1.5 w-full rounded-full bg-white/[0.06] mb-3 overflow-hidden">
+            <div
+              className="h-full rounded-full"
+              style={{
+                width: `${Math.min(100, (halvingCountdown.days / 1460) * 100).toFixed(1)}%`,
+                background: 'linear-gradient(90deg, #f97316, #ea580c)',
+              }}
+            />
+          </div>
+
+          {/* Reward info */}
+          <p className="text-[10px] text-white/35 text-center font-mono">
+            المكافأة الحالية: <span className="text-white/60 font-bold">BTC 3.125</span>
+            {' — '}
+            بعد الهالفينج: <span className="text-orange-400 font-bold">BTC 1.5625</span>
+          </p>
+        </div>
+      </div>
+
+      {/* ── Fear & Greed  +  Daily Close — side-by-side ── */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Fear & Greed */}
+        <div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-3 flex flex-col items-center" dir="rtl">
+          <p className="text-[10px] font-bold text-orange-400 mb-1 self-end">الخوف والطمع</p>
+          <FearGreedGauge value={fearGreedIndex} compact />
         </div>
 
-        <div className="flex items-center justify-between pt-3">
-          <span className="text-sm text-white/60">Daily Candle Close</span>
-          <span className="font-mono text-sm text-white/80 tabular-nums">{candleClose}</span>
+        {/* Daily Close */}
+        <div className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-3 flex flex-col" dir="rtl">
+          <p className="text-[10px] font-bold text-orange-400 mb-2 text-right">الإغلاق اليومي للبيتكوين</p>
+          <div className="flex-1 flex items-center justify-center">
+            <span className="text-3xl font-mono font-black tabular-nums text-white tracking-tight">
+              {candleClose}
+            </span>
+          </div>
+          <p className="text-[9px] text-white/30 text-right mt-2">متبقي على إغلاق شمعة اليوم</p>
         </div>
       </div>
 
@@ -168,17 +224,9 @@ export function Dashboard() {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="p-4 rounded-xl border border-white/[0.05] bg-white/[0.02]">
-      <p className="text-[10px] text-white/30 uppercase tracking-widest mb-1.5">{label}</p>
-      <p className="text-xl font-mono font-bold text-white tabular-nums">{value}</p>
-    </div>
-  );
-}
+// StatCard removed — replaced by inline stats bar in mobile layout
 
-function FearGreedGauge({ value }: { value: number }) {
-  // Map 0–100 → -90° to +90° (left to right across the arc)
+function FearGreedGauge({ value, compact = false }: { value: number; compact?: boolean }) {
   const angle = (value / 100) * 180 - 90;
   const color =
     value < 25 ? '#ef4444' :
@@ -191,52 +239,49 @@ function FearGreedGauge({ value }: { value: number }) {
     value < 55 ? 'Neutral' :
     value < 75 ? 'Greed' : 'Extreme Greed';
 
-  const r = 58; const cx = 80; const cy = 80;
+  const r = compact ? 42 : 58;
+  const cx = compact ? 60 : 80;
+  const cy = compact ? 60 : 80;
+  const vw = compact ? 120 : 160;
+  const vh = compact ? 70  : 95;
+
   const toRad = (deg: number) => (deg * Math.PI) / 180;
   const needleX = cx + r * Math.cos(toRad(angle));
   const needleY = cy + r * Math.sin(toRad(angle));
+  const sw = compact ? 10 : 14;
+  const fs = compact ? 16 : 22;
+
+  const gauge = (
+    <svg viewBox={`0 0 ${vw} ${vh}`} className={compact ? 'w-36 overflow-visible' : 'w-48 overflow-visible'}>
+      <path d={`M ${cx - r + 2} ${cy} A ${r} ${r} 0 0 1 ${cx + r - 2} ${cy}`} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={sw} strokeLinecap="round" />
+      {[
+        { color: '#ef4444', start: 180, end: 144 },
+        { color: '#f97316', start: 144, end: 108 },
+        { color: '#eab308', start: 108, end: 72 },
+        { color: '#22c55e', start: 72,  end: 36 },
+        { color: '#16a34a', start: 36,  end: 0 },
+      ].map(({ color: c, start, end }, i) => {
+        const x1 = cx + r * Math.cos(toRad(start)), y1 = cy + r * Math.sin(toRad(start));
+        const x2 = cx + r * Math.cos(toRad(end)),   y2 = cy + r * Math.sin(toRad(end));
+        return (
+          <path key={i} d={`M ${x1} ${y1} A ${r} ${r} 0 0 0 ${x2} ${y2}`}
+            fill="none" stroke={c} strokeWidth={sw} strokeLinecap="butt" opacity="0.25" />
+        );
+      })}
+      <line x1={cx} y1={cy} x2={needleX} y2={needleY} stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+      <circle cx={cx} cy={cy} r="5" fill={color} />
+      <circle cx={cx} cy={cy} r="2.5" fill="#000" />
+      <text x={cx} y={cy - (compact ? 10 : 14)} textAnchor="middle" fill="white" fontSize={fs} fontWeight="800" fontFamily="monospace">{value}</text>
+      <text x={cx} y={cy - (compact ? 1 : 4)} textAnchor="middle" fill={color} fontSize={compact ? 6 : 7.5} fontWeight="600" letterSpacing="0.5">{label.toUpperCase()}</text>
+    </svg>
+  );
+
+  if (compact) return gauge;
 
   return (
     <div className="flex flex-col items-center rounded-2xl border border-white/[0.05] bg-white/[0.02] p-5">
-      <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-1">Fear & Greed Index</p>
-
-      <svg viewBox="0 0 160 95" className="w-48 overflow-visible">
-        {/* Track */}
-        <path d="M 22 80 A 58 58 0 0 1 138 80" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="14" strokeLinecap="round" />
-        {/* Colored zones */}
-        {[
-          { color: '#ef4444', start: 180, end: 144 },
-          { color: '#f97316', start: 144, end: 108 },
-          { color: '#eab308', start: 108, end: 72 },
-          { color: '#22c55e', start: 72,  end: 36 },
-          { color: '#16a34a', start: 36,  end: 0 },
-        ].map(({ color: c, start, end }, i) => {
-          const startRad = toRad(start);
-          const endRad = toRad(end);
-          const x1 = cx + r * Math.cos(startRad);
-          const y1 = cy + r * Math.sin(startRad);
-          const x2 = cx + r * Math.cos(endRad);
-          const y2 = cy + r * Math.sin(endRad);
-          return (
-            <path
-              key={i}
-              d={`M ${x1} ${y1} A ${r} ${r} 0 0 0 ${x2} ${y2}`}
-              fill="none"
-              stroke={c}
-              strokeWidth="14"
-              strokeLinecap="butt"
-              opacity="0.25"
-            />
-          );
-        })}
-        {/* Needle */}
-        <line x1={cx} y1={cy} x2={needleX} y2={needleY} stroke={color} strokeWidth="2.5" strokeLinecap="round" />
-        <circle cx={cx} cy={cy} r="5" fill={color} />
-        <circle cx={cx} cy={cy} r="2.5" fill="#000" />
-        {/* Value */}
-        <text x={cx} y={cy - 14} textAnchor="middle" fill="white" fontSize="22" fontWeight="800" fontFamily="monospace">{value}</text>
-        <text x={cx} y={cy - 4}  textAnchor="middle" fill={color} fontSize="7.5" fontWeight="600" letterSpacing="0.5">{label.toUpperCase()}</text>
-      </svg>
+      <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-1">Fear &amp; Greed Index</p>
+      {gauge}
     </div>
   );
 }
