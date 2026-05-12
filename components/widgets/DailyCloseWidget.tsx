@@ -38,13 +38,13 @@ function DailyCloseModal({ onClose }: { onClose: () => void }) {
     let cancelled = false;
     fetch('https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=8')
       .then(r => r.json())
-      .then((data: number[][]) => {
+      .then((data: unknown[][]) => {
         if (!cancelled) {
           // data[i] = [openTime, open, high, low, close, ...] — skip the LAST bar (current open candle)
           const closed = data.slice(0, -1).reverse();
           setRows(closed.map(k => ({
-            label: dayLabel(k[0]),
-            price: '$' + parseFloat(k[4]).toLocaleString('en-US', { minimumFractionDigits: 2 }),
+            label: dayLabel(Number(k[0])),
+            price: '$' + parseFloat(String(k[4])).toLocaleString('en-US', { minimumFractionDigits: 2 }),
           })));
         }
       })
