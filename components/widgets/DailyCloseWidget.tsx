@@ -148,7 +148,7 @@ export function DailyCloseWidget() {
       {/* Card */}
       <button
         onClick={() => setModalOpen(true)}
-        className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-3 flex flex-col w-full text-right active:scale-[0.97] transition-transform hover:border-orange-500/20"
+        className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-3 flex flex-col w-full text-right active:scale-[0.97] transition-transform hover:border-orange-500/20 h-[148px]"
         dir="rtl"
         aria-label="الإغلاق اليومي للبيتكوين — اضغط للتفاصيل"
       >

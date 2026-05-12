@@ -49,8 +49,13 @@ function Gauge({ value, label, size = 'compact' }: { value: number; label: strin
   const nx = cx + r * Math.cos(toRad(angle));
   const ny = cy + r * Math.sin(toRad(angle));
 
+  // compact uses a fixed pixel width; full uses w-full via parent
+  const svgClass = size === 'compact'
+    ? 'w-28 overflow-visible mx-auto block'
+    : 'w-full overflow-visible';
+
   return (
-    <svg viewBox={`0 0 ${vw} ${vh}`} className="w-full overflow-visible" aria-label={`Fear & Greed: ${value} ${label}`}>
+    <svg viewBox={`0 0 ${vw} ${vh}`} className={svgClass} aria-label={`Fear & Greed: ${value} ${label}`}>
       {/* Track */}
       <path
         d={`M ${cx - r + 2} ${cy} A ${r} ${r} 0 0 1 ${cx + r - 2} ${cy}`}
@@ -237,25 +242,23 @@ export function FearGreedWidget({
       {/* Card */}
       <button
         onClick={() => setModalOpen(true)}
-        className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-3 flex flex-col items-center w-full text-right active:scale-[0.97] transition-transform hover:border-orange-500/20"
+        className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-3 flex flex-col items-center w-full text-right active:scale-[0.97] transition-transform hover:border-orange-500/20 h-[148px]"
         dir="rtl"
         aria-label="الخوف والطمع — اضغط للتفاصيل"
       >
         <p className="text-[10px] font-bold text-orange-400 mb-1 self-end">الخوف والطمع</p>
 
         {loading ? (
-          <div className="flex items-center justify-center h-16">
+          <div className="flex-1 flex items-center justify-center">
             <span className="w-4 h-4 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
           </div>
         ) : (
-          <>
-            <div className="w-full">
-              <Gauge value={value} label={classification} size="compact" />
-            </div>
+          <div className="flex-1 flex flex-col items-center justify-center w-full">
+            <Gauge value={value} label={classification} size="compact" />
             <p className="text-[11px] font-black mt-0.5 tabular-nums" style={{ color }}>
               {arLabel(classification)}
             </p>
-          </>
+          </div>
         )}
       </button>
 
