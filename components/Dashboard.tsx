@@ -2,11 +2,11 @@
 
 import { useBinanceTicker } from '@/hooks/useBinanceTicker';
 import { useEffect, useRef, useState } from 'react';
-import { useRouter }        from 'next/navigation';
 import { AnimatePresence }  from 'motion/react';
 import { createChart, ColorType, AreaSeries } from 'lightweight-charts';
 import { fetchKlines }        from '@/lib/binance';
 import { ChevronRight }       from 'lucide-react';
+import Link                   from 'next/link';
 import { ANALYSIS_TOOLS }     from '@/components/UnifiedScannerModal';
 import { toolToSlug }         from '@/lib/tools/registry';
 import { MarketTicker }       from '@/components/layout/MarketTicker';
@@ -380,12 +380,8 @@ function LightweightAreaChart({ symbol, livePrice }: { symbol: string; livePrice
 }
 
 function ToolsGrid() {
-  const router = useRouter();
-
-  function openTool(toolName: string) {
+  function fireHaptic() {
     try { (window as any).Telegram?.WebApp?.HapticFeedback?.impactOccurred('light'); } catch {}
-    // Navigate to the full-screen tool page — dashboard unmounts, tool page mounts
-    router.push(`/tools/${toolToSlug(toolName)}`);
   }
 
   return (
@@ -397,10 +393,16 @@ function ToolsGrid() {
 
       <div className="grid grid-cols-2 gap-2">
         {ANALYSIS_TOOLS.map((tool) => (
-          <button
+          // ── <Link> vs router.push() ─────────────────────────────────────────
+          // Link is the canonical Next.js navigation primitive.
+          // In production it prefetches the route when the card enters the
+          // viewport, so the navigation is instant (no RSC round-trip on click).
+          // router.push() has no prefetching — causes a visible loading delay.
+          <Link
             key={tool.name}
-            onClick={() => openTool(tool.name)}
-            className="group relative p-3.5 text-right rounded-xl border border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.06] hover:border-orange-500/25 active:scale-[0.97] transition-all duration-150 overflow-hidden"
+            href={`/tools/${toolToSlug(tool.name)}`}
+            onClick={fireHaptic}
+            className="group relative p-3.5 text-right rounded-xl border border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.06] hover:border-orange-500/25 active:scale-[0.97] transition-all duration-150 overflow-hidden block"
           >
             <span className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(ellipse_at_bottom-right,rgba(249,115,22,0.08),transparent_70%)]" />
             <div className="flex items-start justify-between gap-1 mb-2">
@@ -411,7 +413,7 @@ function ToolsGrid() {
             </div>
             <span className="text-sm font-semibold text-white/70 group-hover:text-white transition-colors leading-tight">{tool.name}</span>
             <p className="text-[10px] text-white/25 mt-1 leading-tight truncate">{tool.subtitle}</p>
-          </button>
+          </Link>
         ))}
       </div>
     </div>
