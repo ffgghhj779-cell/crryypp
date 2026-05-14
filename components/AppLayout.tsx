@@ -98,6 +98,7 @@ export default function AppLayout() {
   useEffect(() => {
     // Check disclaimer on client only (SSR safe)
     const accepted = localStorage.getItem(DISCLAIMER_KEY) === '1';
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDisclaimerAccepted(accepted);
   }, []);
 

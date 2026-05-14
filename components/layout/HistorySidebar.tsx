@@ -37,6 +37,7 @@ export function HistorySidebar({ open, onClose }: Props) {
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
 
   // Reload from localStorage every time panel opens
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (open) setEntries(getHistory()); }, [open]);
 
   function handleDelete(id: string) {
