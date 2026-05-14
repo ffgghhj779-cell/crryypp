@@ -40,6 +40,52 @@ main {
 }
 
 /* ============================================
+   120 FPS NATIVE FEEL — GLOBAL TOUCH & GPU
+   ============================================ */
+
+/*
+  touch-action: manipulation
+  → Eliminates the 300ms tap delay on Android Chrome/WebView.
+    Without this, every button press feels sluggish.
+  → Also disables double-tap-to-zoom which causes unintended layout jumps.
+*/
+*, *::before, *::after {
+  touch-action: manipulation;
+}
+
+/*
+  -webkit-tap-highlight-color: transparent
+  → Removes the blue/grey flash that appears on tap in Android WebView.
+    Framer Motion's whileTap provides our own visual feedback instead.
+*/
+a, button, [role="button"], input, select, textarea,
+[tabindex]:not([tabindex="-1"]) {
+  -webkit-tap-highlight-color: transparent;
+  outline-color: transparent;
+}
+
+/*
+  GPU compositing hint for elements that will animate.
+  Only applied to known animation targets to avoid over-promotion
+  (promoting too many layers wastes GPU memory).
+*/
+.motion-sheet,
+.motion-modal,
+.motion-card {
+  will-change: transform;
+  transform: translateZ(0); /* force own compositing layer */
+}
+
+/*
+  content-visibility: auto — paint-skips off-screen sections.
+  This is massive for performance on long dashboard scrolls.
+*/
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 400px; /* estimated height to prevent scroll-jank */
+}
+
+/* ============================================
    PREMIUM TYPOGRAPHY
    ============================================ */
 

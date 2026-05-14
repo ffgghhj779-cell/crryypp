@@ -2,6 +2,7 @@
 
 import { useBinanceTicker } from '@/hooks/useBinanceTicker';
 import { useEffect, useRef, useState } from 'react';
+import { AnimatePresence } from 'motion/react';
 import { createChart, ColorType, AreaSeries } from 'lightweight-charts';
 import { fetchKlines } from '@/lib/binance';
 import { ChevronRight } from 'lucide-react';
@@ -423,13 +424,16 @@ function ToolsGrid() {
         </div>
       </div>
 
-      {activeScannerTool && (
-        <UnifiedScannerModal
-          tool={activeScannerTool}
-          onClose={() => setActiveScannerTool(null)}
-          onScanComplete={handleScanComplete}
-        />
-      )}
+      <AnimatePresence>
+        {activeScannerTool && (
+          <UnifiedScannerModal
+            key={activeScannerTool.name}
+            tool={activeScannerTool}
+            onClose={() => setActiveScannerTool(null)}
+            onScanComplete={handleScanComplete}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }

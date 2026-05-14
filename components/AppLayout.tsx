@@ -105,10 +105,25 @@ export default function AppLayout() {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+      // ── Core: ready + full-expand ────────────────────────────────────────────
       WebApp.ready();
       WebApp.expand();
+
+      // ── Theme: match the dark app shell (prevents white flash on open) ───────
       WebApp.setHeaderColor('#000000');
       WebApp.setBackgroundColor('#000000');
+      // Bottom bar color (Telegram 7.10+) — matches BottomNav bg
+      WebApp.setBottomBarColor?.('#000000');
+
+      // ── Native feel: disable OS vertical-swipe-to-close ─────────────────────
+      // Without this, when the user swipes down on our NativeSheet (drag-to-dismiss),
+      // the OS intercepts it and closes the entire Mini App instead of the sheet.
+      WebApp.disableVerticalSwipes?.();
+
+      // ── Request fullscreen if supported (hides Telegram header bar) ──────────
+      // WebApp.requestFullscreen?.();  // uncomment if you want immersive mode
+
+      // ── Closing confirmation (prevents accidental exit) ──────────────────────
       WebApp.enableClosingConfirmation?.();
 
       // ── Bug 1 Fix: Stable viewport height ────────────────────────────────────
@@ -121,8 +136,8 @@ export default function AppLayout() {
       setStableHeight();
       WebApp.onEvent('viewportChanged', setStableHeight);
 
+      // ── Auth: verify initData server-side ────────────────────────────────────
       // VULN-14: NEVER trust initDataUnsafe.user.id — it can be spoofed in DevTools.
-      // POST the raw signed initData to our server for cryptographic verification.
       const rawInitData = WebApp.initData;
       if (rawInitData) {
         fetch('/api/auth/verify', {

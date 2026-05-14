@@ -3,6 +3,8 @@
 import { useAppStore } from '@/store/useAppStore';
 import { X, AlertTriangle, TrendingUp, TrendingDown, RefreshCcw, Calendar, Star, BarChart2, BarChart, Play, AlertCircle, Info, Search, RefreshCw } from 'lucide-react';
 import { useState, useEffect, lazy, Suspense } from 'react';
+import { AnimatePresence } from 'motion/react';
+import { NativeSheet }    from '@/components/ui/NativeSheet';
 import { fetchKlines, calculateRSI } from '@/lib/binance';
 import { TOOL_DESCRIPTIONS } from '@/components/TradingViewWidget';
 
@@ -22,80 +24,58 @@ const MODAL_TITLES: Record<string, string> = {
 
 export function ModalsWrapper() {
   const { activeModal, setActiveModal, activeTool, setActiveTool } = useAppStore();
-  if (activeModal === 'none') return null;
+  const isOpen = activeModal !== 'none';
+
+  function handleClose() {
+    if (activeModal === 'tool') setActiveTool(null);
+    else setActiveModal('none');
+  }
 
   return (
-    // Full-screen overlay with animated fade. z-[60] ensures it's above BottomNav
-    <div
-      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center"
-      style={{ animation: 'fade-in 0.2s ease forwards' }}
-    >
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={() => setActiveModal('none')}
-      />
+    <AnimatePresence>
+      {isOpen && (
+        <NativeSheet key={activeModal} onClose={handleClose} zSheet={60}>
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
+            <h2 className="text-white font-bold text-base flex items-center gap-2.5 min-w-0">
+              {activeModal === 'risk_calculator' && <AlertTriangle className="w-5 h-5 text-orange-500 shrink-0" />}
+              {activeModal === 'daily_briefing'  && <TrendingUp   className="w-5 h-5 text-orange-500 shrink-0" />}
+              {activeModal === 'sessions'        && <RefreshCcw   className="w-5 h-5 text-orange-500 shrink-0" />}
+              {activeModal === 'calendar'        && <Calendar     className="w-5 h-5 text-orange-500 shrink-0" />}
+              {activeModal === 'favorites'       && <Star         className="w-5 h-5 text-orange-500 shrink-0" />}
+              {activeModal === 'market_cap'      && <BarChart2    className="w-5 h-5 text-orange-500 shrink-0" />}
+              {activeModal === 'tool'            && <BarChart     className="w-5 h-5 text-orange-500 shrink-0" />}
+              <span className="truncate">
+                {activeModal === 'tool' ? (activeTool ?? 'Tool') : (MODAL_TITLES[activeModal] ?? activeModal)}
+              </span>
+            </h2>
+            <button
+              onClick={handleClose}
+              aria-label="Close"
+              className="shrink-0 ml-2 w-11 h-11 flex items-center justify-center text-white/40 hover:text-white bg-white/[0.05] hover:bg-white/10 rounded-full transition-all active:scale-95"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
 
-      {/* Sheet / Modal Card — slides up on mobile, zooms in on desktop */}
-      <div
-        className="relative w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl overflow-hidden border border-white/[0.08] shadow-2xl shadow-black/80"
-        style={{
-          background: 'rgba(10,10,10,0.95)',
-          backdropFilter: 'blur(32px)',
-          WebkitBackdropFilter: 'blur(32px)',
-          animation: 'slide-up 0.28s cubic-bezier(0.16,1,0.3,1) forwards',
-          // Ensure it never overflows the viewport height, respecting iOS safe areas
-          maxHeight: 'calc(88dvh - env(safe-area-inset-bottom, 0px))',
-          display: 'flex',
-          flexDirection: 'column',
-          willChange: 'transform',
-        }}
-      >
-        {/* Drag handle (mobile sheet feel) */}
-        <div className="flex justify-center pt-3 pb-1 sm:hidden shrink-0">
-          <div className="w-10 h-1 bg-white/20 rounded-full" />
-        </div>
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
-          <h2 className="text-white font-bold text-base flex items-center gap-2.5 min-w-0">
-            {activeModal === 'risk_calculator' && <AlertTriangle className="w-5 h-5 text-orange-500 shrink-0" />}
-            {activeModal === 'daily_briefing'  && <TrendingUp   className="w-5 h-5 text-orange-500 shrink-0" />}
-            {activeModal === 'sessions'        && <RefreshCcw   className="w-5 h-5 text-orange-500 shrink-0" />}
-            {activeModal === 'calendar'        && <Calendar     className="w-5 h-5 text-orange-500 shrink-0" />}
-            {activeModal === 'favorites'       && <Star         className="w-5 h-5 text-orange-500 shrink-0" />}
-            {activeModal === 'market_cap'      && <BarChart2    className="w-5 h-5 text-orange-500 shrink-0" />}
-            {activeModal === 'tool'            && <BarChart     className="w-5 h-5 text-orange-500 shrink-0" />}
-            <span className="truncate">
-              {activeModal === 'tool' ? (activeTool ?? 'Tool') : (MODAL_TITLES[activeModal] ?? activeModal)}
-            </span>
-          </h2>
-          <button
-            onClick={() => activeModal === 'tool' ? setActiveTool(null) : setActiveModal('none')}
-            aria-label="Close"
-            className="shrink-0 ml-2 w-11 h-11 flex items-center justify-center text-white/40 hover:text-white bg-white/[0.05] hover:bg-white/10 rounded-full transition-all active:scale-95"
+          {/* Scrollable body */}
+          <div
+            className={`overscroll-contain flex-1 ${
+              activeModal === 'tool' ? 'overflow-hidden p-0 flex flex-col' : 'overflow-y-auto px-5 pt-5'
+            }`}
+            style={{ paddingBottom: activeModal === 'tool' ? '0' : 'max(2rem, env(safe-area-inset-bottom, 0.5rem))' }}
           >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Scrollable body — ToolModal uses full height, others scroll */}
-        <div
-          className={`overscroll-contain flex-1 ${
-            activeModal === 'tool' ? 'overflow-hidden p-0 flex flex-col' : 'overflow-y-auto px-5 pt-5 pb-8'
-          }`}
-          style={{ paddingBottom: activeModal === 'tool' ? '0' : 'max(2rem, env(safe-area-inset-bottom, 0.5rem))' }}
-        >
-          {activeModal === 'risk_calculator' && <RiskCalculator />}
-          {activeModal === 'daily_briefing'  && <DailyBriefing />}
-          {activeModal === 'sessions'        && <ActiveSessions />}
-          {activeModal === 'calendar'        && <EconomicCalendar />}
-          {activeModal === 'favorites'       && <Favorites />}
-          {activeModal === 'market_cap'      && <MarketCap />}
-          {activeModal === 'tool' && activeTool && <ToolModal toolName={activeTool} />}
-        </div>
-      </div>
-    </div>
+            {activeModal === 'risk_calculator' && <RiskCalculator />}
+            {activeModal === 'daily_briefing'  && <DailyBriefing />}
+            {activeModal === 'sessions'        && <ActiveSessions />}
+            {activeModal === 'calendar'        && <EconomicCalendar />}
+            {activeModal === 'favorites'       && <Favorites />}
+            {activeModal === 'market_cap'      && <MarketCap />}
+            {activeModal === 'tool' && activeTool && <ToolModal toolName={activeTool} />}
+          </div>
+        </NativeSheet>
+      )}
+    </AnimatePresence>
   );
 }
 

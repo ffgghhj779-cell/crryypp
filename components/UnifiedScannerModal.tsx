@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { X, Zap, Globe, BarChart2, AlertTriangle } from 'lucide-react';
+import { NativeSheet } from '@/components/ui/NativeSheet';
 import { fetchKlines }      from '@/lib/binance/fetcher';
 import { calculateSMC }    from '@/lib/algorithms/smc';
 import type { SMCResult }  from '@/lib/algorithms/smc';
@@ -524,43 +525,22 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center" style={{ animation: 'fade-in 0.2s ease forwards' }}>
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
-
-      {/* Sheet — full-width bottom sheet, GPU-composited for smooth animation */}
-      <div
-        className="relative w-full rounded-t-3xl border border-white/[0.08] shadow-2xl shadow-black/80 flex flex-col"
-        style={{
-          background: 'rgba(8,8,8,0.97)',
-          backdropFilter: 'blur(32px)',
-          WebkitBackdropFilter: 'blur(32px)',
-          // Fill most of the viewport but respect Telegram's safe areas
-          maxHeight: 'calc(88dvh - env(safe-area-inset-bottom, 0px))',
-          animation: 'slide-up 0.28s cubic-bezier(0.16,1,0.3,1) forwards',
-          willChange: 'transform', // GPU layer for smooth 60fps animation
-        }}
-      >
-        {/* Drag handle */}
-        <div className="flex justify-center pt-3 pb-0 sm:hidden shrink-0">
-          <div className="w-10 h-1 bg-white/20 rounded-full" />
-        </div>
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
-            {tool.category === 'widget' ? <Globe className="w-5 h-5 text-orange-500 shrink-0" /> : <Zap className="w-5 h-5 text-orange-500 shrink-0" />}
-            <div className="min-w-0">
-              <h2 className="text-white font-bold text-base truncate">{tool.name}</h2>
-              <p className="text-[10px] text-white/35 truncate">{tool.subtitle}</p>
-            </div>
+    <NativeSheet onClose={onClose}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
+          {tool.category === 'widget' ? <Globe className="w-5 h-5 text-orange-500 shrink-0" /> : <Zap className="w-5 h-5 text-orange-500 shrink-0" />}
+          <div className="min-w-0">
+            <h2 className="text-white font-bold text-base truncate">{tool.name}</h2>
+            <p className="text-[10px] text-white/35 truncate">{tool.subtitle}</p>
           </div>
-          {/* 44px touch target */}
-          <button onClick={onClose} aria-label="Close"
-            className="shrink-0 ml-2 w-11 h-11 flex items-center justify-center text-white/40 hover:text-white bg-white/[0.05] hover:bg-white/10 rounded-full transition-all active:scale-95">
-            <X className="w-4 h-4" />
-          </button>
         </div>
+        {/* 44px touch target */}
+        <button onClick={onClose} aria-label="Close"
+          className="shrink-0 ml-2 w-11 h-11 flex items-center justify-center text-white/40 hover:text-white bg-white/[0.05] hover:bg-white/10 rounded-full transition-all active:scale-95">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
 
         {/* Body */}
         {/* Body — overscroll-contain prevents Telegram WebView from swallowing scroll events.
@@ -790,7 +770,6 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
             </>
           )}
         </div>
-      </div>
-    </div>
+      </NativeSheet>
   );
 }
