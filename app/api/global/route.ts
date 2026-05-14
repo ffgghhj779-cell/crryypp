@@ -1,7 +1,7 @@
 // app/api/global/route.ts
 import { applyCORS, handlePreflight } from '@/lib/cors';
 
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
 
 export async function OPTIONS(req: Request) {
   return handlePreflight(req) ?? new Response(null, { status: 204 });
@@ -11,18 +11,28 @@ export async function GET(req: Request) {
   const origin = req.headers.get('origin');
   try {
     const res = await fetch('https://api.coingecko.com/api/v3/global', {
-      headers: { 'Accept': 'application/json' },
-      next: { revalidate: 300 },
+      headers: { 'Accept': 'application/json', 'User-Agent': 'CryptoTerminal/1.0' },
+      cache: 'no-store',
     });
 
     if (!res.ok) {
-      return applyCORS(
-        Response.json({ error: `CoinGecko error: ${res.status}` }, { status: res.status }),
-        origin
-      );
+      console.warn(`[/api/global] CoinGecko ${res.status} — returning fallback`);
+      return applyCORS(Response.json({
+        totalMarketCap: '---', btcDominance: '---',
+        ethDominance: '---', activeCrypto: '---', marketCapChange24h: '0',
+      }), origin);
     }
 
-    const json = await res.json();
+    // Guard against HTML CDN error pages
+    const text = await res.text();
+    if (text.trim().startsWith('<')) {
+      return applyCORS(Response.json({
+        totalMarketCap: '---', btcDominance: '---',
+        ethDominance: '---', activeCrypto: '---', marketCapChange24h: '0',
+      }), origin);
+    }
+
+    const json = JSON.parse(text);
     const d    = json.data;
 
     return applyCORS(Response.json({

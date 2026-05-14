@@ -1,6 +1,6 @@
 import { applyCORS, handlePreflight } from '@/lib/cors';
 
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 export async function OPTIONS(req: Request) {
   return handlePreflight(req) ?? new Response(null, { status: 204 });
@@ -10,13 +10,18 @@ export async function GET(req: Request) {
   const origin = req.headers.get('origin');
   try {
     const res = await fetch('https://api.alternative.me/fng/?limit=2', {
-      next: { revalidate: 3600 },
+      cache: 'no-store',
     });
     if (!res.ok) return applyCORS(
-      Response.json({ error: `Fear & Greed API error: ${res.status}` }, { status: res.status }),
+      Response.json({ value: 50, label: 'Neutral', prevValue: 50, prevLabel: 'Neutral', timestamp: '' }),
       origin
     );
-    const json  = await res.json();
+    const text = await res.text();
+    if (text.trim().startsWith('<')) return applyCORS(
+      Response.json({ value: 50, label: 'Neutral', prevValue: 50, prevLabel: 'Neutral', timestamp: '' }),
+      origin
+    );
+    const json  = JSON.parse(text);
     const today = json.data[0];
     const prev  = json.data[1];
     return applyCORS(Response.json({
