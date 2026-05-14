@@ -15,10 +15,10 @@ import { use }               from 'react';
 import { ErrorBoundary }     from '@/components/ErrorBoundary';
 import { ToolPageHeader }    from '@/components/tools/ToolPageHeader';
 import { slugToTool }        from '@/lib/tools/registry';
-import dynamic               from 'next/dynamic';
+import nextDynamic           from 'next/dynamic';
 
 // Lazy-load the heavy scanner (same as dashboard does)
-const UnifiedScannerModal = dynamic(
+const UnifiedScannerModal = nextDynamic(
   () => import('@/components/UnifiedScannerModal').then(m => ({ default: m.UnifiedScannerModal })),
   {
     ssr: false,
@@ -31,12 +31,12 @@ const UnifiedScannerModal = dynamic(
   }
 );
 
-// ─── Page props ───────────────────────────────────────────────────────────────
+// Route segment config — never statically cache this page
+export const dynamic = 'force-dynamic';
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
-
-export const dynamic_export = 'force-dynamic';
 
 export default function ToolPage({ params }: PageProps) {
   // Next.js 15+ — params is a Promise, unwrap with use()
