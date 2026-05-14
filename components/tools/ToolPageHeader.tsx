@@ -3,32 +3,37 @@
 /**
  * ToolPageHeader — Full-screen tool page navigation header.
  *
- * Features:
- *   1. "← رجوع" back button using router.back()
- *   2. Telegram WebApp.BackButton SDK — native back button in the TMA header bar
- *   3. Tool name centered, subtitle below
- *   4. Category badge on the right
+ * Back navigation flow:
+ *   1. User taps "رجوع" button  OR  Telegram's native BackButton fires
+ *   2. useToolExit() → triggerExit() (provided by ToolsLayout)
+ *   3. ToolsLayout animates its motion.div down (spring EXIT_SPRING)
+ *   4. After animation completes → router.back()
+ *
+ * This gives a smooth spring-physics exit before the page unmounts.
  */
 
-import { useRouter } from 'next/navigation';
-import { useEffect }  from 'react';
-import { ChevronLeft } from 'lucide-react';
-import type { ToolDef } from '@/components/UnifiedScannerModal';
-
+import { useEffect }     from 'react';
+import { ChevronLeft }   from 'lucide-react';
+import { useToolExit }   from '@/lib/tools/ExitContext';
+import type { ToolDef }  from '@/components/UnifiedScannerModal';
 
 interface ToolPageHeaderProps {
   tool: ToolDef;
 }
 
 export function ToolPageHeader({ tool }: ToolPageHeaderProps) {
-  const router = useRouter();
+  const triggerExit = useToolExit();
 
+  // Wrap triggerExit in a void wrapper for event handlers that don't accept
+  // Promise-returning callbacks (Telegram SDK, onClick on button)
   function goBack() {
     try { (window as any).Telegram?.WebApp?.HapticFeedback?.impactOccurred('light'); } catch {}
-    router.back();
+    void triggerExit();
   }
 
-  // ── Telegram native BackButton ──────────────────────────────────────────────
+  // ── Telegram native BackButton ─────────────────────────────────────────────
+  // Shows the OS-level back arrow in Telegram's header bar.
+  // Registered as a void wrapper — SDK callbacks are synchronous.
   useEffect(() => {
     const tgBack = (window as any).Telegram?.WebApp?.BackButton;
     if (!tgBack) return;
@@ -55,7 +60,7 @@ export function ToolPageHeader({ tool }: ToolPageHeaderProps) {
         WebkitBackdropFilter: 'blur(20px)',
       }}
     >
-      {/* ── Back button — 44px touch target ────────────────────────────────── */}
+      {/* ── Back button — 44px touch target ──────────────────────────────────── */}
       <button
         onClick={goBack}
         aria-label="رجوع للرئيسية"
@@ -66,7 +71,7 @@ export function ToolPageHeader({ tool }: ToolPageHeaderProps) {
         <span className="text-[12px] font-bold tracking-wide">رجوع</span>
       </button>
 
-      {/* ── Tool name — centered ────────────────────────────────────────────── */}
+      {/* ── Tool name — centered ──────────────────────────────────────────────── */}
       <div className="flex-1 text-center min-w-0 px-2">
         <h1 className="text-white font-bold text-[15px] leading-tight truncate">
           {tool.name}
@@ -76,7 +81,7 @@ export function ToolPageHeader({ tool }: ToolPageHeaderProps) {
         </p>
       </div>
 
-      {/* ── Category badge — right side ────────────────────────────────────── */}
+      {/* ── Category badge — right side ───────────────────────────────────────── */}
       <div className="shrink-0 min-w-[80px] flex justify-end">
         <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border ${tool.tagColor}`}>
           {tool.tag}
