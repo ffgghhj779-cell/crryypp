@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // ─── Telegram access gate ─────────────────────────────────────────────────────
-// Routes that must remain publicly accessible (auth handshake, legal pages)
+// Routes that must remain publicly accessible.
+// - Auth handshake + legal pages need no session to work.
+// - Read-only market-data APIs (/api/markets, /api/global, /api/fng, /api/calendar)
+//   return only public third-party data (CoinGecko, Alternative.me).
+//   They contain zero user PII and no privileged operations, so blocking them
+//   would only cause the UI to crash when the tg_session cookie is absent
+//   (e.g. on Vercel preview deployments opened in Chrome for testing).
 const PUBLIC_PATHS = new Set([
+  // Auth & legal
   '/api/auth/verify',
   '/terms',
   '/privacy',
+  // Public read-only market data — no user data, safe to expose
+  '/api/markets',
+  '/api/global',
+  '/api/fng',
+  '/api/calendar',
 ]);
 
 // Telegram WebApp WebViews include one of these strings in their User-Agent.
