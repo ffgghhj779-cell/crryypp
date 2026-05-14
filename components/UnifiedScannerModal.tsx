@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { X, Zap, Globe, BarChart2, AlertTriangle } from 'lucide-react';
 import { fetchKlines }      from '@/lib/binance/fetcher';
 import { calculateSMC }    from '@/lib/algorithms/smc';
@@ -280,7 +280,16 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
   const [wyckoffResult,    setWyckoffResult]   = useState<WyckoffResult        | null>(null);
   const [fetchErr,         setFetchErr]        = useState<string | null>(null);
 
-  const isWidget = tool.category === 'widget';
+  // ── Stable memoized values ─────────────────────────────────────────────────
+  const isWidget = useMemo(() => tool.category === 'widget', [tool.category]);
+
+  // ── Stable input handlers — prevent child re-renders on every keystroke ────
+  const onSymbolChange    = useCallback((e: React.ChangeEvent<HTMLInputElement>)  => setSymbol(e.target.value.toUpperCase()), []);
+  const onTfChange        = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => setTimeframe(e.target.value), []);
+  const onDirChange       = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => setDirection(e.target.value), []);
+  const onPriceStartChange= useCallback((e: React.ChangeEvent<HTMLInputElement>)  => setPriceStart(e.target.value), []);
+  const onPriceEndChange  = useCallback((e: React.ChangeEvent<HTMLInputElement>)  => setPriceEnd(e.target.value), []);
+  const onPeriodChange    = useCallback((e: React.ChangeEvent<HTMLInputElement>)  => setPeriod(e.target.value), []);
 
   // ── Notify parent after every completed scan ────────────────────────────────
   useEffect(() => {
@@ -515,14 +524,22 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" style={{ animation: 'fade-in 0.2s ease forwards' }}>
+    <div className="fixed inset-0 z-[60] flex items-end justify-center" style={{ animation: 'fade-in 0.2s ease forwards' }}>
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/75 backdrop-blur-md" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
 
-      {/* Sheet */}
+      {/* Sheet — full-width bottom sheet, GPU-composited for smooth animation */}
       <div
-        className="relative w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl border border-white/[0.08] shadow-2xl shadow-black/60 flex flex-col"
-        style={{ background: 'rgba(8,8,8,0.95)', backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)', maxHeight: '92dvh', animation: 'slide-up 0.32s cubic-bezier(0.16,1,0.3,1) forwards' }}
+        className="relative w-full rounded-t-3xl border border-white/[0.08] shadow-2xl shadow-black/80 flex flex-col"
+        style={{
+          background: 'rgba(8,8,8,0.97)',
+          backdropFilter: 'blur(32px)',
+          WebkitBackdropFilter: 'blur(32px)',
+          // Fill most of the viewport but respect Telegram's safe areas
+          maxHeight: 'calc(88dvh - env(safe-area-inset-bottom, 0px))',
+          animation: 'slide-up 0.28s cubic-bezier(0.16,1,0.3,1) forwards',
+          willChange: 'transform', // GPU layer for smooth 60fps animation
+        }}
       >
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-0 sm:hidden shrink-0">
@@ -538,13 +555,20 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
               <p className="text-[10px] text-white/35 truncate">{tool.subtitle}</p>
             </div>
           </div>
-          <button onClick={onClose} aria-label="Close" className="shrink-0 ml-2 p-1.5 text-white/40 hover:text-white bg-white/[0.05] hover:bg-white/10 rounded-full transition-all active:scale-95">
+          {/* 44px touch target */}
+          <button onClick={onClose} aria-label="Close"
+            className="shrink-0 ml-2 w-11 h-11 flex items-center justify-center text-white/40 hover:text-white bg-white/[0.05] hover:bg-white/10 rounded-full transition-all active:scale-95">
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto flex-1 p-4 space-y-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+        {/* Body — overscroll-contain prevents Telegram WebView from swallowing scroll events.
+             pb-safe ensures scan button is never hidden behind safe area / home indicator. */}
+        <div
+          className="overflow-y-auto flex-1 px-4 pt-4 pb-8 space-y-4 overscroll-contain"
+          style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom, 0.5rem))' }}
+        >
 
           {/* Widget-only view */}
           {isWidget && (
@@ -568,16 +592,17 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
                 </span>
               </div>
 
-              {/* Dynamic inputs */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Dynamic inputs — grid auto-adjusts: 1 input → full width, 2+ → 2-col */}
+              <div className={`grid gap-3 ${tool.requiredInputs.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
                 {tool.requiredInputs.map((key) => {
                   const meta = INPUT_META[key];
-                  const inputClass = "w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white font-mono text-sm focus:outline-none focus:border-orange-500/60 focus:bg-white/[0.07] focus:ring-1 focus:ring-orange-500/30 transition-all placeholder:text-white/20 tabular-nums";
+                  // py-3 = ~48px total height, satisfies 44px min touch target
+                  const inputClass = "w-full px-3 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white font-mono text-sm focus:outline-none focus:border-orange-500/60 focus:bg-white/[0.07] focus:ring-1 focus:ring-orange-500/30 transition-all placeholder:text-white/20 tabular-nums";
 
                   if (meta.type === 'select' && key === 'timeframe') return (
                     <div key={key}>
-                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1.5">{meta.label}</label>
-                      <select value={timeframe} onChange={e => setTimeframe(e.target.value)}
+                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
+                      <select value={timeframe} onChange={onTfChange}
                         className={inputClass + ' appearance-none cursor-pointer'}>
                         {['15m','1H','4H','1D'].map(tf => <option key={tf} value={tf} className="bg-zinc-900">{tf}</option>)}
                       </select>
@@ -586,8 +611,8 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
 
                   if (meta.type === 'select' && key === 'direction') return (
                     <div key={key}>
-                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1.5">{meta.label}</label>
-                      <select value={direction} onChange={e => setDirection(e.target.value)}
+                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
+                      <select value={direction} onChange={onDirChange}
                         className={inputClass + ' appearance-none cursor-pointer'}>
                         {['Bullish ↑','Bearish ↓'].map(d => <option key={d} value={d} className="bg-zinc-900">{d}</option>)}
                       </select>
@@ -596,32 +621,33 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
 
                   if (key === 'symbol') return (
                     <div key={key}>
-                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1.5">{meta.label}</label>
-                      <input value={symbol} onChange={e => setSymbol(e.target.value.toUpperCase())}
-                        className={inputClass} placeholder={meta.placeholder} />
+                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
+                      <input value={symbol} onChange={onSymbolChange}
+                        className={inputClass} placeholder={meta.placeholder}
+                        autoCapitalize="characters" autoCorrect="off" spellCheck={false} />
                     </div>
                   );
 
                   if (key === 'price_start') return (
                     <div key={key}>
-                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1.5">{meta.label}</label>
-                      <input type="number" value={priceStart} onChange={e => setPriceStart(e.target.value)}
+                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
+                      <input type="number" inputMode="decimal" value={priceStart} onChange={onPriceStartChange}
                         className={inputClass} placeholder={meta.placeholder} />
                     </div>
                   );
 
                   if (key === 'price_end') return (
                     <div key={key}>
-                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1.5">{meta.label}</label>
-                      <input type="number" value={priceEnd} onChange={e => setPriceEnd(e.target.value)}
+                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
+                      <input type="number" inputMode="decimal" value={priceEnd} onChange={onPriceEndChange}
                         className={inputClass} placeholder={meta.placeholder} />
                     </div>
                   );
 
                   if (key === 'period') return (
                     <div key={key}>
-                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-1.5">{meta.label}</label>
-                      <input type="number" value={period} onChange={e => setPeriod(e.target.value)}
+                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
+                      <input type="number" inputMode="numeric" value={period} onChange={onPeriodChange}
                         className={inputClass} placeholder={meta.placeholder} min="1" max="200" />
                     </div>
                   );
@@ -644,11 +670,11 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
                 </div>
               )}
 
-              {/* Scan Button */}
+              {/* Scan Button — min-h-[52px] ensures 44px+ touch target on all devices */}
               <button
                 onClick={handleScan}
                 disabled={phase === 'scanning'}
-                className="w-full py-4 rounded-2xl font-bold text-base tracking-wider transition-all active:scale-[0.98] disabled:cursor-not-allowed relative overflow-hidden"
+                className="w-full min-h-[52px] rounded-2xl font-bold text-base tracking-wider transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed relative overflow-hidden"
                 style={{
                   background: phase === 'scanning'
                     ? 'linear-gradient(135deg, #92400e, #78350f)'
@@ -658,12 +684,12 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
                 }}
               >
                 {phase === 'scanning' ? (
-                  <span className="flex items-center justify-center gap-2.5">
+                  <span className="flex items-center justify-center gap-2.5 py-3.5">
                     <span className="w-4 h-4 border-2 border-orange-300/40 border-t-orange-200 rounded-full animate-spin" />
-                    <span className="animate-pulse tracking-[0.2em] text-sm">جارٍ جلب البيانات اللحظية...</span>
+                    <span className="animate-pulse tracking-[0.15em] text-sm">جارٍ جلب البيانات اللحظية...</span>
                   </span>
                 ) : (
-                  <span className="tracking-[0.15em]">⚡ تشغيل التحليل</span>
+                  <span className="flex items-center justify-center py-3.5 tracking-[0.15em]">⚡ تشغيل التحليل</span>
                 )}
               </button>
 
