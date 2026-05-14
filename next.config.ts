@@ -96,49 +96,21 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  // Step 2: Strip all console.* in production via SWC compiler (no extra package needed)
+  // SWC minifier already handles identifier mangling + dead-code elimination by default.
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production'
+      ? { exclude: ['error', 'warn'] } // Keep error/warn for monitoring
+      : false,
+  },
+
   output: 'standalone',
   transpilePackages: ['motion'],
 
-  webpack: (config, { dev, webpack }) => {
+  webpack: (config, { dev }) => {
     if (dev && process.env.DISABLE_HMR === 'true') {
       config.watchOptions = { ignored: /.*/ };
     }
-
-    // ── Step 2: Aggressive Terser obfuscation for production builds ───────────
-    if (!dev) {
-      const TerserPlugin = require('terser-webpack-plugin');
-      config.optimization = {
-        ...config.optimization,
-        minimizer: [
-          new TerserPlugin({
-            terserOptions: {
-              // Mangle all identifier names to single/double chars
-              mangle: {
-                toplevel:   true,   // Mangle top-level identifiers
-                eval:       true,   // Mangle in eval scopes
-                properties: false,  // Keep properties readable (breaks some libs if true)
-              },
-              compress: {
-                drop_console:   true,  // Remove all console.* calls
-                drop_debugger:  true,  // Remove debugger statements
-                dead_code:      true,  // Remove unreachable code
-                passes:         3,     // Multi-pass compression
-                pure_getters:   true,
-                unsafe:         true,
-                unsafe_arrows:  true,
-                unsafe_methods: true,
-              },
-              format: {
-                comments:       false, // Strip all comments (no source hints)
-                ascii_only:     true,  // ASCII-safe output
-              },
-            },
-            extractComments: false,   // No LICENSE.txt files (leaks library names)
-          }),
-        ],
-      };
-    }
-
     return config;
   },
 };
