@@ -4,32 +4,68 @@ import { useBinanceTicker } from '@/hooks/useBinanceTicker';
 import { useEffect, useRef, useState } from 'react';
 import { createChart, ColorType, AreaSeries } from 'lightweight-charts';
 import { fetchKlines } from '@/lib/binance';
-import { fetchGlobalData } from '@/lib/coingecko';
 import { ChevronRight } from 'lucide-react';
-import { ANALYSIS_TOOLS, UnifiedScannerModal, type ToolDef } from '@/components/UnifiedScannerModal';
+import dynamic from 'next/dynamic';
+import { ANALYSIS_TOOLS, type ToolDef } from '@/components/UnifiedScannerModal';
+
+// Lazy-load the heavy modal (46KB+) — excluded from the critical-path bundle
+const UnifiedScannerModal = dynamic(
+  () => import('@/components/UnifiedScannerModal').then(m => ({ default: m.UnifiedScannerModal })),
+  { ssr: false }
+);
 import { MarketTicker }      from '@/components/layout/MarketTicker';
 import { LearnHub }          from '@/components/layout/LearnHub';
 import { Footer }            from '@/components/layout/Footer';
 import { saveAnalysis }      from '@/lib/utils/historyStore';
-import { FearGreedWidget }      from '@/components/widgets/FearGreedWidget';
-import { DailyCloseWidget }     from '@/components/widgets/DailyCloseWidget';
-import { NetworkMacroModal }    from '@/components/widgets/NetworkMacroModal';
+import { FearGreedWidget }   from '@/components/widgets/FearGreedWidget';
+import { DailyCloseWidget }  from '@/components/widgets/DailyCloseWidget';
+import { NetworkMacroModal } from '@/components/widgets/NetworkMacroModal';
+import { useAppStore }       from '@/store/useAppStore';
 
 // ── Analysis Arsenal — 24 Halal Spot/TA tools (imported from UnifiedScannerModal) ──
 
 export function Dashboard() {
   const { ticker, connectionStatus } = useBinanceTicker('btcusdt');
+  const setWsStatus = useAppStore(s => s.setWsStatus);
   const [halvingCountdown, setHalvingCountdown] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
   const [globalData, setGlobalData] = useState({ totalMarketCap: '---', btcDominance: '---' });
   const [networkOpen, setNetworkOpen] = useState(false);
 
-  useEffect(() => {
-    fetchGlobalData().then(setGlobalData).catch(console.error);
+  // Sync live WS status into the global store so TopBar can read it
+  useEffect(() => { setWsStatus(connectionStatus); }, [connectionStatus, setWsStatus]);
 
-    const halvingDate = new Date('2028-04-15T00:00:00Z').getTime();
+  useEffect(() => {
+    // Use server proxy route — revalidate: 300 only works server-side
+    fetch('/api/global')
+      .then(r => r.json())
+      .then(data => { if (!data.error) setGlobalData(data); })
+      .catch(console.error);
+
+    // ── Live halving countdown via block height ────────────────────────────
+    // Fallback to estimated date if API fails
+    const FALLBACK_DATE = new Date('2028-04-15T00:00:00Z').getTime();
+    const NEXT_HALVING_BLOCK = 1_050_000;
+    const AVG_BLOCK_TIME_MS  = 10 * 60 * 1_000; // ~10 minutes
+
+    let halvingTarget = FALLBACK_DATE;
+
+    fetch('https://blockchain.info/q/getblockcount')
+      .then(r => r.text())
+      .then(text => {
+        const currentBlock = parseInt(text.trim(), 10);
+        if (!isNaN(currentBlock) && currentBlock < NEXT_HALVING_BLOCK) {
+          const blocksLeft = NEXT_HALVING_BLOCK - currentBlock;
+          halvingTarget = Date.now() + blocksLeft * AVG_BLOCK_TIME_MS;
+        }
+      })
+      .catch(() => { /* keep fallback date */ });
+
     const interval = setInterval(() => {
-      const now = Date.now();
-      const distance = halvingDate - now;
+      const distance = halvingTarget - Date.now();
+      if (distance <= 0) {
+        setHalvingCountdown({ days: 0, hours: 0, mins: 0, secs: 0 });
+        return;
+      }
       setHalvingCountdown({
         days:  Math.floor(distance / 86_400_000),
         hours: Math.floor((distance % 86_400_000) / 3_600_000),
@@ -61,7 +97,9 @@ export function Dashboard() {
             <div className="flex items-center gap-2">
               <span className="text-white/50 font-bold tracking-widest text-xs uppercase">BTC/USDT</span>
               <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full tabular-nums border ${
-                isPositive ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'
+                isPositive
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                  : 'bg-red-500/10 text-red-400 border-red-500/20'
               }`}>
                 {isPositive ? '▲' : '▼'} {Math.abs(parseFloat(ticker?.priceChangePercent ?? '0')).toFixed(2)}%
               </span>
@@ -357,23 +395,26 @@ function ToolsGrid() {
     <>
       <div>
         <div className="flex items-center justify-between mb-3 ml-1">
-          <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Analysis Arsenal</h3>
-          <span className="text-[10px] text-white/20 tabular-nums">{ANALYSIS_TOOLS.length} tools · Spot / TA</span>
+          <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-widest">ترسانة التحليل</h3>
+          <span className="text-[10px] text-white/20 tabular-nums">{ANALYSIS_TOOLS.length} أداة · سبوت / تحليل فني</span>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
           {ANALYSIS_TOOLS.map((tool) => (
             <button
               key={tool.name}
-              onClick={() => setActiveScannerTool(tool)}
-              className="group relative p-3.5 text-left rounded-xl border border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.06] hover:border-orange-500/25 active:scale-[0.97] transition-all duration-150 overflow-hidden"
+              onClick={() => {
+                try { (window as any).Telegram?.WebApp?.HapticFeedback?.impactOccurred('light'); } catch {}
+                setActiveScannerTool(tool);
+              }}
+              className="group relative p-3.5 text-right rounded-xl border border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.06] hover:border-orange-500/25 active:scale-[0.97] transition-all duration-150 overflow-hidden"
             >
               <span className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(ellipse_at_bottom-right,rgba(249,115,22,0.08),transparent_70%)]" />
               <div className="flex items-start justify-between gap-1 mb-2">
                 <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md border ${tool.tagColor}`}>
                   {tool.tag}
                 </span>
-                <ChevronRight className="w-3.5 h-3.5 text-white/20 group-hover:text-orange-400 transition-colors shrink-0 mt-0.5" />
+                <ChevronRight className="w-3.5 h-3.5 text-white/20 group-hover:text-orange-400 transition-colors shrink-0 mt-0.5 rtl:rotate-180" />
               </div>
               <span className="text-sm font-semibold text-white/70 group-hover:text-white transition-colors leading-tight">{tool.name}</span>
               <p className="text-[10px] text-white/25 mt-1 leading-tight truncate">{tool.subtitle}</p>

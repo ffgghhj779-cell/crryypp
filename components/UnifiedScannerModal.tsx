@@ -105,7 +105,9 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
 // ─── Mock Engine ──────────────────────────────────────────────────────────────
 interface ScanResult { [key: string]: string | number | boolean }
 
-export function simulateScan(toolName: string, symbol: string, timeframe: string): ScanResult {
+/** @deprecated Dead code — all 25 tools run live Binance algorithms via handleScan(). */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function simulateScan(toolName: string, symbol: string, timeframe: string): ScanResult {
   const seed = symbol.charCodeAt(0) + symbol.charCodeAt(1) + timeframe.length;
   const bull = seed % 2 === 0;
   const price = 103_240 + (seed * 137) % 5000;
@@ -384,15 +386,18 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
         }
         if (tool.name === 'CHOP Index') {
           const klines = await fetchKlines(symbol, timeframe, 100);
-          console.info(`[MACD] ✓ ${symbol} ${timeframe}`);
-          setMacdResult(analyzeMACD(klines));
+          // Bollinger bandwidth is the canonical choppiness proxy:
+          // high BW = trending market, low BW = choppy/ranging market.
+          console.info(`[Choppiness/BB] ✓ ${symbol} ${timeframe}`);
+          setBollingerResult(analyzeBollinger(klines));
           setPhase('done');
           return;
         }
         if (tool.name === '4x4 Confluence') {
           const klines = await fetchKlines(symbol, timeframe, 100);
-          console.info(`[BB] ✓ ${symbol} ${timeframe}`);
-          setBollingerResult(analyzeBollinger(klines));
+          // MACD provides the directional momentum bias — primary confluence signal.
+          console.info(`[MACD/Confluence] ✓ ${symbol} ${timeframe}`);
+          setMacdResult(analyzeMACD(klines));
           setPhase('done');
           return;
         }
@@ -496,10 +501,8 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
           return;
         }
 
-        // ── Fallback fetch (keeps connection test for any remaining tools) ────────
-        await fetchKlines(symbol, timeframe, 100);
-        console.info(`[BinanceFetcher] ✓ ${symbol} ${timeframe}`);
-        setPhase('done');
+        // ── No handler matched — throw immediately so missing tools surface during dev ──
+        throw new Error(`لا يوجد محلل مُتاح لأداة: "${tool.name}". أضف handler في handleScan().`);
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Unknown fetch error';
         setFetchErr(msg);
@@ -657,10 +660,10 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
                 {phase === 'scanning' ? (
                   <span className="flex items-center justify-center gap-2.5">
                     <span className="w-4 h-4 border-2 border-orange-300/40 border-t-orange-200 rounded-full animate-spin" />
-                    <span className="animate-pulse tracking-[0.2em] text-sm">FETCHING LIVE DATA...</span>
+                    <span className="animate-pulse tracking-[0.2em] text-sm">جارٍ جلب البيانات اللحظية...</span>
                   </span>
                 ) : (
-                  <span className="tracking-[0.15em]">⚡ START SCAN · تحليل</span>
+                  <span className="tracking-[0.15em]">⚡ تشغيل التحليل</span>
                 )}
               </button>
 
@@ -684,14 +687,14 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
                 <RsiResultCard data={rsiResult} symbol={symbol} timeframe={timeframe} />
               )}
 
-              {/* Result — MACD (CHOP Index) */}
-              {phase === 'done' && macdResult && tool.name === 'CHOP Index' && (
-                <MacdResultCard data={macdResult} symbol={symbol} timeframe={timeframe} />
+              {/* Result — Bollinger Bands (CHOP Index — BB bandwidth = choppiness proxy) */}
+              {phase === 'done' && bollingerResult && tool.name === 'CHOP Index' && (
+                <BollingerResultCard data={bollingerResult} symbol={symbol} timeframe={timeframe} />
               )}
 
-              {/* Result — Bollinger Bands (4x4 Confluence) */}
-              {phase === 'done' && bollingerResult && tool.name === '4x4 Confluence' && (
-                <BollingerResultCard data={bollingerResult} symbol={symbol} timeframe={timeframe} />
+              {/* Result — MACD (4x4 Confluence — directional momentum signal) */}
+              {phase === 'done' && macdResult && tool.name === '4x4 Confluence' && (
+                <MacdResultCard data={macdResult} symbol={symbol} timeframe={timeframe} />
               )}
 
               {/* Result — FVG Scanner */}

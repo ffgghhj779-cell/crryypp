@@ -43,7 +43,17 @@ export function saveAnalysis(
   };
   const prev = getHistory().filter(e => e.id !== entry.id);
   const next = [entry, ...prev].slice(0, MAX_LEN);
-  localStorage.setItem(KEY, JSON.stringify(next));
+  try {
+    localStorage.setItem(KEY, JSON.stringify(next));
+  } catch (e) {
+    // QuotaExceededError — trim one more entry and retry once
+    try {
+      localStorage.setItem(KEY, JSON.stringify(next.slice(0, next.length - 1)));
+    } catch {
+      // Storage is critically full — fail silently, history just won't persist
+      console.warn('[historyStore] localStorage is full, scan history not saved.');
+    }
+  }
 }
 
 // ── Delete ────────────────────────────────────────────────────────────────────

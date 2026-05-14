@@ -1,20 +1,35 @@
-// Remove the `next: { revalidate }` hint — it's a server-side Next.js hint and is silently
-// ignored when called from the browser (client component). Keeping it adds confusion.
-// Klines are fetched fresh on every call from the client.
+import { sanitizeSymbol, sanitizeInterval } from '@/lib/sanitize';
 
-export async function fetchKlines(symbol = 'BTCUSDT', interval = '1h', limit = 100) {
-  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
-  const res = await fetch(url);
+export async function fetchKlines(
+  symbol   = 'BTCUSDT',
+  interval = '1h',
+  limit    = 100,
+  signal?: AbortSignal,
+) {
+  // VULN-08: Strict input validation before touching the network
+  const safeSymbol   = sanitizeSymbol(symbol);
+  const safeInterval = sanitizeInterval(interval);
+  const safeLimit    = Math.min(Math.max(1, Math.floor(limit)), 1000);
+
+  // Use URLSearchParams — auto-encodes values, prevents parameter injection
+  const params = new URLSearchParams({
+    symbol:   safeSymbol,
+    interval: safeInterval,
+    limit:    String(safeLimit),
+  });
+  const url = `https://api.binance.com/api/v3/klines?${params}`;
+
+  const res = await fetch(url, signal ? { signal } : undefined);
   if (!res.ok) throw new Error(`Binance klines fetch failed: ${res.status}`);
   const raw: any[][] = await res.json();
 
   return raw.map(k => ({
-    time: Math.floor(Number(k[0]) / 1000),
-    open: parseFloat(k[1]),
-    high: parseFloat(k[2]),
-    low: parseFloat(k[3]),
+    time:  Math.floor(Number(k[0]) / 1000),
+    open:  parseFloat(k[1]),
+    high:  parseFloat(k[2]),
+    low:   parseFloat(k[3]),
     close: parseFloat(k[4]),
-    value: parseFloat(k[4]), // alias used by lightweight-charts AreaSeries
+    value: parseFloat(k[4]),
   }));
 }
 

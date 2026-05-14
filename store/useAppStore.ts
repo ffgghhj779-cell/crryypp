@@ -9,6 +9,10 @@ interface AppState {
   activeTool: string | null;
   setActiveTool: (tool: string | null) => void;
 
+  // Live WebSocket connection state — updated by Dashboard, read by TopBar
+  wsStatus: 'connecting' | 'connected' | 'disconnected';
+  setWsStatus: (status: AppState['wsStatus']) => void;
+
   favoriteAssets: string[];
   toggleFavorite: (asset: string, telegramUserId?: number) => void;
   loadFavorites: (telegramUserId: number) => void;
@@ -20,6 +24,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   activeTool: null,
   setActiveTool: (tool) => set({ activeTool: tool, activeModal: tool ? 'tool' : 'none' }),
+
+  wsStatus: 'connecting',
+  setWsStatus: (wsStatus) => set({ wsStatus }),
 
   favoriteAssets: ['BTCUSDT'],
 

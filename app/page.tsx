@@ -1,5 +1,10 @@
 import AppLayout from '@/components/AppLayout';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export default function Page() {
-  return <AppLayout />;
+  return (
+    <ErrorBoundary>
+      <AppLayout />
+    </ErrorBoundary>
+  );
 }

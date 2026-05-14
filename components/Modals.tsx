@@ -1,10 +1,9 @@
 'use client';
 
 import { useAppStore } from '@/store/useAppStore';
-import { X, AlertTriangle, TrendingUp, TrendingDown, RefreshCcw, Calendar, Star, BarChart2, BarChart } from 'lucide-react';
+import { X, AlertTriangle, TrendingUp, TrendingDown, RefreshCcw, Calendar, Star, BarChart2, BarChart, Play, AlertCircle, Info, Search, RefreshCw } from 'lucide-react';
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { fetchKlines, calculateRSI } from '@/lib/binance';
-import { fetchFearGreedIndex } from '@/lib/fearGreed';
 import { TOOL_DESCRIPTIONS } from '@/components/TradingViewWidget';
 
 // Lazy-load the TradingView widget so it doesn't block the main bundle
@@ -161,7 +160,13 @@ function DailyBriefing() {
 
   useEffect(() => {
     // Fetch 50 candles for accurate RSI (14-period needs warm-up data)
-    Promise.all([fetchKlines('BTCUSDT', '1h', 50), fetchFearGreedIndex()])
+    // Use the server proxy to benefit from Next.js ISR caching (revalidate)
+    const fetchFng = fetch('/api/fng')
+      .then(r => r.json())
+      .then(d => d.value || 50)
+      .catch(() => 50);
+
+    Promise.all([fetchKlines('BTCUSDT', '1h', 50), fetchFng])
       .then(([klines, fg]) => {
         const currentPrice = klines[klines.length - 1].close;
         const openPrice24h = klines[klines.length - 25]?.open ?? klines[0].open;
@@ -347,29 +352,102 @@ function EconomicCalendar() {
   );
 }
 
-// ─── Favorites (stub — wired to Zustand + Supabase) ──────────────────────────
+// ─── Reusable empty state ────────────────────────────────────────────────────
+function EmptyState({ icon, title, sub }: { icon: string; title: string; sub: string }) {
+  return (
+    <div className="flex flex-col items-center gap-3 py-12 text-center" dir="rtl">
+      <span className="text-5xl">{icon}</span>
+      <p className="text-sm font-bold text-white/40">{title}</p>
+      <p className="text-xs text-white/20 leading-relaxed max-w-[220px]">{sub}</p>
+    </div>
+  );
+}
+
+// ─── Favorites ───────────────────────────────────────────────────────────────
 function Favorites() {
   const { favoriteAssets } = useAppStore();
   return (
     <div className="space-y-2.5">
       {favoriteAssets.length === 0 ? (
-        <p className="text-center text-white/30 text-sm py-8">No favorites yet. Add assets from the tools grid.</p>
+        <EmptyState
+          icon="⭐"
+          title="لا توجد أصول مفضلة بعد"
+          sub="افتح أي أداة تحليل واضغط على زر النجمة لحفظ الرمز في قائمتك"
+        />
       ) : favoriteAssets.map(asset => (
         <div key={asset} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
           <span className="font-mono font-bold text-white">{asset}</span>
-          <span className="text-[10px] text-orange-400 font-semibold uppercase tracking-wider">Watching</span>
+          <span className="text-[10px] text-orange-400 font-semibold uppercase tracking-wider">مراقبة</span>
         </div>
       ))}
     </div>
   );
 }
 
-// ─── Market Cap Overview ──────────────────────────────────────────────────────
+// ─── Market Cap Overview ────────────────────────────────────────────────────
 function MarketCap() {
+  type Coin = {
+    rank: number; symbol: string; name: string;
+    price: number; change24h: string; marketCap: number;
+  };
+  const [coins, setCoins] = useState<Coin[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetch('/api/markets')
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) throw new Error(data.error);
+        setCoins(data);
+      })
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const fmtMcap = (v: number) =>
+    v >= 1e12 ? `$${(v / 1e12).toFixed(2)}T` :
+    v >= 1e9  ? `$${(v / 1e9).toFixed(1)}B`  : `$${(v / 1e6).toFixed(0)}M`;
+
+  if (loading) return (
+    <div className="flex items-center justify-center py-16 gap-3">
+      <div className="w-5 h-5 border-2 border-orange-500/40 border-t-orange-500 rounded-full animate-spin" />
+      <span className="text-white/30 text-sm">جار تحميل بيانات السوق...</span>
+    </div>
+  );
+
+  if (error) return (
+    <p className="text-center text-red-400 text-sm py-8">⚠️ {error}</p>
+  );
+
   return (
-    <p className="text-center text-white/30 text-sm py-8">
-      Global market metrics are displayed on the main dashboard.
-    </p>
+    <div className="divide-y divide-white/[0.04]">
+      {coins.map(coin => {
+        const isUp = parseFloat(coin.change24h) >= 0;
+        return (
+          <div key={coin.symbol} className="flex items-center gap-3 px-1 py-3">
+            <span className="text-[11px] font-mono text-white/20 w-5 text-center shrink-0">
+              {coin.rank}
+            </span>
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-bold text-white">{coin.symbol}</p>
+              <p className="text-[10px] text-white/30 truncate">{coin.name}</p>
+            </div>
+            <div className="text-right shrink-0">
+              <p className="text-[12px] font-mono font-bold text-white tabular-nums">
+                ${coin.price >= 1 ? coin.price.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : coin.price.toFixed(4)}
+              </p>
+              <p className={`text-[10px] font-mono tabular-nums ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
+                {isUp ? '+' : ''}{coin.change24h}%
+              </p>
+            </div>
+            <div className="w-16 text-right shrink-0">
+              <p className="text-[10px] text-white/35 font-mono">{fmtMcap(coin.marketCap)}</p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -415,14 +493,12 @@ function FearGreedDetail() {
   const [data, setData] = useState<{ value: number; label: string; prevValue: number } | null>(null);
 
   useEffect(() => {
-    // Fetch both today and yesterday to show trend
-    fetch('https://api.alternative.me/fng/?limit=2')
+    // Use /api/fng server proxy for cached data (avoids direct browser call)
+    fetch('/api/fng')
       .then(r => r.json())
-      .then(json => {
-        const today = parseInt(json.data[0].value, 10);
-        const prev  = parseInt(json.data[1].value, 10);
-        const label = json.data[0].value_classification;
-        setData({ value: today, label, prevValue: prev });
+      .then(d => {
+        if (d.error) throw new Error(d.error);
+        setData({ value: d.value, label: d.label, prevValue: d.prevValue });
       })
       .catch(console.error);
   }, []);

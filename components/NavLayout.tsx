@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { HistorySidebar } from '@/components/layout/HistorySidebar';
 
 export function TopBar() {
-  const { setActiveModal } = useAppStore();
+  const { setActiveModal, wsStatus } = useAppStore();
   const [historyOpen, setHistoryOpen] = useState(false);
 
   return (
@@ -17,10 +17,22 @@ export function TopBar() {
           <h1 className="text-white font-bold text-lg leading-none tracking-tighter">Crypto Terminal</h1>
           <div className="flex items-center space-x-2 mt-1">
             <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              {wsStatus === 'connected' && (
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              )}
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                wsStatus === 'connected'  ? 'bg-emerald-500' :
+                wsStatus === 'connecting' ? 'bg-yellow-400'  :
+                                           'bg-red-500'
+              }`} />
             </span>
-            <span className="text-[10px] text-white/40 font-mono tracking-widest uppercase">Live Datafeed</span>
+            <span className={`text-[10px] font-mono tracking-widest uppercase ${
+              wsStatus === 'connected'  ? 'text-white/40' :
+              wsStatus === 'connecting' ? 'text-yellow-400/70' :
+                                         'text-red-400/80'
+            }`}>
+              {wsStatus === 'connected' ? 'Live Datafeed' : wsStatus === 'connecting' ? 'Connecting...' : 'Reconnecting...'}
+            </span>
           </div>
         </div>
 
@@ -72,10 +84,11 @@ export function BottomNav() {
           active
         />
 
-        {/* بحث — Search */}
+        {/* بحث — Search / Favorites */}
         <NavButton
           icon={<Search className="w-[22px] h-[22px]" />}
           label="بحث"
+          onClick={() => setActiveModal('favorites')}
         />
 
         {/* محاضر — Modals/Tools */}

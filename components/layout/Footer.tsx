@@ -100,15 +100,18 @@ export function Footer() {
           {/* Links */}
           <div className="flex items-center gap-3">
             {[
-              { ar: 'شروط الاستخدام', en: 'Terms of Use' },
-              { ar: 'سياسة الخصوصية', en: 'Privacy Policy' },
-            ].map(({ ar, en }) => (
-              <button
-                key={en}
+              { ar: 'شروط الاستخدام', href: '/terms' },
+              { ar: 'سياسة الخصوصية', href: '/privacy' },
+            ].map(({ ar, href }) => (
+              <a
+                key={href}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-[9px] text-white/25 hover:text-orange-400 transition-colors font-mono"
               >
                 {ar}
-              </button>
+              </a>
             ))}
           </div>
         </div>
