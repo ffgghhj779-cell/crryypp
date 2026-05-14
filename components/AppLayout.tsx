@@ -7,6 +7,7 @@ import { TopBar, BottomNav } from '@/components/NavLayout';
 import { Dashboard } from '@/components/Dashboard';
 import { ModalsWrapper } from '@/components/Modals';
 import { useAppStore } from '@/store/useAppStore';
+import { AntiInspect } from '@/components/AntiInspect';
 
 declare global {
   interface Window {
@@ -142,8 +143,11 @@ export default function AppLayout() {
   // Prevent flash: render nothing until localStorage is read
   if (disclaimerAccepted === null) {
     return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-orange-500/40 border-t-orange-500 rounded-full animate-spin" />
+      <div className="relative h-[var(--tg-viewport-height,100vh)] w-full overflow-hidden bg-black flex flex-col">
+        <AntiInspect />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-6 h-6 border-2 border-orange-500/40 border-t-orange-500 rounded-full animate-spin" />
+        </div>
       </div>
     );
   }
@@ -153,6 +157,7 @@ export default function AppLayout() {
       className="bg-black text-white font-sans selection:bg-orange-500/30 overflow-x-hidden"
       style={{ height: 'var(--tg-viewport-height, 100dvh)', display: 'flex', flexDirection: 'column' }}
     >
+      <AntiInspect />
       <TopBar />
       <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
         <div className="flex justify-center w-full">

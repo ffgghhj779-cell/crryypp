@@ -99,10 +99,46 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   transpilePackages: ['motion'],
 
-  webpack: (config, { dev }) => {
+  webpack: (config, { dev, webpack }) => {
     if (dev && process.env.DISABLE_HMR === 'true') {
       config.watchOptions = { ignored: /.*/ };
     }
+
+    // ── Step 2: Aggressive Terser obfuscation for production builds ───────────
+    if (!dev) {
+      const TerserPlugin = require('terser-webpack-plugin');
+      config.optimization = {
+        ...config.optimization,
+        minimizer: [
+          new TerserPlugin({
+            terserOptions: {
+              // Mangle all identifier names to single/double chars
+              mangle: {
+                toplevel:   true,   // Mangle top-level identifiers
+                eval:       true,   // Mangle in eval scopes
+                properties: false,  // Keep properties readable (breaks some libs if true)
+              },
+              compress: {
+                drop_console:   true,  // Remove all console.* calls
+                drop_debugger:  true,  // Remove debugger statements
+                dead_code:      true,  // Remove unreachable code
+                passes:         3,     // Multi-pass compression
+                pure_getters:   true,
+                unsafe:         true,
+                unsafe_arrows:  true,
+                unsafe_methods: true,
+              },
+              format: {
+                comments:       false, // Strip all comments (no source hints)
+                ascii_only:     true,  // ASCII-safe output
+              },
+            },
+            extractComments: false,   // No LICENSE.txt files (leaks library names)
+          }),
+        ],
+      };
+    }
+
     return config;
   },
 };
