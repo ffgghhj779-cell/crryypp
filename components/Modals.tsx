@@ -25,9 +25,9 @@ export function ModalsWrapper() {
   if (activeModal === 'none') return null;
 
   return (
-    // Full-screen overlay with animated fade
+    // Full-screen overlay with animated fade. z-[60] ensures it's above BottomNav
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
+      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center"
       style={{ animation: 'fade-in 0.2s ease forwards' }}
     >
       {/* Backdrop */}
@@ -38,16 +38,17 @@ export function ModalsWrapper() {
 
       {/* Sheet / Modal Card — slides up on mobile, zooms in on desktop */}
       <div
-        className="relative w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl overflow-hidden border border-white/[0.08] shadow-2xl shadow-black/60"
+        className="relative w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl overflow-hidden border border-white/[0.08] shadow-2xl shadow-black/80"
         style={{
-          background: 'rgba(10,10,10,0.92)',
+          background: 'rgba(10,10,10,0.95)',
           backdropFilter: 'blur(32px)',
           WebkitBackdropFilter: 'blur(32px)',
-          animation: 'slide-up 0.3s cubic-bezier(0.16,1,0.3,1) forwards',
-          // Ensure it never overflows the viewport height
-          maxHeight: '90dvh',
+          animation: 'slide-up 0.28s cubic-bezier(0.16,1,0.3,1) forwards',
+          // Ensure it never overflows the viewport height, respecting iOS safe areas
+          maxHeight: 'calc(88dvh - env(safe-area-inset-bottom, 0px))',
           display: 'flex',
           flexDirection: 'column',
+          willChange: 'transform',
         }}
       >
         {/* Drag handle (mobile sheet feel) */}
@@ -72,7 +73,7 @@ export function ModalsWrapper() {
           <button
             onClick={() => activeModal === 'tool' ? setActiveTool(null) : setActiveModal('none')}
             aria-label="Close"
-            className="shrink-0 ml-2 p-1.5 text-white/40 hover:text-white bg-white/[0.05] hover:bg-white/10 rounded-full transition-all active:scale-95"
+            className="shrink-0 ml-2 w-11 h-11 flex items-center justify-center text-white/40 hover:text-white bg-white/[0.05] hover:bg-white/10 rounded-full transition-all active:scale-95"
           >
             <X className="w-4 h-4" />
           </button>
@@ -81,9 +82,9 @@ export function ModalsWrapper() {
         {/* Scrollable body — ToolModal uses full height, others scroll */}
         <div
           className={`overscroll-contain flex-1 ${
-            activeModal === 'tool' ? 'overflow-hidden p-0 flex flex-col' : 'overflow-y-auto p-5'
+            activeModal === 'tool' ? 'overflow-hidden p-0 flex flex-col' : 'overflow-y-auto px-5 pt-5 pb-8'
           }`}
-          style={{ WebkitOverflowScrolling: 'touch' } as any}
+          style={{ paddingBottom: activeModal === 'tool' ? '0' : 'max(2rem, env(safe-area-inset-bottom, 0.5rem))' }}
         >
           {activeModal === 'risk_calculator' && <RiskCalculator />}
           {activeModal === 'daily_briefing'  && <DailyBriefing />}

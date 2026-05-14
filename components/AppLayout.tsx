@@ -111,6 +111,16 @@ export default function AppLayout() {
       WebApp.setBackgroundColor('#000000');
       WebApp.enableClosingConfirmation?.();
 
+      // ── Bug 1 Fix: Stable viewport height ────────────────────────────────────
+      // viewportHeight changes on every scroll tick (browser chrome show/hide) → jitter.
+      // viewportStableHeight only changes when keyboard open/closes → stable.
+      const setStableHeight = () => {
+        const h = WebApp.viewportStableHeight || window.innerHeight;
+        document.documentElement.style.setProperty('--app-stable-height', `${h}px`);
+      };
+      setStableHeight();
+      WebApp.onEvent('viewportChanged', setStableHeight);
+
       // VULN-14: NEVER trust initDataUnsafe.user.id — it can be spoofed in DevTools.
       // POST the raw signed initData to our server for cryptographic verification.
       const rawInitData = WebApp.initData;
@@ -130,6 +140,8 @@ export default function AppLayout() {
           })
           .catch(err => console.error('[Auth] Verification request failed:', err));
       }
+
+      return () => { WebApp.offEvent?.('viewportChanged', setStableHeight); };
     }
   }, [loadFavorites]);
 
@@ -143,7 +155,7 @@ export default function AppLayout() {
   // Prevent flash: render nothing until localStorage is read
   if (disclaimerAccepted === null) {
     return (
-      <div className="relative h-[var(--tg-viewport-height,100vh)] w-full overflow-hidden bg-black flex flex-col">
+      <div className="w-full bg-black flex flex-col" style={{ height: 'var(--app-stable-height, 100dvh)' }}>
         <AntiInspect />
         <div className="flex-1 flex items-center justify-center">
           <div className="w-6 h-6 border-2 border-orange-500/40 border-t-orange-500 rounded-full animate-spin" />
@@ -153,18 +165,28 @@ export default function AppLayout() {
   }
 
   return (
+    // ── Flex-column shell: TopBar | scrollable main | BottomNav ─────────────────────
+    // Height is driven by --app-stable-height (set from viewportStableHeight in JS)
+    // so it does NOT reflow on every scroll tick.
+    // BottomNav is the LAST flex child — no position:fixed needed, no jitter.
     <div
-      className="bg-black text-white font-sans selection:bg-orange-500/30 overflow-x-hidden"
-      style={{ height: 'var(--tg-viewport-height, 100dvh)', display: 'flex', flexDirection: 'column' }}
+      className="bg-black text-white font-sans selection:bg-orange-500/30 flex flex-col overflow-hidden"
+      style={{ height: 'var(--app-stable-height, 100dvh)' }}
     >
       <AntiInspect />
       <TopBar />
-      <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
+
+      {/* Scrollable area — overflow-y:auto here, NOT on html/body */}
+      <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain min-h-0">
         <div className="flex justify-center w-full">
           <Dashboard />
         </div>
       </main>
+
+      {/* BottomNav stays in flex flow — no position:fixed, no jitter */}
       <BottomNav />
+
+      {/* ModalsWrapper — position:fixed z-[100], always above BottomNav's z-40 */}
       <ModalsWrapper />
 
       {/* Disclaimer gates the entire app on first launch */}

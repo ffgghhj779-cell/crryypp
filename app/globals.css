@@ -4,15 +4,19 @@
    TELEGRAM MINI APP — CRITICAL VIEWPORT FIX
    ============================================ */
 html {
-  /* Use Telegram's injected viewport height, fall back to dynamic viewport unit */
-  height: var(--tg-viewport-height, 100dvh);
+  /* --app-stable-height is set by AppLayout JS via WebApp.viewportStableHeight.
+     It does NOT change during scroll (unlike --tg-viewport-height which jitters).
+     Falls back to 100dvh for non-Telegram browsers. */
+  height: var(--app-stable-height, 100dvh);
   /* Kill iOS rubber-band bounce which breaks fixed elements in TMA */
   overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
+  /* NOTE: -webkit-overflow-scrolling: touch is intentionally REMOVED.
+     It creates a new stacking context that traps position:fixed modal z-indexes
+     inside it, causing modals to paint BELOW the BottomNav. */
 }
 
 body {
-  height: var(--tg-viewport-height, 100dvh);
+  height: var(--app-stable-height, 100dvh);
   overflow: hidden;
   overscroll-behavior: none;
   /* Prevent text size inflation on mobile */
@@ -25,13 +29,14 @@ body {
   height: 100%;
 }
 
-/* Scrollable content areas */
+/* Scrollable content areas.
+   isolation:isolate gives main its own stacking context with z-index:0,
+   keeping it below ModalsWrapper (z-50+) without fighting BottomNav. */
 main {
-  height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
+  /* NO -webkit-overflow-scrolling:touch — see html comment above */
 }
 
 /* ============================================
