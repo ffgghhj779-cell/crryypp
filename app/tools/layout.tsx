@@ -40,6 +40,7 @@ export default function ToolsLayout({ children }: { children: React.ReactNode })
     const tgWebApp = (window as any).Telegram?.WebApp;
     tgWebApp?.onEvent?.('viewportChanged', setH);
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setReady(true);
     return () => { tgWebApp?.offEvent?.('viewportChanged', setH); };
   }, [router]);
