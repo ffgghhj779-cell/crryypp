@@ -2,26 +2,21 @@
 
 import { useBinanceTicker } from '@/hooks/useBinanceTicker';
 import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence } from 'motion/react';
+import { useRouter }        from 'next/navigation';
+import { AnimatePresence }  from 'motion/react';
 import { createChart, ColorType, AreaSeries } from 'lightweight-charts';
-import { fetchKlines } from '@/lib/binance';
-import { ChevronRight } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import { ANALYSIS_TOOLS, type ToolDef } from '@/components/UnifiedScannerModal';
-
-// Lazy-load the heavy modal (46KB+) — excluded from the critical-path bundle
-const UnifiedScannerModal = dynamic(
-  () => import('@/components/UnifiedScannerModal').then(m => ({ default: m.UnifiedScannerModal })),
-  { ssr: false }
-);
-import { MarketTicker }      from '@/components/layout/MarketTicker';
-import { LearnHub }          from '@/components/layout/LearnHub';
-import { Footer }            from '@/components/layout/Footer';
-import { saveAnalysis }      from '@/lib/utils/historyStore';
-import { FearGreedWidget }   from '@/components/widgets/FearGreedWidget';
-import { DailyCloseWidget }  from '@/components/widgets/DailyCloseWidget';
-import { NetworkMacroModal } from '@/components/widgets/NetworkMacroModal';
-import { useAppStore }       from '@/store/useAppStore';
+import { fetchKlines }        from '@/lib/binance';
+import { ChevronRight }       from 'lucide-react';
+import { ANALYSIS_TOOLS }     from '@/components/UnifiedScannerModal';
+import { toolToSlug }         from '@/lib/tools/registry';
+import { MarketTicker }       from '@/components/layout/MarketTicker';
+import { LearnHub }           from '@/components/layout/LearnHub';
+import { Footer }             from '@/components/layout/Footer';
+import { FearGreedWidget }    from '@/components/widgets/FearGreedWidget';
+import { DailyCloseWidget }   from '@/components/widgets/DailyCloseWidget';
+import { NetworkMacroModal }  from '@/components/widgets/NetworkMacroModal';
+import { useAppStore }        from '@/store/useAppStore';
+import { saveAnalysis }       from '@/lib/utils/historyStore';
 
 // ── Analysis Arsenal — 24 Halal Spot/TA tools (imported from UnifiedScannerModal) ──
 
@@ -385,55 +380,41 @@ function LightweightAreaChart({ symbol, livePrice }: { symbol: string; livePrice
 }
 
 function ToolsGrid() {
-  const [activeScannerTool, setActiveScannerTool] = useState<ToolDef | null>(null);
+  const router = useRouter();
 
-  function handleScanComplete(symbol: string, timeframe: string, summary: string) {
-    if (!activeScannerTool) return;
-    saveAnalysis(activeScannerTool.name, symbol, timeframe, summary);
+  function openTool(toolName: string) {
+    try { (window as any).Telegram?.WebApp?.HapticFeedback?.impactOccurred('light'); } catch {}
+    // Navigate to the full-screen tool page — dashboard unmounts, tool page mounts
+    router.push(`/tools/${toolToSlug(toolName)}`);
   }
 
   return (
-    <>
-      <div>
-        <div className="flex items-center justify-between mb-3 ml-1">
-          <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-widest">ترسانة التحليل</h3>
-          <span className="text-[10px] text-white/20 tabular-nums">{ANALYSIS_TOOLS.length} أداة · سبوت / تحليل فني</span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          {ANALYSIS_TOOLS.map((tool) => (
-            <button
-              key={tool.name}
-              onClick={() => {
-                try { (window as any).Telegram?.WebApp?.HapticFeedback?.impactOccurred('light'); } catch {}
-                setActiveScannerTool(tool);
-              }}
-              className="group relative p-3.5 text-right rounded-xl border border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.06] hover:border-orange-500/25 active:scale-[0.97] transition-all duration-150 overflow-hidden"
-            >
-              <span className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(ellipse_at_bottom-right,rgba(249,115,22,0.08),transparent_70%)]" />
-              <div className="flex items-start justify-between gap-1 mb-2">
-                <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md border ${tool.tagColor}`}>
-                  {tool.tag}
-                </span>
-                <ChevronRight className="w-3.5 h-3.5 text-white/20 group-hover:text-orange-400 transition-colors shrink-0 mt-0.5 rtl:rotate-180" />
-              </div>
-              <span className="text-sm font-semibold text-white/70 group-hover:text-white transition-colors leading-tight">{tool.name}</span>
-              <p className="text-[10px] text-white/25 mt-1 leading-tight truncate">{tool.subtitle}</p>
-            </button>
-          ))}
-        </div>
+    <div>
+      <div className="flex items-center justify-between mb-3 ml-1">
+        <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-widest">ترسانة التحليل</h3>
+        <span className="text-[10px] text-white/20 tabular-nums">{ANALYSIS_TOOLS.length} أداة · سبوت / تحليل فني</span>
       </div>
 
-      <AnimatePresence>
-        {activeScannerTool && (
-          <UnifiedScannerModal
-            key={activeScannerTool.name}
-            tool={activeScannerTool}
-            onClose={() => setActiveScannerTool(null)}
-            onScanComplete={handleScanComplete}
-          />
-        )}
-      </AnimatePresence>
-    </>
+      <div className="grid grid-cols-2 gap-2">
+        {ANALYSIS_TOOLS.map((tool) => (
+          <button
+            key={tool.name}
+            onClick={() => openTool(tool.name)}
+            className="group relative p-3.5 text-right rounded-xl border border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.06] hover:border-orange-500/25 active:scale-[0.97] transition-all duration-150 overflow-hidden"
+          >
+            <span className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(ellipse_at_bottom-right,rgba(249,115,22,0.08),transparent_70%)]" />
+            <div className="flex items-start justify-between gap-1 mb-2">
+              <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md border ${tool.tagColor}`}>
+                {tool.tag}
+              </span>
+              <ChevronRight className="w-3.5 h-3.5 text-white/20 group-hover:text-orange-400 transition-colors shrink-0 mt-0.5 rtl:rotate-180" />
+            </div>
+            <span className="text-sm font-semibold text-white/70 group-hover:text-white transition-colors leading-tight">{tool.name}</span>
+            <p className="text-[10px] text-white/25 mt-1 leading-tight truncate">{tool.subtitle}</p>
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
+

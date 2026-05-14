@@ -236,9 +236,15 @@ function HeatmapWidget() {
 
 // ─── Main Modal ───────────────────────────────────────────────────────────────
 interface Props {
-  tool: ToolDef;
-  onClose: () => void;
+  tool:            ToolDef;
+  onClose:         () => void;
   onScanComplete?: (symbol: string, timeframe: string, summary: string) => void;
+  /**
+   * pageMode — when true, renders body content only (no NativeSheet, no backdrop,
+   * no internal header). Use this on /tools/[slug] page where ToolPageHeader
+   * provides the navigation header.
+   */
+  pageMode?: boolean;
 }
 
 // ─── Input field meta ────────────────────────────────────────────────────────
@@ -251,7 +257,7 @@ const INPUT_META: Record<InputType, { label: string; placeholder?: string; type:
   direction:   { label: 'Direction',                           type: 'select' },
 };
 
-export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
+export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = false }: Props) {
   const [symbol,     setSymbol]     = useState('BTCUSDT');
   const [timeframe,  setTimeframe]  = useState('1H');
   const [priceStart, setPriceStart] = useState('');
@@ -524,31 +530,12 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
     // All tools are now live — no mock fallback needed
   }
 
-  return (
-    <NativeSheet onClose={onClose}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
-        <div className="flex items-center gap-3 min-w-0">
-          {tool.category === 'widget' ? <Globe className="w-5 h-5 text-orange-500 shrink-0" /> : <Zap className="w-5 h-5 text-orange-500 shrink-0" />}
-          <div className="min-w-0">
-            <h2 className="text-white font-bold text-base truncate">{tool.name}</h2>
-            <p className="text-[10px] text-white/35 truncate">{tool.subtitle}</p>
-          </div>
-        </div>
-        {/* 44px touch target */}
-        <button onClick={onClose} aria-label="Close"
-          className="shrink-0 ml-2 w-11 h-11 flex items-center justify-center text-white/40 hover:text-white bg-white/[0.05] hover:bg-white/10 rounded-full transition-all active:scale-95">
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-
-        {/* Body */}
-        {/* Body — overscroll-contain prevents Telegram WebView from swallowing scroll events.
-             pb-safe ensures scan button is never hidden behind safe area / home indicator. */}
-        <div
-          className="overflow-y-auto flex-1 px-4 pt-4 pb-8 space-y-4 overscroll-contain"
-          style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom, 0.5rem))' }}
-        >
+  // ── Shared body JSX (used in both modal and page mode) ──────────────────────
+  const bodyContent = (
+    <div
+      className="overflow-y-auto flex-1 px-4 pt-4 pb-8 space-y-4 overscroll-contain"
+      style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom, 0.5rem))' }}
+    >
 
           {/* Widget-only view */}
           {isWidget && (
@@ -770,6 +757,32 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete }: Props) {
             </>
           )}
         </div>
-      </NativeSheet>
+  ); // end bodyContent
+
+  // ── Page mode: render body only (header provided by ToolPageHeader in route) ─
+  if (pageMode) {
+    return bodyContent;
+  }
+
+  // ── Modal mode: wrap body + internal header in NativeSheet ───────────────────
+  return (
+    <NativeSheet onClose={onClose}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
+        <div className="flex items-center gap-3 min-w-0">
+          {tool.category === 'widget' ? <Globe className="w-5 h-5 text-orange-500 shrink-0" /> : <Zap className="w-5 h-5 text-orange-500 shrink-0" />}
+          <div className="min-w-0">
+            <h2 className="text-white font-bold text-base truncate">{tool.name}</h2>
+            <p className="text-[10px] text-white/35 truncate">{tool.subtitle}</p>
+          </div>
+        </div>
+        <button onClick={onClose} aria-label="Close"
+          className="shrink-0 ml-2 w-11 h-11 flex items-center justify-center text-white/40 hover:text-white bg-white/[0.05] hover:bg-white/10 rounded-full transition-all active:scale-95">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+      {bodyContent}
+    </NativeSheet>
   );
 }
+
