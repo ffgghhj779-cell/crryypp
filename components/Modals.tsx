@@ -395,12 +395,18 @@ function MarketCap() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const [stale, setStale] = useState(false);
+
   useEffect(() => {
     fetch('/api/markets')
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then(data => {
-        if (data.error) throw new Error(data.error);
-        setCoins(data);
+        if (!data.coins) throw new Error(data.error ?? 'Bad response');
+        setCoins(data.coins);
+        setStale(!!data.stale);
       })
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
@@ -423,8 +429,20 @@ function MarketCap() {
 
   return (
     <div className="divide-y divide-white/[0.04]">
+      {stale && (
+        <div className="px-1 py-2 mb-1 text-center">
+          <p className="text-[9px] text-amber-400/70 font-mono">
+            ⚠ بيانات مؤقتة — CoinGecko rate-limited
+          </p>
+        </div>
+      )}
       {coins.map(coin => {
         const isUp = parseFloat(coin.change24h) >= 0;
+        const priceStr = coin.price > 0
+          ? (coin.price >= 1
+              ? `$${coin.price.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              : `$${coin.price.toFixed(4)}`)
+          : '$ ---';
         return (
           <div key={coin.symbol} className="flex items-center gap-3 px-1 py-3">
             <span className="text-[11px] font-mono text-white/20 w-5 text-center shrink-0">
@@ -435,15 +453,15 @@ function MarketCap() {
               <p className="text-[10px] text-white/30 truncate">{coin.name}</p>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-[12px] font-mono font-bold text-white tabular-nums">
-                ${coin.price >= 1 ? coin.price.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : coin.price.toFixed(4)}
-              </p>
-              <p className={`text-[10px] font-mono tabular-nums ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
-                {isUp ? '+' : ''}{coin.change24h}%
+              <p className="text-[12px] font-mono font-bold text-white tabular-nums">{priceStr}</p>
+              <p className={`text-[10px] font-mono tabular-nums ${coin.price > 0 ? (isUp ? 'text-emerald-400' : 'text-red-400') : 'text-white/20'}`}>
+                {coin.price > 0 ? `${isUp ? '+' : ''}${coin.change24h}%` : '---'}
               </p>
             </div>
             <div className="w-16 text-right shrink-0">
-              <p className="text-[10px] text-white/35 font-mono">{fmtMcap(coin.marketCap)}</p>
+              <p className="text-[10px] text-white/35 font-mono">
+                {coin.marketCap > 0 ? fmtMcap(coin.marketCap) : '---'}
+              </p>
             </div>
           </div>
         );
