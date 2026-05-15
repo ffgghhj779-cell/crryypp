@@ -27,15 +27,28 @@ export function ToolPageHeader({ tool }: ToolPageHeaderProps) {
   // Wrap triggerExit in a void wrapper for event handlers that don't accept
   // Promise-returning callbacks (Telegram SDK, onClick on button)
   function goBack() {
-    try { (window as any).Telegram?.WebApp?.HapticFeedback?.impactOccurred('light'); } catch {}
+    // HapticFeedback requires Telegram v6.1+
+    try {
+      const tg = (window as any).Telegram?.WebApp;
+      if (tg?.isVersionAtLeast?.('6.1')) {
+        tg.HapticFeedback?.impactOccurred('light');
+      }
+    } catch {}
     void triggerExit();
   }
 
   // ── Telegram native BackButton ─────────────────────────────────────────────
-  // Shows the OS-level back arrow in Telegram's header bar.
-  // Registered as a void wrapper — SDK callbacks are synchronous.
+  // BackButton requires Telegram v6.9+. On older clients isVersionAtLeast
+  // returns false and we skip registration silently (no warnings, no crash).
   useEffect(() => {
-    const tgBack = (window as any).Telegram?.WebApp?.BackButton;
+    const tg = (window as any).Telegram?.WebApp;
+    if (!tg) return;
+
+    // BackButton API was introduced in Telegram Mini Apps v6.9
+    const supportsBackButton = tg.isVersionAtLeast?.('6.9') ?? false;
+    if (!supportsBackButton) return;
+
+    const tgBack = tg.BackButton;
     if (!tgBack) return;
 
     tgBack.show();

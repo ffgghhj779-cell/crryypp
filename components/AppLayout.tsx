@@ -104,60 +104,66 @@ export default function AppLayout() {
   }, []);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-      // ── Core: ready + full-expand ────────────────────────────────────────────
-      WebApp.ready();
-      WebApp.expand();
+    if (typeof window === 'undefined' || !window.Telegram?.WebApp) return;
 
-      // ── Theme: match the dark app shell (prevents white flash on open) ───────
+    // ── Core: ready + full-expand (available since v6.0) ─────────────────────
+    WebApp.ready();
+    WebApp.expand();
+
+    // ── Theme: dark shell — prevents white flash on open (v6.1+) ─────────────
+    if (WebApp.isVersionAtLeast('6.1')) {
       WebApp.setHeaderColor('#000000');
       WebApp.setBackgroundColor('#000000');
-      // Bottom bar color (Telegram 7.10+) — matches BottomNav bg
-      WebApp.setBottomBarColor?.('#000000');
-
-      // ── Native feel: disable OS vertical-swipe-to-close ─────────────────────
-      // Without this, when the user swipes down on our NativeSheet (drag-to-dismiss),
-      // the OS intercepts it and closes the entire Mini App instead of the sheet.
-      WebApp.disableVerticalSwipes?.();
-
-      // ── Request fullscreen if supported (hides Telegram header bar) ──────────
-      // WebApp.requestFullscreen?.();  // uncomment if you want immersive mode
-
-      // ── Closing confirmation (prevents accidental exit) ──────────────────────
-      WebApp.enableClosingConfirmation?.();
-
-      // ── Bug 1 Fix: Stable viewport height ────────────────────────────────────
-      // viewportHeight changes on every scroll tick (browser chrome show/hide) → jitter.
-      // viewportStableHeight only changes when keyboard open/closes → stable.
-      const setStableHeight = () => {
-        const h = WebApp.viewportStableHeight || window.innerHeight;
-        document.documentElement.style.setProperty('--app-stable-height', `${h}px`);
-      };
-      setStableHeight();
-      WebApp.onEvent('viewportChanged', setStableHeight);
-
-      // ── Auth: verify initData server-side ────────────────────────────────────
-      // VULN-14: NEVER trust initDataUnsafe.user.id — it can be spoofed in DevTools.
-      const rawInitData = WebApp.initData;
-      if (rawInitData) {
-        fetch('/api/auth/verify', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ initData: rawInitData }),
-        })
-          .then(r => r.json())
-          .then(data => {
-            if (data.userId) {
-              loadFavorites(data.userId);
-            } else {
-              console.warn('[Auth] Server rejected initData:', data.error);
-            }
-          })
-          .catch(err => console.error('[Auth] Verification request failed:', err));
-      }
-
-      return () => { WebApp.offEvent?.('viewportChanged', setStableHeight); };
     }
+
+    // ── Bottom bar color (v7.10+) ─────────────────────────────────────────────
+    if (WebApp.isVersionAtLeast('7.10')) {
+      WebApp.setBottomBarColor?.('#000000');
+    }
+
+    // ── Disable OS vertical-swipe-to-close (v7.7+) ───────────────────────────
+    // Prevents OS swipe-down from closing the Mini App while the user drags
+    // our NativeSheet. Without this, the gesture conflicts.
+    if (WebApp.isVersionAtLeast('7.7')) {
+      WebApp.disableVerticalSwipes?.();
+    }
+
+    // ── Closing confirmation — prevents accidental exit (v6.2+) ──────────────
+    if (WebApp.isVersionAtLeast('6.2')) {
+      WebApp.enableClosingConfirmation?.();
+    }
+
+    // ── Stable viewport height (v6.0) ─────────────────────────────────────────
+    // viewportHeight jitters on scroll; viewportStableHeight only changes when
+    // the on-screen keyboard opens/closes — use it for layout height.
+    const setStableHeight = () => {
+      const h = WebApp.viewportStableHeight || window.innerHeight;
+      document.documentElement.style.setProperty('--app-stable-height', `${h}px`);
+    };
+    setStableHeight();
+    WebApp.onEvent('viewportChanged', setStableHeight);
+
+    // ── Auth: verify initData server-side ─────────────────────────────────────
+    // VULN-14: NEVER trust initDataUnsafe.user.id — it can be spoofed in DevTools.
+    const rawInitData = WebApp.initData;
+    if (rawInitData) {
+      fetch('/api/auth/verify', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ initData: rawInitData }),
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.userId) {
+            loadFavorites(data.userId);
+          } else {
+            console.warn('[Auth] Server rejected initData:', data.error);
+          }
+        })
+        .catch(err => console.error('[Auth] Verification request failed:', err));
+    }
+
+    return () => { WebApp.offEvent?.('viewportChanged', setStableHeight); };
   }, [loadFavorites]);
 
   function handleAccept() {

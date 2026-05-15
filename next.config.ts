@@ -36,18 +36,35 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
+
       // TradingView widget requires 'unsafe-inline' for its inline scripts
       "script-src 'self' 'unsafe-inline' https://s3.tradingview.com https://s.tradingview.com",
-      // WebSocket (Binance) + Supabase + self API calls
-      "connect-src 'self' wss://stream.binance.com:9443 https://api.binance.com " +
-        "https://*.supabase.co wss://*.supabase.co https://blockchain.info",
+
+      // ── connect-src: every external origin the browser fetches directly ────
+      // Binance: REST prices + WebSocket stream
+      // CoinGecko: market cap data (direct client fetches in some widgets)
+      // Alternative.me: Fear & Greed index (fetched client-side by FearGreedWidget)
+      // Supabase: realtime + storage
+      // blockchain.info: BTC on-chain data
+      // TradingView: widget data WebSocket
+      "connect-src 'self'" +
+        " wss://stream.binance.com:9443 https://api.binance.com" +
+        " https://api.alternative.me" +
+        " https://api.coingecko.com https://pro-api.coingecko.com" +
+        " https://*.supabase.co wss://*.supabase.co" +
+        " https://blockchain.info" +
+        " wss://data.tradingview.com wss://widgetdata.tradingview.com",
+
       // Coin images from CoinGecko served via our proxy, plus self
       "img-src 'self' data: blob: https://assets.coingecko.com https://coin-images.coingecko.com",
-      // TradingView iframe embed
+
+      // TradingView iframe embed (Economic Calendar, Heatmap, charts)
       "frame-src 'self' https://www.tradingview.com",
+
       // Fonts: self + Google Fonts CDN
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
+
       // No plugins
       "object-src 'none'",
       // Block base tag injection

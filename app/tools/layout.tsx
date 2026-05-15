@@ -16,7 +16,8 @@ import { useRouter }                    from 'next/navigation';
 import { motion, useAnimationControls } from 'motion/react';
 import { ToolExitContext }              from '@/lib/tools/ExitContext';
 
-const DISCLAIMER_KEY = 'disclaimer_accepted_v1';
+// Must match the key used in AppLayout.tsx — one source of truth
+const DISCLAIMER_KEY = 'ct360_disclaimer_v1';
 
 // Spring presets
 const ENTER_SPRING = { type: 'spring', stiffness: 380, damping: 36, mass: 0.8 } as const;
