@@ -7,9 +7,14 @@ export async function GET(req: Request) {
   }
 
   const webhookUrl = `${appUrl}/api/telegram`;
-  
+  const secretToken = process.env.TELEGRAM_WEBHOOK_SECRET;
+
   try {
-    const response = await fetch(`https://api.telegram.org/bot${token}/setWebhook?url=${webhookUrl}`);
+    let url = `https://api.telegram.org/bot${token}/setWebhook?url=${webhookUrl}`;
+    if (secretToken) {
+        url += `&secret_token=${secretToken}`;
+    }
+    const response = await fetch(url);
     const data = await response.json();
     return Response.json(data);
   } catch (error: any) {
