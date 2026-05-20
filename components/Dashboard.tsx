@@ -314,17 +314,23 @@ function LightweightAreaChart({ symbol, livePrice }: { symbol: string; livePrice
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
+    /* PATCH: Use clientHeight from the container instead of a hardcoded
+       value. Previously height:200 was hardcoded while the container CSS
+       was h-[185px], causing a 15px canvas overflow that produced the
+       distorted horizontal line artifacts reported on certain screens. */
+    const containerH = chartContainerRef.current.clientHeight || 185;
+
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
         textColor: 'rgba(255,255,255,0.35)',
       },
       grid: {
-        vertLines: { color: 'rgba(255,255,255,0.02)' },
-        horzLines: { color: 'rgba(255,255,255,0.02)' },
+        vertLines: { color: 'rgba(255,255,255,0.025)' },
+        horzLines: { color: 'rgba(255,255,255,0.025)' },
       },
-      width: chartContainerRef.current.clientWidth,
-      height: 200,
+      width:  chartContainerRef.current.clientWidth,
+      height: containerH,
       timeScale: { timeVisible: true, secondsVisible: false, borderVisible: false },
       rightPriceScale: { borderVisible: false },
       handleScroll: false,
@@ -351,7 +357,10 @@ function LightweightAreaChart({ symbol, livePrice }: { symbol: string; livePrice
 
     const observer = new ResizeObserver(() => {
       if (chartContainerRef.current) {
-        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+        chart.applyOptions({
+          width:  chartContainerRef.current.clientWidth,
+          height: chartContainerRef.current.clientHeight || 185,
+        });
       }
     });
     observer.observe(chartContainerRef.current);
@@ -379,43 +388,108 @@ function LightweightAreaChart({ symbol, livePrice }: { symbol: string; livePrice
   return <div ref={chartContainerRef} className="w-full h-full" />;
 }
 
+// ── Tool categories with Arabic labels and accent colors ─────────────────────
+const TOOL_CATEGORIES: {
+  key: string;
+  labelAr: string;
+  labelEn: string;
+  number: string;
+  accent: string;
+  dotColor: string;
+}[] = [
+  { key: 'pattern',  labelAr: 'نماذج السعر',       labelEn: 'Pattern Recognition', number: '01', accent: 'text-violet-400', dotColor: 'bg-violet-500' },
+  { key: 'smc',      labelAr: 'المال الذكي',        labelEn: 'Smart Money / ICT',   number: '02', accent: 'text-sky-400',    dotColor: 'bg-sky-500'    },
+  { key: 'math',     labelAr: 'التحليل الكمي',      labelEn: 'Quant / Math',        number: '03', accent: 'text-emerald-400',dotColor: 'bg-emerald-500'},
+  { key: 'momentum', labelAr: 'الزخم والإشارات',    labelEn: 'Momentum & Signals',  number: '04', accent: 'text-amber-400',  dotColor: 'bg-amber-500'  },
+  { key: 'widget',   labelAr: 'أدوات السوق',        labelEn: 'Market Widgets',      number: '05', accent: 'text-rose-400',   dotColor: 'bg-rose-500'   },
+];
+
 function ToolsGrid() {
   function fireHaptic() {
     try { (window as any).Telegram?.WebApp?.HapticFeedback?.impactOccurred('light'); } catch {}
   }
 
+  // Group tools by category, preserving original order within each group
+  const grouped = TOOL_CATEGORIES.map(cat => ({
+    ...cat,
+    tools: ANALYSIS_TOOLS.filter(t => t.category === cat.key),
+  })).filter(g => g.tools.length > 0);
+
+  // Sequential numbering across all tools
+  let globalIndex = 0;
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-3 ml-1">
-        <h3 className="text-[10px] font-bold text-white/30 uppercase tracking-widest">ترسانة التحليل</h3>
-        <span className="text-[10px] text-white/20 tabular-nums">{ANALYSIS_TOOLS.length} أداة · سبوت / تحليل فني</span>
+    <div className="space-y-5">
+      {/* Section header */}
+      <div className="flex items-center justify-between px-0.5">
+        <div className="flex items-center gap-2">
+          <h3 className="text-[11px] font-bold text-white/50 uppercase tracking-widest">ترسانة التحليل</h3>
+        </div>
+        <span className="text-[10px] text-white/25 tabular-nums font-mono">
+          {ANALYSIS_TOOLS.length} أداة · 5 فئات
+        </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        {ANALYSIS_TOOLS.map((tool) => (
-          // ── <Link> vs router.push() ─────────────────────────────────────────
-          // Link is the canonical Next.js navigation primitive.
-          // In production it prefetches the route when the card enters the
-          // viewport, so the navigation is instant (no RSC round-trip on click).
-          // router.push() has no prefetching — causes a visible loading delay.
-          <Link
-            key={tool.name}
-            href={`/tools/${toolToSlug(tool.name)}`}
-            onClick={fireHaptic}
-            className="group relative p-3.5 text-right rounded-xl border border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.06] hover:border-orange-500/25 active:scale-[0.97] transition-all duration-150 overflow-hidden block"
-          >
-            <span className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(ellipse_at_bottom-right,rgba(249,115,22,0.08),transparent_70%)]" />
-            <div className="flex items-start justify-between gap-1 mb-2">
-              <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md border ${tool.tagColor}`}>
-                {tool.tag}
+      {/* Grouped categories */}
+      {grouped.map((cat) => (
+        <div key={cat.key}>
+          {/* Category header */}
+          <div className="flex items-center gap-2.5 mb-2.5 px-0.5">
+            <span className={`font-mono text-[9px] font-black ${cat.accent} bg-white/[0.04] border border-white/[0.07] px-2 py-0.5 rounded-md tracking-widest`}>
+              {cat.number}
+            </span>
+            <div className="flex flex-col">
+              <span className={`text-[10px] font-bold ${cat.accent} uppercase tracking-wider leading-none`}>
+                {cat.labelAr}
               </span>
-              <ChevronRight className="w-3.5 h-3.5 text-white/20 group-hover:text-orange-400 transition-colors shrink-0 mt-0.5 rtl:rotate-180" />
+              <span className="text-[8px] text-white/20 font-mono tracking-widest mt-0.5">
+                {cat.labelEn}
+              </span>
             </div>
-            <span className="text-sm font-semibold text-white/70 group-hover:text-white transition-colors leading-tight">{tool.name}</span>
-            <p className="text-[10px] text-white/25 mt-1 leading-tight truncate">{tool.subtitle}</p>
-          </Link>
-        ))}
-      </div>
+            <div className="flex-1 h-px" style={{ background: `linear-gradient(90deg, rgba(255,255,255,0.06), transparent)` }} />
+            <span className="text-[9px] text-white/20 font-mono">{cat.tools.length}</span>
+          </div>
+
+          {/* Tools grid for this category */}
+          <div className="grid grid-cols-2 gap-2">
+            {cat.tools.map((tool) => {
+              const toolNumber = ++globalIndex;
+              return (
+                <Link
+                  key={tool.name}
+                  href={`/tools/${toolToSlug(tool.name)}`}
+                  onClick={fireHaptic}
+                  className="group relative p-3.5 text-right rounded-xl border border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.06] hover:border-orange-500/25 active:scale-[0.97] transition-all duration-150 overflow-hidden block motion-card"
+                >
+                  {/* Hover glow */}
+                  <span className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(ellipse_at_bottom-right,rgba(249,115,22,0.08),transparent_70%)]" />
+
+                  {/* Top row: tag + number + arrow */}
+                  <div className="flex items-start justify-between gap-1 mb-2">
+                    <div className="flex items-center gap-1">
+                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md border ${tool.tagColor}`}>
+                        {tool.tag}
+                      </span>
+                      <span className="tool-number">{String(toolNumber).padStart(2,'0')}</span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-white/20 group-hover:text-orange-400 transition-colors shrink-0 mt-0.5 rtl:rotate-180" />
+                  </div>
+
+                  {/* Tool name */}
+                  <span className="text-[13px] font-semibold text-white/75 group-hover:text-white transition-colors leading-snug block">
+                    {tool.name}
+                  </span>
+
+                  {/* Subtitle */}
+                  <p className="text-[10px] text-white/25 mt-1 leading-tight line-clamp-1">
+                    {tool.subtitle}
+                  </p>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

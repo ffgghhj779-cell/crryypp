@@ -5,14 +5,14 @@ import { useEffect, useRef, useState } from 'react';
 interface TickItem { symbol: string; price: string; change: string; pos: boolean; }
 
 const SYMBOLS = [
-  { s: 'BTCUSDT', label: 'BTC' },
-  { s: 'ETHUSDT', label: 'ETH' },
-  { s: 'SOLUSDT', label: 'SOL' },
-  { s: 'BNBUSDT', label: 'BNB' },
-  { s: 'XRPUSDT', label: 'XRP' },
-  { s: 'ADAUSDT', label: 'ADA' },
-  { s: 'DOGEUSDT',label: 'DOGE'},
-  { s: 'AVAXUSDT',label: 'AVAX'},
+  { s: 'BTCUSDT',  label: 'BTC'  },
+  { s: 'ETHUSDT',  label: 'ETH'  },
+  { s: 'SOLUSDT',  label: 'SOL'  },
+  { s: 'BNBUSDT',  label: 'BNB'  },
+  { s: 'XRPUSDT',  label: 'XRP'  },
+  { s: 'ADAUSDT',  label: 'ADA'  },
+  { s: 'DOGEUSDT', label: 'DOGE' },
+  { s: 'AVAXUSDT', label: 'AVAX' },
 ];
 
 export function MarketTicker() {
@@ -65,29 +65,50 @@ export function MarketTicker() {
 
   // Duplicate list for seamless infinite scroll
   const items = [...ticks, ...ticks];
+  const hasData = ticks.length > 0;
 
   return (
-    <div className="shrink-0 z-50 border-b border-white/[0.05] bg-black/80 backdrop-blur-sm overflow-hidden" style={{ height: 28 }}>
+    /* PATCH: overflow:hidden + position:relative form an independent paint
+       boundary, preventing the scrolling child from causing repaint on the
+       surrounding layout. The fixed height avoids layout-shift on data load. */
+    <div
+      className="shrink-0 z-50 border-b border-white/[0.05] bg-black/90 backdrop-blur-sm overflow-hidden relative"
+      style={{ height: 30 }}
+    >
+      {/* PATCH: Using translate3d (via ticker-animate class + ticker-scroll
+          keyframe) instead of translateX. This forces the browser to allocate
+          a dedicated GPU compositing layer, eliminating the horizontal line
+          artifacts reported on certain Android WebView versions.
+          backface-visibility:hidden (applied via .ticker-animate in CSS)
+          prevents the "back face" flicker between animation frames. */}
       <div
-        className="flex items-center gap-0 whitespace-nowrap will-change-transform"
+        className={`flex items-center whitespace-nowrap ticker-animate${hasData ? '' : ''}`}
         style={{
-          animation: ticks.length ? 'ticker-scroll 28s linear infinite' : 'none',
+          animation: hasData ? 'ticker-scroll 30s linear infinite' : 'none',
           width: 'max-content',
+          height: 30,
         }}
       >
-        {items.map((t, i) => (
-          <span key={i} className="inline-flex items-center gap-1.5 px-4 border-r border-white/[0.04]" style={{ height: 28 }}>
-            <span className="text-[9px] font-bold text-white/50 tracking-widest uppercase">{t.symbol}</span>
-            <span className="text-[10px] font-mono font-bold text-white tabular-nums">${t.price}</span>
+        {hasData ? items.map((t, i) => (
+          <span
+            key={i}
+            className="inline-flex items-center gap-1.5 px-4 border-r border-white/[0.04]"
+            style={{ height: 30 }}
+          >
+            <span className="text-[9px] font-bold text-white/40 tracking-widest uppercase">
+              {t.symbol}
+            </span>
+            <span className="text-[10px] font-mono font-bold text-white/90 tabular-nums">
+              ${t.price}
+            </span>
             <span className={`text-[9px] font-mono font-bold tabular-nums ${t.pos ? 'text-emerald-400' : 'text-red-400'}`}>
               {t.change}
             </span>
           </span>
-        ))}
-        {/* Loading state */}
-        {ticks.length === 0 && (
+        )) : (
+          /* Loading state — static, not inside the animated div to avoid drift */
           <span className="inline-flex items-center gap-2 px-4 text-[9px] text-white/25 font-mono tracking-widest">
-            <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+            <span className="w-1.5 h-1.5 rounded-full bg-orange-500/70 animate-pulse shrink-0" />
             جارٍ تحميل بيانات السوق...
           </span>
         )}

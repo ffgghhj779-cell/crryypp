@@ -72,7 +72,9 @@ function DailyCloseModal({ onClose }: { onClose: () => void }) {
           <div className="w-10 h-1 bg-white/20 rounded-full" />
         </div>
 
-        <div className="overflow-y-auto px-5 pt-4 pb-8 space-y-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+        {/* PATCH: WebkitOverflowScrolling:touch removed — causes GPU layer
+            stacking context conflict with modal z-index painting. */}
+        <div className="overflow-y-auto px-5 pt-4 pb-8 space-y-4 overscroll-contain">
           {/* Header */}
           <div className="flex items-start justify-between gap-3">
             <div>

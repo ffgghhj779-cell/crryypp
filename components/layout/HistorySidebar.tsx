@@ -91,7 +91,10 @@ export function HistorySidebar({ open, onClose }: Props) {
         </div>
 
         {/* List */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+        {/* PATCH: WebkitOverflowScrolling:touch removed — it creates a new GPU
+            stacking context trapping z-index layers and causing paint artifacts.
+            overscroll-behavior:contain replaces the momentum-scroll behaviour. */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-2 overscroll-contain">
           {entries.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 pb-16">
               <Clock className="w-10 h-10 text-white/10" />

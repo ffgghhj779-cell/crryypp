@@ -22,6 +22,9 @@ body {
   /* Prevent text size inflation on mobile */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Prevent sub-pixel rendering artifacts on body */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Next.js app wrapper */
@@ -31,11 +34,14 @@ body {
 
 /* Scrollable content areas.
    isolation:isolate gives main its own stacking context with z-index:0,
-   keeping it below ModalsWrapper (z-50+) without fighting BottomNav. */
+   keeping it below ModalsWrapper (z-50+) without fighting BottomNav.
+   contain:layout prevents scroll-linked layout reflows from propagating. */
 main {
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior-y: contain;
+  isolation: isolate;
+  contain: layout;
   /* NO -webkit-overflow-scrolling:touch — see html comment above */
 }
 
@@ -51,6 +57,8 @@ main {
 */
 *, *::before, *::after {
   touch-action: manipulation;
+  /* Prevent layout shift from box-sizing inconsistencies */
+  box-sizing: border-box;
 }
 
 /*
@@ -64,16 +72,75 @@ a, button, [role="button"], input, select, textarea,
   outline-color: transparent;
 }
 
+/* ============================================
+   CRITICAL: COMPOSITING & RENDERING BUG FIXES
+   ============================================ */
+
 /*
   GPU compositing hint for elements that will animate.
   Only applied to known animation targets to avoid over-promotion
   (promoting too many layers wastes GPU memory).
+
+  PATCH: Added backface-visibility:hidden which eliminates the "screen
+  tearing" artifact seen on certain Android WebViews. When a composited
+  layer flips during an animation frame, backface-visibility:hidden tells
+  the GPU to discard the reverse-face paint, preventing the horizontal
+  line glitches clients reported.
+
+  PATCH: will-change is scoped ONLY to sheet/modal — NOT motion-card,
+  which was causing GPU memory exhaustion on devices with many cards
+  visible simultaneously (a common cause of rendering breakages).
 */
 .motion-sheet,
-.motion-modal,
-.motion-card {
+.motion-modal {
   will-change: transform;
-  transform: translateZ(0); /* force own compositing layer */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/*
+  motion-card: use a lighter promotion hint.
+  translateZ(0) without will-change avoids permanent GPU layer allocation
+  while still triggering compositor for active animations.
+*/
+.motion-card {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/*
+  PATCH: Ticker/scrolling elements need explicit 3D transform axis for
+  hardware-accelerated scrolling. translate3d(0,0,0) is the canonical
+  GPU-compositing trigger that avoids the horizontal line artifacts
+  produced by 2D-only translateX animations on some Android drivers.
+*/
+.ticker-animate {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
+}
+
+/*
+  PATCH: Canvas and SVG elements inside chart containers.
+  crisp-edges prevents sub-pixel anti-aliasing that creates blurry
+  price lines and distorted horizontal grid lines in lightweight-charts.
+*/
+canvas {
+  image-rendering: crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+svg {
+  shape-rendering: crispEdges;
+}
+
+/* Exception: gauge SVG needles should stay smooth */
+svg line,
+svg circle {
+  shape-rendering: geometricPrecision;
 }
 
 /*
@@ -107,10 +174,18 @@ a, button, [role="button"], input, select, textarea,
 }
 
 .glass-dark {
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Premium card glass variant */
+.glass-card {
+  background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 /* ============================================
@@ -137,10 +212,22 @@ a, button, [role="button"], input, select, textarea,
   to   { opacity: 1; }
 }
 
-/* Infinite horizontal ticker scroll */
+/* Infinite horizontal ticker scroll — uses translate3d for GPU compositing.
+   PATCH: translate3d instead of translateX prevents the horizontal
+   line artifacts on Chromium-based Android WebViews. */
 @keyframes ticker-scroll {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0%   { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(249, 115, 22, 0.4); }
+  50%       { box-shadow: 0 0 20px rgba(249, 115, 22, 0.8); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
 }
 
 .animate-slide-up {
@@ -151,24 +238,36 @@ a, button, [role="button"], input, select, textarea,
   animation: fade-in 0.2s ease forwards;
 }
 
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
 /* ============================================
    SCROLLBAR — PREMIUM DARK STYLE
    ============================================ */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 3px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(249, 115, 22, 0.3);
+  background: rgba(249, 115, 22, 0.25);
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(249, 115, 22, 0.6);
+  background: rgba(249, 115, 22, 0.5);
 }
 
 /* Range input styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255,255,255,0.08);
+  border-radius: 999px;
+  height: 6px;
+  cursor: pointer;
+}
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 18px;
@@ -177,4 +276,69 @@ input[type="range"]::-webkit-slider-thumb {
   background: #f97316;
   cursor: pointer;
   box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+  border: 2px solid rgba(0,0,0,0.3);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f97316;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+  border: 2px solid rgba(0,0,0,0.3);
+}
+
+/* ============================================
+   SECTION CATEGORY DIVIDERS
+   ============================================ */
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-left: 2px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(249,115,22,0.15), transparent);
+}
+
+/* ============================================
+   TOOL CARD CATEGORY BADGE REFINEMENTS
+   ============================================ */
+.tool-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  font-size: 8px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.3);
+  font-family: monospace;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   PREMIUM SELECT / INPUT FOCUS STATES
+   ============================================ */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='rgba(249,115,22,0.6)' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px !important;
+}
+
+/* ============================================
+   IFRAME RENDERING FIX
+   ============================================ */
+/* TradingView iframes: contain prevents overflow repaint propagation */
+iframe {
+  border: 0;
+  contain: layout style;
 }
