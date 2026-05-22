@@ -15,8 +15,9 @@ pydantic==2.7.1               # Schema validation for all API inputs
 numpy==1.26.4                 # Numerical arrays for OHLCV processing
 scipy==1.13.0                 # find_peaks for adaptive pivot detection
 
-# ── HTTP Client (for future enhancements) ────────────────────────────────────
-httpx==0.27.0                 # Async HTTP — for any outbound calls
+# ── HTTP Client (Bybit + OKX data fetching) ───────────────────────────────────
+# Replaces Binance — Bybit and OKX do not block cloud server IPs
+httpx==0.27.0                 # Sync/async HTTP client used in market_fetcher.py
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
 python-dotenv==1.0.1          # .env file loading

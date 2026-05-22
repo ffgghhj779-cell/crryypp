@@ -524,18 +524,18 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
           return;
         }
 
-        // ── Elliott Wave (EWA) — calls Python microservice via /api/ewa ─────────
+        // ── Elliott Wave (EWA) — Python service fetches OHLCV from Bybit/OKX internally ──
         if (tool.name === 'Elliott Wave (EWA)') {
           const initData = (window as any)?.Telegram?.WebApp?.initData ?? '';
           if (!initData) throw new Error('Telegram initData غير متاح. افتح التطبيق داخل تيليغرام.');
-          // Normalise timeframe: UI uses '1H'/'4H'/'1D' — API needs lowercase '1h'/'4h'/'1d'
+          // Map UI timeframe (1H/4H/1D) to engine format (1h/4h/1d)
           const macro_tf = timeframe.toLowerCase() === '1h' ? '4h'
                          : timeframe.toLowerCase() === '4h' ? '1d'
                          : '1d';
           const micro_tf = timeframe.toLowerCase() === '1h' ? '1h'
                          : timeframe.toLowerCase() === '4h' ? '4h'
                          : '4h';
-          console.info(`[EWA] ✓ ${symbol} macro=${macro_tf} micro=${micro_tf}`);
+          console.info(`[EWA] ✓ ${symbol} macro=${macro_tf} micro=${micro_tf} | data: Bybit/OKX`);
           const res = await fetch('/api/ewa', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -544,8 +544,7 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
               symbol: symbol.toUpperCase(),
               macro_tf,
               micro_tf,
-              macro_limit: 500,
-              micro_limit: 300,
+              // No OHLCV bars — Python fetches directly from Bybit/OKX
             }),
           });
           const json: EWAResult = await res.json();

@@ -1,60 +1,49 @@
 /**
  * app/api/ewa/route.ts
  *
- * Elliott Wave Analysis (EWA) API Route Handler.
+ * Elliott Wave Analysis (EWA) API Route Handler — v1.1
+ * =====================================================
  *
- * ARCHITECTURE:
- *  POST /api/ewa  →  Validate input  →  Fetch dual-TF OHLCV  →  Python EWA microservice
- *                 →  Return typed EWAResult JSON
+ * ARCHITECTURE (v1.1 — Bybit/OKX switch):
+ *  POST /api/ewa  →  Authenticate Telegram user
+ *                 →  Rate-limit check (3 req/min per user)
+ *                 →  Forward symbol + timeframes to Python microservice
+ *                 →  Python fetches OHLCV from Bybit/OKX internally
+ *                 →  Return EWAResult JSON
+ *
+ * WHAT CHANGED FROM v1.0:
+ *  Previously, Next.js fetched OHLCV bars from Binance and sent them to Python.
+ *  This caused HTTP 451 (Geo-Restriction) errors on Render/cloud servers because
+ *  Binance blocks cloud-server IP ranges.
+ *
+ *  Now, this route only sends the symbol and timeframes to Python. The Python
+ *  microservice fetches its own OHLCV data from Bybit (fallback: OKX), which
+ *  both work reliably from any cloud IP.
  *
  * SECURITY:
- *  - Telegram initData cryptographic verification (reuses existing verifyTelegramInitData)
+ *  - Telegram initData cryptographic verification
  *  - EWA-specific rate limit: 3 requests per minute per Telegram user ID
- *    (EWA is CPU-heavy on the Python side — strict throttling is required)
- *  - Spot-Lock enforced by fetchDualTFBars (never touches futures endpoints)
- *  - All user inputs sanitized before any network call
- *
- * PYTHON RPC:
- *  The Python EWA microservice runs as a separate process/container.
- *  It is called via HTTP POST to EWA_PYTHON_URL (env var).
- *  If EWA_PYTHON_URL is not set, the route returns 503 with a clear error.
- *  The Python service is stateless — it receives OHLCV + config, returns JSON.
- *
- * CACHING:
- *  No caching on this route. EWA results must reflect the latest closed candle.
- *  The Python service may implement its own memoization per (symbol, TF, bar_count).
+ *  - X-Service-Key internal auth to the Python microservice
+ *  - All user inputs sanitized
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyTelegramInitData }    from '@/lib/verifyTelegramAuth';
-import { fetchDualTFBars, validateEWARequest } from '@/lib/binance/ewa-fetcher';
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
-/**
- * Python EWA microservice URL.
- * In development: http://localhost:8001
- * In production: set via environment variable EWA_PYTHON_URL
- */
 const EWA_PYTHON_URL = process.env.EWA_PYTHON_URL ?? 'http://localhost:8001';
 
-/**
- * EWA-specific rate limit: max 3 requests per 60 seconds per Telegram user.
- * Stored in module-level Map (process-scoped). In production with multiple
- * Vercel instances, upgrade to Redis-backed rate limiting.
- */
-const EWA_RATE_LIMIT_MAX     = 3;
-const EWA_RATE_LIMIT_WINDOW  = 60_000; // 60 seconds
+const EWA_RATE_LIMIT_MAX    = 3;
+const EWA_RATE_LIMIT_WINDOW = 60_000; // 60 seconds
 
 const ewaRateMap = new Map<string, { count: number; resetAt: number }>();
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// Valid timeframes accepted by the Python engine
+const VALID_TIMEFRAMES = new Set(['15m', '1h', '4h', '1d', '3d', '1w']);
 
-/**
- * EWA-specific per-user rate limiter (keyed by Telegram user ID, not IP).
- * User-ID keying is more accurate than IP keying for TMA users who may
- * share IPs (mobile carrier NAT, corporate proxies, etc.).
- */
+// ─── Rate Limiter ─────────────────────────────────────────────────────────────
+
 function checkEWARateLimit(telegramUserId: number): {
   allowed: boolean;
   remaining: number;
@@ -71,7 +60,7 @@ function checkEWARateLimit(telegramUserId: number): {
   entry.count++;
   ewaRateMap.set(key, entry);
 
-  // Evict stale entries to prevent memory leak in long-running processes
+  // Evict stale entries to prevent memory leak
   if (ewaRateMap.size > 5_000) {
     for (const [k, v] of ewaRateMap) {
       if (Date.now() > v.resetAt) ewaRateMap.delete(k);
@@ -85,17 +74,13 @@ function checkEWARateLimit(telegramUserId: number): {
   };
 }
 
-/**
- * Validate the JSON request body structure and business rules.
- * Returns typed params or throws with a descriptive message.
- */
+// ─── Input Parser ─────────────────────────────────────────────────────────────
+
 function parseRequestBody(body: unknown): {
-  symbol:      string;
-  macro_tf:    string;
-  micro_tf:    string;
-  macro_limit: number;
-  micro_limit: number;
-  init_data:   string;
+  symbol:    string;
+  macro_tf:  string;
+  micro_tf:  string;
+  init_data: string;
 } {
   if (!body || typeof body !== 'object') {
     throw new Error('Request body must be a JSON object.');
@@ -103,7 +88,6 @@ function parseRequestBody(body: unknown): {
 
   const b = body as Record<string, unknown>;
 
-  // Required fields
   if (typeof b.init_data !== 'string' || !b.init_data) {
     throw new Error('Missing required field: init_data (Telegram WebApp.initData).');
   }
@@ -117,41 +101,35 @@ function parseRequestBody(body: unknown): {
     throw new Error('Missing required field: micro_tf (e.g. "1h").');
   }
 
-  // Optional limits with safe defaults
-  const macro_limit = typeof b.macro_limit === 'number'
-    ? Math.min(Math.max(50, Math.floor(b.macro_limit)), 500)
-    : 500;
+  const macro_tf = String(b.macro_tf).toLowerCase().trim();
+  const micro_tf = String(b.micro_tf).toLowerCase().trim();
 
-  const micro_limit = typeof b.micro_limit === 'number'
-    ? Math.min(Math.max(50, Math.floor(b.micro_limit)), 300)
-    : 300;
+  if (!VALID_TIMEFRAMES.has(macro_tf)) {
+    throw new Error(`Invalid macro_tf: "${macro_tf}". Valid options: ${[...VALID_TIMEFRAMES].join(', ')}`);
+  }
+  if (!VALID_TIMEFRAMES.has(micro_tf)) {
+    throw new Error(`Invalid micro_tf: "${micro_tf}". Valid options: ${[...VALID_TIMEFRAMES].join(', ')}`);
+  }
 
   return {
-    symbol:      String(b.symbol).toUpperCase().trim(),
-    macro_tf:    String(b.macro_tf).toLowerCase().trim(),
-    micro_tf:    String(b.micro_tf).toLowerCase().trim(),
-    macro_limit,
-    micro_limit,
-    init_data:   b.init_data,
+    symbol:    String(b.symbol).toUpperCase().trim().replace(/[^A-Z0-9]/g, ''),
+    macro_tf,
+    micro_tf,
+    init_data: b.init_data,
   };
 }
 
-/**
- * Calls the Python EWA microservice with OHLCV data and analysis config.
- * The Python service is stateless — it accepts OHLCV arrays and returns
- * the fully computed EWAResult JSON schema.
- */
+// ─── Python RPC ───────────────────────────────────────────────────────────────
+
 async function callPythonEWA(payload: {
-  symbol:      string;
-  macro_tf:    string;
-  micro_tf:    string;
-  macro_bars:  unknown[];
-  micro_bars:  unknown[];
+  symbol:           string;
+  macro_tf:         string;
+  micro_tf:         string;
   telegram_user_id: number;
 }): Promise<unknown> {
   const controller = new AbortController();
-  // Python analysis can take up to 15 seconds for large bar arrays
-  const timeoutId  = setTimeout(() => controller.abort(), 15_000);
+  // Python fetches from Bybit + runs analysis — allow up to 20 seconds
+  const timeoutId  = setTimeout(() => controller.abort(), 20_000);
 
   try {
     const res = await fetch(`${EWA_PYTHON_URL}/analyze`, {
@@ -159,7 +137,6 @@ async function callPythonEWA(payload: {
       signal:  controller.signal,
       headers: {
         'Content-Type':  'application/json',
-        // Internal service auth — Python checks this header
         'X-Service-Key': process.env.EWA_SERVICE_KEY ?? 'dev-internal-key',
       },
       body: JSON.stringify(payload),
@@ -167,15 +144,13 @@ async function callPythonEWA(payload: {
 
     if (!res.ok) {
       const errBody = await res.text().catch(() => '');
-      throw new Error(
-        `Python EWA service returned ${res.status}: ${errBody.slice(0, 300)}`
-      );
+      throw new Error(`Python EWA service returned ${res.status}: ${errBody.slice(0, 300)}`);
     }
 
     return await res.json();
   } catch (err: unknown) {
     if ((err as Error).name === 'AbortError') {
-      throw new Error('Python EWA analysis timed out after 15 seconds.');
+      throw new Error('Python EWA analysis timed out after 20 seconds.');
     }
     throw err;
   } finally {
@@ -185,7 +160,7 @@ async function callPythonEWA(payload: {
 
 // ─── Route Handler ─────────────────────────────────────────────────────────────
 
-export const dynamic = 'force-dynamic'; // Never cache EWA responses
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const requestStart = Date.now();
@@ -211,7 +186,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // ── 2. Cryptographic Telegram auth verification ───────────────────────────
+  // ── 2. Telegram auth verification ────────────────────────────────────────
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
   if (!botToken) {
     console.error('[EWA] TELEGRAM_BOT_TOKEN environment variable is not set.');
@@ -235,40 +210,27 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const telegramUserId = authResult.user.id;
 
-  // ── 3. EWA-specific rate limiting (per Telegram user ID) ─────────────────
+  // ── 3. Rate limiting ─────────────────────────────────────────────────────
   const rateLimit = checkEWARateLimit(telegramUserId);
   if (!rateLimit.allowed) {
     return NextResponse.json(
       {
-        error:     'EWA rate limit exceeded. Maximum 3 analyses per minute.',
-        code:      'RATE_LIMITED',
+        error:          'EWA rate limit exceeded. Maximum 3 analyses per minute.',
+        code:           'RATE_LIMITED',
         retry_after_ms: rateLimit.resetAt - Date.now(),
       },
       {
-        status:  429,
+        status: 429,
         headers: {
-          'Retry-After':          String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)),
-          'X-RateLimit-Limit':    String(EWA_RATE_LIMIT_MAX),
-          'X-RateLimit-Remaining':'0',
+          'Retry-After':           String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)),
+          'X-RateLimit-Limit':     String(EWA_RATE_LIMIT_MAX),
+          'X-RateLimit-Remaining': '0',
         },
       }
     );
   }
 
-  // ── 4. Pre-validate EWA request (Spot-Lock + TF guard, no network yet) ───
-  const preValidation = validateEWARequest(
-    params.symbol,
-    params.macro_tf,
-    params.micro_tf,
-  );
-  if (!preValidation.valid) {
-    return NextResponse.json(
-      { error: preValidation.error, code: 'SPOT_LOCK_VIOLATION' },
-      { status: 400 }
-    );
-  }
-
-  // ── 5. Check Python service is configured ─────────────────────────────────
+  // ── 4. Check Python service is configured in production ───────────────────
   if (!process.env.EWA_PYTHON_URL && process.env.NODE_ENV === 'production') {
     console.error('[EWA] EWA_PYTHON_URL is not set in production environment.');
     return NextResponse.json(
@@ -277,62 +239,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // ── 6. Fetch OHLCV from Binance Spot (concurrent dual-TF) ─────────────────
-  let ohlcvData: Awaited<ReturnType<typeof fetchDualTFBars>>;
-  try {
-    ohlcvData = await fetchDualTFBars({
-      symbol:      params.symbol,
-      macro_tf:    params.macro_tf,
-      micro_tf:    params.micro_tf,
-      macro_limit: params.macro_limit,
-      micro_limit: params.micro_limit,
-    });
-  } catch (err: unknown) {
-    const msg = (err as Error).message;
-    console.error(`[EWA] OHLCV fetch error for ${params.symbol}:`, msg);
-
-    // Distinguish Spot-Lock violations from network errors
-    const isSpotLock = msg.includes('EWA-SPOT-LOCK') || msg.includes('EWA-TF-GUARD');
-    return NextResponse.json(
-      {
-        error: msg,
-        code:  isSpotLock ? 'SPOT_LOCK_VIOLATION' : 'FETCH_ERROR',
-      },
-      { status: isSpotLock ? 400 : 502 }
-    );
-  }
-
-  // Sanity check: refuse analysis if we don't have enough bars
-  const MIN_BARS_MACRO = 50;
-  const MIN_BARS_MICRO = 30;
-  if (ohlcvData.macro.bar_count < MIN_BARS_MACRO) {
-    return NextResponse.json(
-      {
-        error: `Insufficient macro bars: got ${ohlcvData.macro.bar_count}, need ≥ ${MIN_BARS_MACRO}.`,
-        code:  'INSUFFICIENT_DATA',
-      },
-      { status: 422 }
-    );
-  }
-  if (ohlcvData.micro.bar_count < MIN_BARS_MICRO) {
-    return NextResponse.json(
-      {
-        error: `Insufficient micro bars: got ${ohlcvData.micro.bar_count}, need ≥ ${MIN_BARS_MICRO}.`,
-        code:  'INSUFFICIENT_DATA',
-      },
-      { status: 422 }
-    );
-  }
-
-  // ── 7. Call Python EWA analysis microservice ──────────────────────────────
+  // ── 5. Call Python EWA microservice ──────────────────────────────────────
+  //    Python handles all OHLCV fetching internally via Bybit/OKX.
+  //    No Binance calls from this route anymore.
   let ewaResult: unknown;
   try {
     ewaResult = await callPythonEWA({
-      symbol:           ohlcvData.symbol,
-      macro_tf:         ohlcvData.macro.timeframe,
-      micro_tf:         ohlcvData.micro.timeframe,
-      macro_bars:       ohlcvData.macro.bars,
-      micro_bars:       ohlcvData.micro.bars,
+      symbol:           params.symbol,
+      macro_tf:         params.macro_tf,
+      micro_tf:         params.micro_tf,
       telegram_user_id: telegramUserId,
     });
   } catch (err: unknown) {
@@ -344,7 +259,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // ── 8. Respond with EWA result + performance metadata ─────────────────────
+  // ── 6. Respond ───────────────────────────────────────────────────────────
   const processingMs = Date.now() - requestStart;
   console.info(
     `[EWA] ${params.symbol} ${params.macro_tf}→${params.micro_tf} ` +
@@ -354,17 +269,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   return NextResponse.json(
     {
       ...((ewaResult as object) ?? {}),
-      // Attach server-side metadata for debugging / client-side display
       _meta: {
-        processing_ms:     processingMs,
-        macro_bars_used:   ohlcvData.macro.bar_count,
-        micro_bars_used:   ohlcvData.micro.bar_count,
-        fetched_at:        ohlcvData.fetched_at,
+        processing_ms:        processingMs,
         rate_limit_remaining: rateLimit.remaining,
+        data_source:          'Bybit/OKX',
       },
     },
     {
-      status:  200,
+      status: 200,
       headers: {
         'X-RateLimit-Limit':     String(EWA_RATE_LIMIT_MAX),
         'X-RateLimit-Remaining': String(rateLimit.remaining),
@@ -374,7 +286,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 }
 
-// Only POST is supported — reject all other methods
+// Only POST is supported
 export async function GET()    { return NextResponse.json({ error: 'Method not allowed. Use POST.' }, { status: 405 }); }
 export async function PUT()    { return NextResponse.json({ error: 'Method not allowed. Use POST.' }, { status: 405 }); }
 export async function DELETE() { return NextResponse.json({ error: 'Method not allowed. Use POST.' }, { status: 405 }); }
