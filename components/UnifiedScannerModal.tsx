@@ -93,6 +93,7 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
   { name: 'Fourier Transform',        tag: 'Quant',       category: 'math',     subtitle: 'Cycle & time period detection',    tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol', 'timeframe', 'period'] },
   { name: 'Linear Regression',        tag: 'Quant',       category: 'math',     subtitle: 'Fair value & channel estimation',  tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol', 'price_start', 'price_end', 'direction'] },
   { name: 'Elliott Wave (EWA)',        tag: 'EWA',         category: 'math',     subtitle: 'Quantitative 5-wave MTF engine',   tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20',   requiredInputs: ['symbol', 'timeframe'] },
+  { name: 'Gann Time Wheel',          tag: 'Cycles',      category: 'math',     subtitle: 'W.D. Gann Annual Time Cycles',    tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20', requiredInputs: [] },
   // D – Momentum & Signals
   { name: 'Divergence Scanner',       tag: 'Momentum',    category: 'momentum', subtitle: 'RSI & MACD hidden/regular div',   tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
   { name: 'Trading VIP 1',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
