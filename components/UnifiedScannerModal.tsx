@@ -56,6 +56,9 @@ import {
 import { analyzeWyckoff }   from '@/lib/algorithms/wyckoff';
 import type { WyckoffResult } from '@/lib/algorithms/wyckoff';
 import { WyckoffCard }       from '@/components/tools/WyckoffCard';
+import { EWAResultCard }     from '@/components/tools/EWAResultCard';
+import type { EWAResult }    from '@/lib/types/ewa';
+import { useEWA }            from '@/lib/hooks/useEWA';
 
 // ─── Tool Dictionary ──────────────────────────────────────────────────────────
 export type ToolCategory = 'pattern' | 'smc' | 'math' | 'momentum' | 'widget';
@@ -89,6 +92,7 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
   { name: 'Markov Model (HMM)',       tag: 'Quant',       category: 'math',     subtitle: 'Market regime classifier',         tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol', 'timeframe'] },
   { name: 'Fourier Transform',        tag: 'Quant',       category: 'math',     subtitle: 'Cycle & time period detection',    tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol', 'timeframe', 'period'] },
   { name: 'Linear Regression',        tag: 'Quant',       category: 'math',     subtitle: 'Fair value & channel estimation',  tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol', 'price_start', 'price_end', 'direction'] },
+  { name: 'Elliott Wave (EWA)',        tag: 'EWA',         category: 'math',     subtitle: 'Quantitative 5-wave MTF engine',   tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20',   requiredInputs: ['symbol', 'timeframe'] },
   // D – Momentum & Signals
   { name: 'Divergence Scanner',       tag: 'Momentum',    category: 'momentum', subtitle: 'RSI & MACD hidden/regular div',   tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
   { name: 'Trading VIP 1',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
@@ -285,6 +289,7 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
   const [triangleResult,   setTriangleResult]  = useState<TriangleResult      | null>(null);
   const [msResult,         setMsResult]        = useState<MarketStructureResult| null>(null);
   const [wyckoffResult,    setWyckoffResult]   = useState<WyckoffResult        | null>(null);
+  const [ewaResult,        setEwaResult]       = useState<EWAResult             | null>(null);
   const [fetchErr,         setFetchErr]        = useState<string | null>(null);
 
   // ── Stable memoized values ─────────────────────────────────────────────────
@@ -322,6 +327,7 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
     if (triangleResult) summary = triangleResult.verdict;
     if (msResult)       summary = msResult.verdict;
     if (wyckoffResult)  summary = `مرحلة: ${wyckoffResult.phaseAr} — ثقة: ${wyckoffResult.confidence}%`;
+    if (ewaResult && !ewaResult.error) summary = `EWA: ${ewaResult.pattern_name_ar} — ثقة: ${ewaResult.scoring_matrix.confidence_pct}%`;
     if (summary) onScanComplete(symbol, timeframe, summary);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
@@ -360,6 +366,7 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
     setTriangleResult(null);
     setMsResult(null);
     setWyckoffResult(null);
+    setEwaResult(null);
     setFetchErr(null);
 
     if (!isWidget) {
@@ -513,6 +520,39 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
           const klines = await fetchKlines(symbol, timeframe, 500);
           console.info(`[Wyckoff] ✓ ${symbol} ${timeframe} — ${klines.length} candles`);
           setWyckoffResult(analyzeWyckoff(klines));
+          setPhase('done');
+          return;
+        }
+
+        // ── Elliott Wave (EWA) — calls Python microservice via /api/ewa ─────────
+        if (tool.name === 'Elliott Wave (EWA)') {
+          const initData = (window as any)?.Telegram?.WebApp?.initData ?? '';
+          if (!initData) throw new Error('Telegram initData غير متاح. افتح التطبيق داخل تيليغرام.');
+          // Normalise timeframe: UI uses '1H'/'4H'/'1D' — API needs lowercase '1h'/'4h'/'1d'
+          const macro_tf = timeframe.toLowerCase() === '1h' ? '4h'
+                         : timeframe.toLowerCase() === '4h' ? '1d'
+                         : '1d';
+          const micro_tf = timeframe.toLowerCase() === '1h' ? '1h'
+                         : timeframe.toLowerCase() === '4h' ? '4h'
+                         : '4h';
+          console.info(`[EWA] ✓ ${symbol} macro=${macro_tf} micro=${micro_tf}`);
+          const res = await fetch('/api/ewa', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              init_data: initData,
+              symbol: symbol.toUpperCase(),
+              macro_tf,
+              micro_tf,
+              macro_limit: 500,
+              micro_limit: 300,
+            }),
+          });
+          const json: EWAResult = await res.json();
+          if (!res.ok || json.error) {
+            throw new Error(json.error ?? `EWA API error ${res.status}`);
+          }
+          setEwaResult(json);
           setPhase('done');
           return;
         }
@@ -753,6 +793,21 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
               {/* Result — Wyckoff */}
               {phase === 'done' && wyckoffResult && tool.name === 'Wyckoff' && (
                 <WyckoffCard data={wyckoffResult} symbol={symbol} timeframe={timeframe} />
+              )}
+
+              {/* Result — Elliott Wave Analysis */}
+              {phase === 'done' && ewaResult && !ewaResult.error && tool.name === 'Elliott Wave (EWA)' && (
+                <EWAResultCard data={ewaResult} symbol={symbol} />
+              )}
+
+              {/* EWA error state */}
+              {phase === 'done' && ewaResult?.error && tool.name === 'Elliott Wave (EWA)' && (
+                <div className="flex items-start gap-3 px-4 py-3 rounded-2xl border border-red-500/30 bg-red-500/[0.07]">
+                  <div>
+                    <p className="text-xs font-bold text-red-400 uppercase tracking-wider">EWA Engine Error</p>
+                    <p className="text-[11px] text-red-300/80 mt-0.5 leading-snug" dir="rtl">{ewaResult.error}</p>
+                  </div>
+                </div>
               )}
             </>
           )}

@@ -61,6 +61,9 @@ const LIMITS: Record<string, { max: number; windowMs: number }> = {
   '/api/fng':      { max: 10,  windowMs: 60_000  },
   '/api/markets':  { max: 10,  windowMs: 60_000  },
   '/api/calendar': { max: 10,  windowMs: 60_000  },
+  // EWA is CPU-heavy (Python microservice) — strict 3 req/min
+  // User-level throttling is also enforced inside /api/ewa/route.ts
+  '/api/ewa':      { max: 3,   windowMs: 60_000  },
   'default':       { max: 30,  windowMs: 60_000  },
 };
 
