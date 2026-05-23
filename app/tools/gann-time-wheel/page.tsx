@@ -131,7 +131,7 @@ export default function GannWheelPage() {
 
             <div className="flex flex-col items-center py-2">
               <span className="text-[10px] text-white/40 font-mono tracking-widest uppercase mb-2 text-center">
-                {result.nextPoint.eventEn ?? result.nextPoint.event}
+                {result.nextPoint.event}
               </span>
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl font-black font-mono text-white tracking-tighter">
