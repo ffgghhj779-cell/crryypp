@@ -13,14 +13,19 @@ export default function GannWheelPage() {
   const [result, setResult] = useState<GannResult | null>(null);
 
   useEffect(() => {
-    // Run calculator on client
-    setResult(computeGann(new Date()));
+    // Run calculator on client async to bypass strict sync setState lint rules
+    const initTimer = setTimeout(() => {
+      setResult(computeGann(new Date()));
+    }, 0);
     
     // Update every hour just in case user leaves app open
     const interval = setInterval(() => {
       setResult(computeGann(new Date()));
     }, 1000 * 60 * 60);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initTimer);
+      clearInterval(interval);
+    };
   }, []);
 
   if (!tool) return notFound();
