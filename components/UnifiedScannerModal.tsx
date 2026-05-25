@@ -81,6 +81,7 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
   { name: 'Head & Shoulders',         tag: 'Pattern',     category: 'pattern',  subtitle: 'Reversal pattern identifier',     tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20', requiredInputs: ['symbol', 'timeframe', 'direction'] },
   { name: 'Triangle Predictor',       tag: 'Pattern',     category: 'pattern',  subtitle: 'Sym / Asc / Desc triangles',      tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20', requiredInputs: ['symbol', 'timeframe', 'direction'] },
   // B – Smart Money
+  { name: 'ZigZag Engine',            tag: 'Structure',   category: 'smc',      subtitle: 'محرك القمم والقيعان (الانحراف الهيكلي)',  tagColor: 'text-blue-400 bg-blue-500/10 border-blue-500/20',      requiredInputs: [] },
   { name: 'SMC Order Blocks',         tag: 'Smart Money', category: 'smc',      subtitle: 'Bullish & Bearish OB zones',      tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20',         requiredInputs: ['symbol', 'timeframe'] },
   { name: 'Market Structure',         tag: 'Smart Money', category: 'smc',      subtitle: 'BOS & CHoCH tracker',             tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20',         requiredInputs: ['symbol', 'timeframe'] },
   { name: 'Wyckoff',                  tag: 'Smart Money', category: 'smc',      subtitle: 'Accumulation / Distribution phase',tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20',         requiredInputs: ['symbol', 'timeframe', 'direction'] },
