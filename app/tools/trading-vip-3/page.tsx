@@ -7,50 +7,85 @@
  * Combines RSI Divergence, Fibonacci OTE, and SMC Order Blocks into actionable setups.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ScanSearch, AlertCircle, ChevronDown, Activity, Info, Target, Crosshair, ShieldAlert } from 'lucide-react';
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
 import { slugToTool } from '@/lib/tools/registry';
 import { generateVIP3Setup, Vip3Result, Vip3TradeSetup, ToolGrade } from '@/lib/algorithms/vip3';
-import { fetchKlines } from '@/lib/binance/fetcher';
+import { useMarketData } from '@/context/MarketDataContext';
 import { notFound } from 'next/navigation';
 
 export default function Vip3Page() {
-  const [symbol, setSymbol] = useState('BTCUSDT');
+  const { symbol, setSymbol, candles, isLoading } = useMarketData();
+  const [localSymbol, setLocalSymbol] = useState(symbol);
   
-  const [result, setResult] = useState<Vip3Result | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [calculating, setCalculating] = useState(false);
   const [error, setError] = useState('');
-  const [animated, setAnimated] = useState(false);
-
-  // ── Guard ──────────────────────────────────────────────────────────────────
+  
   const tool = slugToTool('trading-vip-3');
-  if (!tool) return notFound();
 
-  // ── Handlers ───────────────────────────────────────────────────────────────
+  // Compute VIP3 result directly during render from global state
+  let result: Vip3Result | null = null;
+  if (candles.length > 0 && symbol.trim()) {
+    try {
+      result = generateVIP3Setup(symbol.toUpperCase().trim(), candles as any);
+    } catch (err: any) {
+      console.error('VIP 3 Engine Error:', err);
+    }
+  }
+
+  // Use a simple delayed animation flag that resets when data changes
+  const [animated, setAnimated] = useState(false);
+  useEffect(() => {
+    if (result) {
+      const timer = setTimeout(() => setAnimated(true), 100);
+      return () => {
+        clearTimeout(timer);
+        setAnimated(false);
+      };
+    }
+  }, [result]);
+
   const handleCalculate = async () => {
     setError('');
-    if (!symbol.trim()) return setError('أدخل اسم الأصل.');
+    if (!localSymbol.trim()) return setError('أدخل اسم الأصل.');
     
-    setLoading(true);
+    setCalculating(true);
     setAnimated(false);
     
-    try {
-      // Need enough klines for seed stability
-      const klines = await fetchKlines(symbol.toUpperCase().trim(), '1d', 100);
-      if (klines.length === 0) throw new Error('لا توجد بيانات متاحة لهذا الأصل.');
-      
-      const res = generateVIP3Setup(symbol.toUpperCase().trim(), klines);
-      setResult(res);
-      setTimeout(() => setAnimated(true), 100);
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'حدث خطأ أثناء جلب البيانات أو المعالجة.');
-    } finally {
-      setLoading(false);
-    }
+    // Update global symbol. The MarketDataContext will automatically fetch live data,
+    // which then triggers the useEffect above to recalculate.
+    setSymbol(localSymbol.toUpperCase().trim());
+    
+    setTimeout(() => {
+      setCalculating(false);
+    }, 500); // Visual feedback
   };
+
+  if (!tool) return notFound();
+
+  // Sleek glowing skeleton for global data loading
+  if (isLoading) {
+    return (
+      <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
+        <ToolPageHeader tool={tool} />
+        <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <div className="relative flex items-center justify-center">
+            <motion.div 
+              animate={{ rotate: 360 }} 
+              transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+              className="w-20 h-20 rounded-full border-t-2 border-r-2 border-orange-500/80 shadow-[0_0_25px_rgba(249,115,22,0.6)]"
+            />
+            <Activity className="absolute w-8 h-8 text-orange-400 animate-pulse" />
+          </div>
+          <p className="text-orange-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">
+            جاري مزامنة بيانات المؤسسات المباشرة...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
@@ -61,6 +96,9 @@ export default function Vip3Page() {
         <div className="flex items-center gap-2">
           <span className="text-[9px] font-black text-orange-500/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full">
             Institutional
+          </span>
+          <span className="text-[9px] font-black text-emerald-500/70 tracking-widest uppercase border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 rounded-full flex items-center gap-1">
+            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" /> Live Data
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">
@@ -78,8 +116,8 @@ export default function Vip3Page() {
             <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">رمز الأصل المالي (Spot)</label>
             <input
               type="text"
-              value={symbol}
-              onChange={e => setSymbol(e.target.value)}
+              value={localSymbol}
+              onChange={e => setLocalSymbol(e.target.value)}
               placeholder="BTCUSDT"
               className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-colors"
               dir="ltr"
@@ -99,15 +137,15 @@ export default function Vip3Page() {
 
           <button
             onClick={handleCalculate}
-            disabled={loading}
+            disabled={calculating}
             className="w-full flex items-center justify-center gap-2.5 rounded-xl py-4 font-black text-sm tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
             style={{
-              background: loading ? 'linear-gradient(135deg, #7c2d12, #431407)' : 'linear-gradient(135deg, #f97316, #c2410c)',
-              boxShadow: !loading ? '0 0 20px rgba(249, 115, 22, 0.25)' : 'none'
+              background: calculating ? 'linear-gradient(135deg, #7c2d12, #431407)' : 'linear-gradient(135deg, #f97316, #c2410c)',
+              boxShadow: !calculating ? '0 0 20px rgba(249, 115, 22, 0.25)' : 'none'
             }}
           >
-            {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-4 h-4" />}
-            {loading ? 'جارٍ البحث عن الصفقات...' : 'تشغيل محرك VIP 3'}
+            {calculating ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-4 h-4" />}
+            {calculating ? 'جاري المزامنة مع السوق...' : 'تحديث إشارات VIP 3'}
           </button>
         </div>
 

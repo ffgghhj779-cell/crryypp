@@ -18,6 +18,8 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
+import { MarketDataProvider } from '@/context/MarketDataContext';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
@@ -31,7 +33,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         suppressHydrationWarning
         className={`overflow-hidden ${inter.variable} ${robotoMono.variable} font-sans`}
       >
-        {children}
+        <MarketDataProvider>
+          {children}
+        </MarketDataProvider>
       </body>
     </html>
   );
