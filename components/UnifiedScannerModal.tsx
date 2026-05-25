@@ -148,6 +148,11 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
   { name: 'Cycle Calculator',         tag: 'Cycles',      category: 'math',     subtitle: 'حاسبة الدورات والأشكال',           tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20', requiredInputs: [] },
   { name: 'Periodic Bands',           tag: 'Bands',       category: 'math',     subtitle: 'حاسبة النطاقات الدورية',           tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20', requiredInputs: [] },
   { name: 'Cycle Confluence',         tag: 'Cycles',      category: 'math',     subtitle: 'توافق الدورات',                  tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20', requiredInputs: [] },
+  // L – MTF & Multi-Analysis Dashboards
+  { name: 'MTF Confluence',           tag: 'Confluence',  category: 'pattern',  subtitle: 'توافق الأطر المتعددة',           tagColor: 'text-purple-400 bg-purple-500/10 border-purple-500/20', requiredInputs: [] },
+  { name: 'Triple Analysis',          tag: 'Confluence',  category: 'pattern',  subtitle: 'التحليل الثلاثي',                tagColor: 'text-purple-400 bg-purple-500/10 border-purple-500/20', requiredInputs: [] },
+  { name: 'Confluence Detector',      tag: 'Confluence',  category: 'pattern',  subtitle: 'كاشف التوافق',                   tagColor: 'text-purple-400 bg-purple-500/10 border-purple-500/20', requiredInputs: [] },
+  { name: 'MTFC Scanner',             tag: 'Scanner',     category: 'pattern',  subtitle: 'ماسح التقاء الأطر',                tagColor: 'text-purple-400 bg-purple-500/10 border-purple-500/20', requiredInputs: [] },
 ];
 
 // ─── Mock Engine ──────────────────────────────────────────────────────────────
