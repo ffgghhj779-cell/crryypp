@@ -32,7 +32,7 @@ import { verifyTelegramInitData }    from '@/lib/verifyTelegramAuth';
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
-const EWA_PYTHON_URL = process.env.EWA_PYTHON_URL ?? 'http://localhost:8001';
+const EWA_PYTHON_URL = process.env.EWA_PYTHON_URL ?? 'https://mohameddd52-my-all-bots.hf.space/ewa';
 
 const EWA_RATE_LIMIT_MAX    = 3;
 const EWA_RATE_LIMIT_WINDOW = 60_000; // 60 seconds
@@ -132,7 +132,7 @@ async function callPythonEWA(payload: {
   const timeoutId  = setTimeout(() => controller.abort(), 20_000);
 
   try {
-    const res = await fetch(`${EWA_PYTHON_URL}/analyze`, {
+    const res = await fetch(EWA_PYTHON_URL, {
       method:  'POST',
       signal:  controller.signal,
       headers: {
