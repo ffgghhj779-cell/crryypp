@@ -138,6 +138,11 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
   { name: 'Hidden Candle',            tag: 'Prediction',  category: 'math',     subtitle: 'الشمعة المخفية',                 tagColor: 'text-fuchsia-400 bg-fuchsia-500/10 border-fuchsia-500/20', requiredInputs: [] },
   { name: 'Fractal Detector',         tag: 'Pattern',     category: 'pattern',  subtitle: 'كاشف الفراكتل',                  tagColor: 'text-fuchsia-400 bg-fuchsia-500/10 border-fuchsia-500/20', requiredInputs: [] },
   { name: 'Multi-Scale Fractal',      tag: 'Pattern',     category: 'pattern',  subtitle: 'فراكتل متعدد الأطر',             tagColor: 'text-fuchsia-400 bg-fuchsia-500/10 border-fuchsia-500/20', requiredInputs: [] },
+  // J – Risk & Money Flow Dashboards
+  { name: 'Risk Management',          tag: 'Risk',        category: 'math',     subtitle: 'إدارة المخاطر',                  tagColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20', requiredInputs: [] },
+  { name: 'Flow Index',               tag: 'Volume',      category: 'math',     subtitle: 'مؤشر التدفق',                    tagColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20', requiredInputs: [] },
+  { name: 'MFI MTF',                  tag: 'Volume',      category: 'math',     subtitle: 'تدفق الأموال المتعدد',             tagColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20', requiredInputs: [] },
+  { name: 'DeMark TD',                tag: 'Pattern',     category: 'pattern',  subtitle: 'نموذج الإرهاق (TD)',             tagColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20', requiredInputs: [] },
 ];
 
 // ─── Mock Engine ──────────────────────────────────────────────────────────────
