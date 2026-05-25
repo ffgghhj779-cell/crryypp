@@ -2,12 +2,15 @@
  * lib/algorithms/tripleLens.ts
  *
  * Triple Lens (العدسة الثلاثية) Engine
- * Analyzes an asset using 3 lenses: Ichimoku, Bollinger, Volume Profile.
- * Uses a mix of actual basic math from last close and seeded realistic mocks
- * to ensure deterministic client-side UI rendering.
+ * ✅ PARITY FIX: Real calculations replacing all seed-based mock logic.
+ *    - Ichimoku Cloud (9/26/52/26): real Tenkan, Kijun, Chikou, Senkou
+ *    - Bollinger Bands (20, 2σ): real pctB, bandwidth, squeeze
+ *    - Volume Profile (VWAP POC approximation): real POC from volume data
+ *    - Confidence: totalScore/maxScore * 100 (matches competitor source)
  */
 
 import type { Kline } from '@/lib/binance/fetcher';
+import { calculateEMA, calculateSMA } from './mathUtils';
 
 export type LensBias = 'BULL' | 'BEAR' | 'NEUTRAL';
 
@@ -20,6 +23,10 @@ export interface IchimokuData {
   chikouSpan: string;
   futureCloud: string;
   cloudDistancePct: string;
+  tenkanSen: number;
+  kijunSen: number;
+  senkouA: number;
+  senkouB: number;
 }
 
 export interface BollingerData {
@@ -30,6 +37,9 @@ export interface BollingerData {
   bandwidth: string;
   priceVsSMA: string;
   squeezeStatus: string;
+  upper: number;
+  middle: number;
+  lower: number;
 }
 
 export interface VolumeProfileData {
@@ -39,6 +49,9 @@ export interface VolumeProfileData {
   poc: string;
   priceVsPocPct: string;
   valueArea: string;
+  pocPrice: number;
+  vaHigh: number;
+  vaLow: number;
 }
 
 export interface TripleLensResult {
@@ -56,155 +69,308 @@ export interface TripleLensResult {
   verdictTextAr: string;
 }
 
-export function analyzeTripleLens(symbol: string, klines: Kline[]): TripleLensResult {
-  // If not enough data, just use a dummy price
-  const lastClose = klines.length > 0 ? klines[klines.length - 1].close : 65000;
-  const seedStr = symbol + (lastClose).toString();
-  let seed = 0;
-  for (let i = 0; i < seedStr.length; i++) {
-    seed = seedStr.charCodeAt(i) + ((seed << 5) - seed);
-  }
-  seed = Math.abs(seed);
+// ─── Price formatter ───────────────────────────────────────────────────────────
+function fmtVal(val: number): string {
+  if (val >= 10000) return val.toLocaleString('en', { maximumFractionDigits: 1 });
+  if (val >= 1)     return val.toLocaleString('en', { maximumFractionDigits: 3 });
+  return val.toLocaleString('en', { maximumFractionDigits: 6 });
+}
 
-  const priceStr = (val: number) => {
-    if (val >= 1000) return val.toLocaleString(undefined, { maximumFractionDigits: 1 });
-    if (val >= 1) return val.toLocaleString(undefined, { maximumFractionDigits: 3 });
-    return val.toLocaleString(undefined, { maximumFractionDigits: 6 });
+// ─── Ichimoku helper: highest high / lowest low over period ───────────────────
+function donchian(klines: Kline[], period: number, endIdx: number): { high: number; low: number } {
+  const start = Math.max(0, endIdx - period + 1);
+  const slice = klines.slice(start, endIdx + 1);
+  return {
+    high: Math.max(...slice.map(k => k.high)),
+    low:  Math.min(...slice.map(k => k.low)),
   };
+}
 
-  // 1. Ichimoku Lens (Trend) - out of 5
-  // Deterministic mock logic based on seed
-  const ichiSeed = seed % 100;
-  let ichiScore = 0;
-  const ichiData: Partial<IchimokuData> = { maxScore: 5 };
+// ─── Ichimoku Cloud Lens (Trend) ─────────────────────────────────────────────
+function calcIchimoku(klines: Kline[]): IchimokuData {
+  const n          = klines.length;
+  const lastClose  = klines[n - 1].close;
+  const maxScore   = 5;
 
-  if (ichiSeed > 50) {
-    ichiScore += 1; ichiData.priceVsCloud = 'فوق السحابة (إيجابي)';
+  // Standard Ichimoku periods: Tenkan=9, Kijun=26, Senkou B=52, Chikou lag=26
+  if (n < 52) {
+    return {
+      score: 2, maxScore, bias: 'NEUTRAL',
+      priceVsCloud: 'بيانات غير كافية', tenkanKijun: 'بيانات غير كافية',
+      chikouSpan: 'بيانات غير كافية', futureCloud: 'بيانات غير كافية',
+      cloudDistancePct: '0%', tenkanSen: lastClose, kijunSen: lastClose,
+      senkouA: lastClose, senkouB: lastClose,
+    };
+  }
+
+  const d9  = donchian(klines, 9,  n - 1);
+  const d26 = donchian(klines, 26, n - 1);
+  const d52 = donchian(klines, 52, n - 1);
+
+  const tenkanSen = (d9.high  + d9.low)  / 2;
+  const kijunSen  = (d26.high + d26.low) / 2;
+  const senkouA   = (tenkanSen + kijunSen) / 2;
+  const senkouB   = (d52.high + d52.low)  / 2;
+
+  // Chikou Span = close shifted 26 bars back (we check 26 bars ago)
+  const chikouClose = n >= 27 ? klines[n - 27].close : lastClose;
+
+  // Cloud bounds at current bar (26-bar forward senkou, but we use current values)
+  const cloudTop    = Math.max(senkouA, senkouB);
+  const cloudBottom = Math.min(senkouA, senkouB);
+  const cloudDist   = ((lastClose - cloudTop) / cloudTop * 100).toFixed(2);
+
+  let score = 0;
+  let priceVsCloud: string, tenkanKijunStr: string, chikouStr: string, futureCloudStr: string;
+
+  // 1. Price vs Cloud
+  if (lastClose > cloudTop) {
+    score += 2; priceVsCloud = `فوق السحابة (+${cloudDist}%)`;
+  } else if (lastClose < cloudBottom) {
+    priceVsCloud = `تحت السحابة (${cloudDist}%)`;
   } else {
-    ichiData.priceVsCloud = 'تحت السحابة (سلبي)';
+    score += 1; priceVsCloud = `داخل السحابة (${cloudDist}%)`;
   }
 
-  if (ichiSeed % 3 === 0) {
-    ichiScore += 1; ichiData.tenkanKijun = 'تقاطع إيجابي';
-  } else if (ichiSeed % 2 === 0) {
-    ichiData.tenkanKijun = 'تقاطع سلبي';
+  // 2. Tenkan vs Kijun
+  if (tenkanSen > kijunSen) {
+    score += 1; tenkanKijunStr = 'Tenkan فوق Kijun — إيجابي';
+  } else if (tenkanSen < kijunSen) {
+    tenkanKijunStr = 'Tenkan تحت Kijun — سلبي';
   } else {
-    ichiScore += 0.5; ichiData.tenkanKijun = 'محايد';
+    score += 0.5; tenkanKijunStr = 'Tenkan = Kijun — محايد';
   }
 
-  if (ichiSeed > 40) {
-    ichiScore += 1; ichiData.chikouSpan = 'فوق السعر (حر)';
+  // 3. Chikou Span vs Price 26 bars ago
+  if (lastClose > chikouClose) {
+    score += 1; chikouStr = `Chikou فوق السعر السابق — تأكيد إيجابي`;
+  } else if (lastClose < chikouClose) {
+    chikouStr = `Chikou تحت السعر السابق — تأكيد سلبي`;
   } else {
-    ichiData.chikouSpan = 'يتداخل مع السعر';
+    chikouStr = `Chikou عند مستوى السعر — محايد`;
   }
 
-  if (ichiSeed % 2 === 0) {
-    ichiScore += 1; ichiData.futureCloud = 'صاعدة (أخضر)';
+  // 4. Future Cloud direction (Senkou A vs B)
+  if (senkouA > senkouB) {
+    score += 1; futureCloudStr = `سحابة صاعدة (Senkou A > B)`;
+  } else if (senkouA < senkouB) {
+    futureCloudStr = `سحابة هابطة (Senkou A < B)`;
   } else {
-    ichiData.futureCloud = 'هابطة (أحمر)';
-  }
-  
-  const dist = ((ichiSeed % 15) / 10 + 0.5).toFixed(2);
-  ichiScore += 1; // Base point
-  ichiData.cloudDistancePct = `تبتعد بنسبة ${dist}%`;
-  
-  ichiScore = Math.min(5, Math.max(0, Math.round(ichiScore)));
-  ichiData.score = ichiScore;
-  ichiData.bias = ichiScore >= 4 ? 'BULL' : ichiScore <= 2 ? 'BEAR' : 'NEUTRAL';
-
-  // 2. Bollinger Bands (Volatility) - out of 4
-  const bbSeed = (seed >> 2) % 100;
-  let bbScore = 0;
-  const bbData: Partial<BollingerData> = { maxScore: 4 };
-
-  const pctBVal = (bbSeed % 120) / 100; // 0.0 to 1.2
-  bbData.pctB = `${pctBVal.toFixed(2)}`;
-  if (pctBVal > 0.8) {
-    bbScore += 1; bbData.priceVsSMA = 'أعلى بكثير من SMA20';
-  } else if (pctBVal > 0.5) {
-    bbScore += 0.5; bbData.priceVsSMA = 'فوق SMA20';
-  } else {
-    bbData.priceVsSMA = 'تحت SMA20';
+    futureCloudStr = 'سحابة محايدة';
   }
 
-  const bbw = ((bbSeed % 20) + 5).toFixed(1);
-  bbData.bandwidth = `${bbw}%`;
-  
-  if (bbSeed % 3 === 0) {
-    bbScore += 1; bbData.squeezeStatus = 'يوجد ضغط (Squeeze)';
-  } else {
-    bbData.squeezeStatus = 'توسع طبيعي';
-  }
-  
-  // Randomize bbScore for realistic varied spread
-  bbScore = Math.floor((bbSeed / 100) * 4);
-  bbData.score = bbScore;
-  bbData.bias = bbScore >= 3 ? 'BULL' : bbScore <= 1 ? 'BEAR' : 'NEUTRAL';
-
-  // 3. Volume Profile (Liquidity) - out of 4
-  const vpSeed = (seed >> 4) % 100;
-  let vpScore = 0;
-  const vpData: Partial<VolumeProfileData> = { maxScore: 4 };
-
-  const pocPrice = lastClose * (1 + ((vpSeed - 50) / 1000));
-  vpData.poc = `$${priceStr(pocPrice)}`;
-  
-  const pocDiff = ((lastClose - pocPrice) / pocPrice) * 100;
-  vpData.priceVsPocPct = `${pocDiff > 0 ? '+' : ''}${pocDiff.toFixed(2)}%`;
-  
-  if (pocDiff > 0) {
-    vpScore += 2;
-  }
-  
-  const vaHigh = pocPrice * 1.02;
-  const vaLow = pocPrice * 0.98;
-  vpData.valueArea = `$${priceStr(vaLow)} - $${priceStr(vaHigh)}`;
-  
-  if (lastClose > vaHigh) {
-    vpScore += 2;
-  } else if (lastClose > vaLow) {
-    vpScore += 1;
-  }
-  
-  vpData.score = vpScore;
-  vpData.bias = vpScore >= 3 ? 'BULL' : vpScore <= 1 ? 'BEAR' : 'NEUTRAL';
-
-  // Aggregation
-  const totalScore = ichiScore + bbScore + vpScore;
-  const totalMax = 13;
-  const consensusScorePct = Math.round((totalScore / totalMax) * 100);
-
-  let overallBias: LensBias;
-  if (consensusScorePct >= 60) overallBias = 'BULL';
-  else if (consensusScorePct <= 40) overallBias = 'BEAR';
-  else overallBias = 'NEUTRAL';
-
-  const biases = [ichiData.bias, bbData.bias, vpData.bias];
-  const bullCount = biases.filter(b => b === 'BULL').length;
-  const bearCount = biases.filter(b => b === 'BEAR').length;
-  const neutralCount = biases.filter(b => b === 'NEUTRAL').length;
-
-  const biasArMap = { 'BULL': 'صعود', 'BEAR': 'هبوط', 'NEUTRAL': 'اتجاه عرضي' };
-  
-  const v1 = biasArMap[overallBias];
-  const v2 = ichiData.bias === 'BULL' ? 'يدعم الصعود' : ichiData.bias === 'BEAR' ? 'يدعم الهبوط' : 'إشارته محايدة';
-  const v3 = bbData.bias === 'BULL' ? 'تميل للإيجابية' : bbData.bias === 'BEAR' ? 'تميل للسلبية' : 'إشارته محايدة';
-  const v4 = vpData.bias === 'BULL' ? 'تدعم الاتجاه بقوة' : vpData.bias === 'BEAR' ? 'تقاوم الاتجاه' : 'تستقر في منطقة القيمة';
-
-  const verdictTextAr = `العدسة الثلاثية تشير نحو ${v1} بثقة ${consensusScorePct}%. Ichimoku ${v2}. Bollinger ${v3}. Volume ${v4}.`;
+  score = Math.min(maxScore, Math.max(0, Math.round(score)));
+  const bias: LensBias = score >= 4 ? 'BULL' : score <= 1 ? 'BEAR' : 'NEUTRAL';
 
   return {
-    symbol,
-    consensusScorePct,
-    overallBias,
-    bullCount,
-    bearCount,
-    neutralCount,
-    lenses: {
-      ichimoku: ichiData as IchimokuData,
-      bollinger: bbData as BollingerData,
-      volumeProfile: vpData as VolumeProfileData
-    },
-    verdictTextAr
+    score, maxScore, bias,
+    priceVsCloud, tenkanKijun: tenkanKijunStr,
+    chikouSpan: chikouStr, futureCloud: futureCloudStr,
+    cloudDistancePct: `${cloudDist}%`,
+    tenkanSen: parseFloat(tenkanSen.toFixed(2)),
+    kijunSen:  parseFloat(kijunSen.toFixed(2)),
+    senkouA:   parseFloat(senkouA.toFixed(2)),
+    senkouB:   parseFloat(senkouB.toFixed(2)),
+  };
+}
+
+// ─── Bollinger Bands Lens (Volatility) ───────────────────────────────────────
+function calcBollinger(klines: Kline[]): BollingerData {
+  const closes    = klines.map(k => k.close);
+  const lastClose = closes[closes.length - 1];
+  const maxScore  = 4;
+
+  if (closes.length < 20) {
+    return {
+      score: 2, maxScore, bias: 'NEUTRAL', pctB: '0.5', bandwidth: '0%',
+      priceVsSMA: 'بيانات غير كافية', squeezeStatus: 'غير معروف',
+      upper: lastClose, middle: lastClose, lower: lastClose,
+    };
+  }
+
+  const slice20 = closes.slice(-20);
+  const sma20   = slice20.reduce((a, b) => a + b, 0) / 20;
+  const mean    = sma20;
+  const sigma   = Math.sqrt(slice20.reduce((a, v) => a + (v - mean) ** 2, 0) / 20);
+
+  const upper = sma20 + 2 * sigma;
+  const lower = sma20 - 2 * sigma;
+  const bw    = upper - lower;
+
+  // %B = (price - lower) / (upper - lower)
+  const pctBNum = bw > 0 ? (lastClose - lower) / bw : 0.5;
+
+  // Squeeze check using EMA Keltner (ATR-based)
+  const atrArr = klines.slice(-20).map((k, i, arr) =>
+    i === 0 ? k.high - k.low : Math.max(k.high - k.low, Math.abs(k.high - arr[i-1].close), Math.abs(k.low - arr[i-1].close))
+  );
+  const atr14 = atrArr.reduce((a, b) => a + b, 0) / atrArr.length;
+  const ema20Arr = calculateEMA(closes, 20);
+  const ema20    = ema20Arr[ema20Arr.length - 1];
+  const kcUpper  = ema20 + 1.5 * atr14;
+  const kcLower  = ema20 - 1.5 * atr14;
+  const inSqueeze = upper < kcUpper && lower > kcLower;
+
+  let score = 0;
+  let priceVsSMAStr: string, squeezeStr: string;
+
+  if (pctBNum > 0.8) {
+    score += 2; priceVsSMAStr = `أعلى بكثير من SMA20 — (%B = ${pctBNum.toFixed(2)})`;
+  } else if (pctBNum > 0.5) {
+    score += 1; priceVsSMAStr = `فوق SMA20 — (%B = ${pctBNum.toFixed(2)})`;
+  } else if (pctBNum < 0.2) {
+    priceVsSMAStr = `قريب من الحد السفلي — (%B = ${pctBNum.toFixed(2)})`;
+  } else {
+    priceVsSMAStr = `تحت SMA20 — (%B = ${pctBNum.toFixed(2)})`;
+  }
+
+  if (inSqueeze) {
+    score += 2; squeezeStr = 'ضغط نشط (Squeeze) — انفجار سعري وشيك';
+  } else {
+    squeezeStr = 'لا ضغط — توسع طبيعي';
+  }
+
+  const bwPct = (bw / sma20 * 100).toFixed(1);
+  score = Math.min(maxScore, Math.max(0, score));
+  const bias: LensBias = score >= 3 ? 'BULL' : score <= 1 ? 'BEAR' : 'NEUTRAL';
+
+  return {
+    score, maxScore, bias,
+    pctB: pctBNum.toFixed(3),
+    bandwidth: `${bwPct}%`,
+    priceVsSMA: priceVsSMAStr,
+    squeezeStatus: squeezeStr,
+    upper: parseFloat(upper.toFixed(2)),
+    middle: parseFloat(sma20.toFixed(2)),
+    lower: parseFloat(lower.toFixed(2)),
+  };
+}
+
+// ─── Volume Profile Lens (Liquidity / POC) ───────────────────────────────────
+function calcVolumeProfile(klines: Kline[]): VolumeProfileData {
+  const recent    = klines.slice(-100);
+  const lastClose = recent[recent.length - 1].close;
+  const maxScore  = 4;
+
+  // Find price range
+  const allHigh = Math.max(...recent.map(k => k.high));
+  const allLow  = Math.min(...recent.map(k => k.low));
+  const range   = allHigh - allLow;
+
+  if (range === 0) {
+    return {
+      score: 2, maxScore, bias: 'NEUTRAL',
+      poc: `$${fmtVal(lastClose)}`, priceVsPocPct: '0.00%',
+      valueArea: `$${fmtVal(allLow)} - $${fmtVal(allHigh)}`,
+      pocPrice: lastClose, vaHigh: allHigh, vaLow: allLow,
+    };
+  }
+
+  // Distribute volume into 20 price buckets
+  const BUCKETS = 20;
+  const bucketSize = range / BUCKETS;
+  const vols: number[] = new Array(BUCKETS).fill(0);
+
+  for (const k of recent) {
+    const mid     = (k.high + k.low) / 2;
+    const idx     = Math.min(BUCKETS - 1, Math.floor((mid - allLow) / bucketSize));
+    vols[idx]    += k.volume;
+  }
+
+  // POC = bucket with highest volume
+  const pocIdx   = vols.indexOf(Math.max(...vols));
+  const pocPrice = allLow + (pocIdx + 0.5) * bucketSize;
+
+  // Value Area = 70% of total volume around POC
+  const totalVol = vols.reduce((a, b) => a + b, 0);
+  const vaTarget = totalVol * 0.70;
+  let   vaVol    = vols[pocIdx];
+  let   vaLow    = pocIdx;
+  let   vaHigh   = pocIdx;
+
+  while (vaVol < vaTarget) {
+    const addLow  = vaLow > 0           ? vols[vaLow - 1]  : -1;
+    const addHigh = vaHigh < BUCKETS - 1 ? vols[vaHigh + 1] : -1;
+    if (addLow >= addHigh && addLow >= 0) { vaVol += addLow;  vaLow--; }
+    else if (addHigh > addLow && addHigh >= 0) { vaVol += addHigh; vaHigh++; }
+    else break;
+  }
+
+  const vaLowPrice  = allLow + vaLow  * bucketSize;
+  const vaHighPrice = allLow + (vaHigh + 1) * bucketSize;
+
+  const pocDiff = ((lastClose - pocPrice) / pocPrice) * 100;
+
+  let score = 0;
+  if (pocDiff > 1)       score += 2;
+  else if (pocDiff > 0)  score += 1;
+
+  if (lastClose > vaHighPrice) score += 2;
+  else if (lastClose > vaLowPrice) score += 1;
+
+  score = Math.min(maxScore, Math.max(0, score));
+  const bias: LensBias = score >= 3 ? 'BULL' : score <= 1 ? 'BEAR' : 'NEUTRAL';
+
+  return {
+    score, maxScore, bias,
+    poc:          `$${fmtVal(pocPrice)}`,
+    priceVsPocPct: `${pocDiff > 0 ? '+' : ''}${pocDiff.toFixed(2)}%`,
+    valueArea:    `$${fmtVal(vaLowPrice)} - $${fmtVal(vaHighPrice)}`,
+    pocPrice: parseFloat(pocPrice.toFixed(2)),
+    vaHigh:   parseFloat(vaHighPrice.toFixed(2)),
+    vaLow:    parseFloat(vaLowPrice.toFixed(2)),
+  };
+}
+
+// ─── Main export ──────────────────────────────────────────────────────────────
+export function analyzeTripleLens(symbol: string, klines: Kline[]): TripleLensResult {
+  if (klines.length < 30) {
+    const fallback = { score: 2, maxScore: 5, bias: 'NEUTRAL' as LensBias };
+    return {
+      symbol, consensusScorePct: 50, overallBias: 'NEUTRAL',
+      bullCount: 0, bearCount: 0, neutralCount: 3,
+      lenses: {
+        ichimoku: { ...fallback, maxScore: 5, priceVsCloud: '—', tenkanKijun: '—', chikouSpan: '—', futureCloud: '—', cloudDistancePct: '0%', tenkanSen: 0, kijunSen: 0, senkouA: 0, senkouB: 0 },
+        bollinger: { ...fallback, maxScore: 4, pctB: '0.5', bandwidth: '0%', priceVsSMA: '—', squeezeStatus: '—', upper: 0, middle: 0, lower: 0 },
+        volumeProfile: { ...fallback, maxScore: 4, poc: '—', priceVsPocPct: '0%', valueArea: '—', pocPrice: 0, vaHigh: 0, vaLow: 0 },
+      },
+      verdictTextAr: 'بيانات غير كافية للتحليل.'
+    };
+  }
+
+  const ichimoku     = calcIchimoku(klines);
+  const bollinger    = calcBollinger(klines);
+  const volumeProfile = calcVolumeProfile(klines);
+
+  // Aggregate score
+  const totalScore = ichimoku.score + bollinger.score + volumeProfile.score;
+  const maxPossible = ichimoku.maxScore + bollinger.maxScore + volumeProfile.maxScore; // 13
+  const consensusScorePct = Math.round((totalScore / maxPossible) * 100);
+
+  const biases   = [ichimoku.bias, bollinger.bias, volumeProfile.bias];
+  const bullCount  = biases.filter(b => b === 'BULL').length;
+  const bearCount  = biases.filter(b => b === 'BEAR').length;
+  const neutralCount = biases.filter(b => b === 'NEUTRAL').length;
+
+  let overallBias: LensBias;
+  if (bullCount > bearCount)        overallBias = 'BULL';
+  else if (bearCount > bullCount)   overallBias = 'BEAR';
+  else if (consensusScorePct >= 60) overallBias = 'BULL';
+  else if (consensusScorePct <= 40) overallBias = 'BEAR';
+  else                              overallBias = 'NEUTRAL';
+
+  const biasAr = { BULL: 'صعود', BEAR: 'هبوط', NEUTRAL: 'اتجاه عرضي' };
+  const v1 = biasAr[overallBias];
+  const v2 = biasAr[ichimoku.bias];
+  const v3 = biasAr[bollinger.bias];
+  const v4 = biasAr[volumeProfile.bias];
+
+  const verdictTextAr = `العدسة الثلاثية تشير نحو ${v1} بثقة ${consensusScorePct}%. Ichimoku: ${v2}. Bollinger: ${v3}. Volume Profile: ${v4}.`;
+
+  return {
+    symbol, consensusScorePct, overallBias,
+    bullCount, bearCount, neutralCount,
+    lenses: { ichimoku, bollinger, volumeProfile },
+    verdictTextAr,
   };
 }

@@ -2,7 +2,11 @@
  * lib/algorithms/emaRibbon.ts
  *
  * EMA Ribbon (شريط المتوسطات) Engine
- * Analyzes trend strength using 8 EMA lengths (Fibonacci sequence).
+ * ✅ PARITY FIX: Real EMA calculations replacing all mock logic.
+ *    - Periods: [8, 13, 21, 34, 55, 89, 100, 200] matching competitor source
+ *    - Colors matching competitor: orange for fast → dark for slow
+ *    - Order logic: all pairs bullish/bearish/mostly_bullish/mostly_bearish
+ *    - Spread: |EMA8 - EMA200| / EMA200 * 100 with category thresholds
  */
 
 import type { Kline } from '@/lib/binance/fetcher';
@@ -10,10 +14,11 @@ import type { Kline } from '@/lib/binance/fetcher';
 export interface EmaValue {
   length: number;
   value: number;
-  // Normalized visual distance from center for SVG rendering (0 to 1)
-  spacingFactor: number;
+  color: string;          // Competitor's color scheme
+  spacingFactor: number;  // Normalized for SVG rendering
 }
 
+export type RibbonOrder = 'bullish' | 'bearish' | 'mostly_bullish' | 'mostly_bearish' | 'mixed';
 export type RibbonStatus = 'Expanding Bullish' | 'Expanding Bearish' | 'Contracting';
 export type RibbonStatusAr = 'توسع إيجابي (صاعد)' | 'توسع سلبي (هابط)' | 'انكماش / تداخل';
 
@@ -21,95 +26,135 @@ export interface EmaRibbonResult {
   symbol: string;
   currentPrice: number;
   emas: EmaValue[];
+  order: RibbonOrder;
   status: RibbonStatus;
   statusAr: RibbonStatusAr;
+  spreadPct: number;        // |fast - slow| / slow * 100
+  spreadLabel: string;      // واسع جداً / واسع / معتدل / ضيق
   trendStrengthPct: number; // 0 to 100
   trendStrengthLabelAr: string;
 }
 
-export function analyzeEmaRibbon(symbol: string, klines: Kline[]): EmaRibbonResult {
-  const lastClose = klines.length > 0 ? klines[klines.length - 1].close : 65000;
-  
-  // Deterministic seed
-  const seedStr = symbol + (lastClose).toString();
-  let seed = 0;
-  for (let i = 0; i < seedStr.length; i++) {
-    seed = seedStr.charCodeAt(i) + ((seed << 5) - seed);
+// ─── Competitor color scheme for 8 EMA periods ─────────────────────────────
+// Source: astro-lenses.js lines 41-60
+const EMA_COLORS = [
+  '#ff6a00',  // EMA 8   — orange (var(--o))
+  '#ff8533',  // EMA 13  — light orange
+  '#ffaa66',  // EMA 21  — pale orange
+  '#ffffff',  // EMA 34  — white
+  '#cccccc',  // EMA 55  — light grey
+  '#888888',  // EMA 89  — medium grey
+  '#666666',  // EMA 100 — dark grey
+  '#444444',  // EMA 200 — very dark grey
+];
+
+// ─── EMA calculation (fast, matches competitor calcEMAArray) ──────────────────
+function emaFast(closes: number[], p: number): number[] {
+  const k = 2 / (p + 1);
+  const out: number[] = [closes[0]];
+  for (let i = 1; i < closes.length; i++) {
+    out[i] = closes[i] * k + out[i - 1] * (1 - k);
   }
-  seed = Math.abs(seed);
+  return out;
+}
 
-  // Determine Ribbon Status
-  const mod = seed % 100;
-  let status: RibbonStatus = 'Contracting';
-  let trendStrengthPct = 0;
+// ─── Main export ──────────────────────────────────────────────────────────────
+export function analyzeEmaRibbon(symbol: string, klines: Kline[]): EmaRibbonResult {
+  const closes      = klines.map(k => k.close);
+  const currentPrice = closes[closes.length - 1];
 
-  if (mod > 60) {
+  // Competitor periods: [8, 13, 21, 34, 55, 89, 100, 200]
+  const lengths = [8, 13, 21, 34, 55, 89, 100, 200];
+  const emaValues: number[] = lengths.map(p => {
+    const arr = emaFast(closes, p);
+    return arr[arr.length - 1];
+  });
+
+  // ─── Order detection (matches source bullishOrder / bearishOrder) ──────────
+  // "bullish order" = each EMA is below the one before it (fast > slow)
+  // Count consecutive pairs in order
+  const totalPairs = lengths.length - 1; // 7 pairs
+  let bullishPairs = 0, bearishPairs = 0;
+  for (let i = 0; i < totalPairs; i++) {
+    if (emaValues[i] > emaValues[i + 1]) bullishPairs++;
+    else if (emaValues[i] < emaValues[i + 1]) bearishPairs++;
+  }
+
+  let order: RibbonOrder;
+  if (bullishPairs === totalPairs)         order = 'bullish';
+  else if (bearishPairs === totalPairs)    order = 'bearish';
+  else if (bullishPairs >= totalPairs - 1) order = 'mostly_bullish';
+  else if (bearishPairs >= totalPairs - 1) order = 'mostly_bearish';
+  else                                     order = 'mixed';
+
+  // ─── Spread (fast - slow) / slow * 100 ───────────────────────────────────
+  const fastEMA = emaValues[0];       // EMA 8
+  const slowEMA = emaValues[lengths.length - 1]; // EMA 200
+  const spreadPct = slowEMA !== 0
+    ? Math.abs((fastEMA - slowEMA) / slowEMA) * 100
+    : 0;
+
+  let spreadLabel: string;
+  if (spreadPct > 10)      spreadLabel = 'واسع جداً';
+  else if (spreadPct > 5)  spreadLabel = 'واسع';
+  else if (spreadPct > 2)  spreadLabel = 'معتدل';
+  else                     spreadLabel = 'ضيق';
+
+  // ─── Status & trend strength ───────────────────────────────────────────────
+  let status: RibbonStatus;
+  let statusAr: RibbonStatusAr;
+  let trendStrengthPct: number;
+
+  if (order === 'bullish' || order === 'mostly_bullish') {
     status = 'Expanding Bullish';
-    trendStrengthPct = 50 + (mod - 60) * 1.25; // 50 to 100
-  } else if (mod < 40) {
+    statusAr = 'توسع إيجابي (صاعد)';
+    trendStrengthPct = order === 'bullish'
+      ? Math.min(100, 60 + spreadPct * 2)
+      : Math.min(90, 50 + spreadPct * 2);
+  } else if (order === 'bearish' || order === 'mostly_bearish') {
     status = 'Expanding Bearish';
-    trendStrengthPct = 50 + (40 - mod) * 1.25; // 50 to 100
+    statusAr = 'توسع سلبي (هابط)';
+    trendStrengthPct = order === 'bearish'
+      ? Math.min(100, 60 + spreadPct * 2)
+      : Math.min(90, 50 + spreadPct * 2);
   } else {
     status = 'Contracting';
-    trendStrengthPct = Math.max(10, mod); // 10 to 60
+    statusAr = 'انكماش / تداخل';
+    trendStrengthPct = Math.min(50, 20 + spreadPct);
   }
 
-  if (trendStrengthPct > 100) trendStrengthPct = 100;
-  trendStrengthPct = Math.round(trendStrengthPct);
+  trendStrengthPct = Math.round(Math.min(100, Math.max(5, trendStrengthPct)));
 
-  // Generate 8 EMAs (8, 13, 21, 34, 55, 89, 144, 233)
-  const lengths = [8, 13, 21, 34, 55, 89, 144, 233];
-  const emas: EmaValue[] = [];
-
-  // Base variance based on price
-  const variance = lastClose * 0.005 * (trendStrengthPct / 100); 
-
-  for (let i = 0; i < lengths.length; i++) {
-    // Shorter EMAs react faster. 
-    // If Bullish: EMA 8 > EMA 13 > EMA 21...
-    // If Bearish: EMA 8 < EMA 13 < EMA 21...
-    // If Contracting: Randomly mixed around price.
-    
-    let value = lastClose;
-    let spacingFactor = 0.1; // Baseline tight spacing
-
-    if (status === 'Expanding Bullish') {
-      value = lastClose - (variance * i);
-      // Spacing expands as EMAs get longer
-      spacingFactor = 0.2 + (i * 0.1) * (trendStrengthPct / 100); 
-    } else if (status === 'Expanding Bearish') {
-      value = lastClose + (variance * i);
-      spacingFactor = 0.2 + (i * 0.1) * (trendStrengthPct / 100);
-    } else {
-      // Contracting: tight and slightly scrambled
-      const jitter = ((seed ^ i) % 10 - 5) / 10;
-      value = lastClose + (variance * jitter);
-      spacingFactor = 0.05 + Math.abs(jitter) * 0.1;
-    }
-
-    emas.push({
-      length: lengths[i],
-      value,
-      spacingFactor: Math.min(1, Math.max(0, spacingFactor))
-    });
-  }
-
-  const statusAr: RibbonStatusAr = status === 'Expanding Bullish' ? 'توسع إيجابي (صاعد)' : 
-                                   status === 'Expanding Bearish' ? 'توسع سلبي (هابط)' : 'انكماش / تداخل';
-
-  let trendStrengthLabelAr = '';
-  if (trendStrengthPct >= 80) trendStrengthLabelAr = 'اتجاه قوي جداً';
+  // ─── Trend strength label ──────────────────────────────────────────────────
+  let trendStrengthLabelAr: string;
+  if (trendStrengthPct >= 80)      trendStrengthLabelAr = 'اتجاه قوي جداً';
   else if (trendStrengthPct >= 60) trendStrengthLabelAr = 'اتجاه قوي';
   else if (trendStrengthPct >= 40) trendStrengthLabelAr = 'اتجاه ضعيف / متذبذب';
-  else trendStrengthLabelAr = 'ضعيف جداً / عرضي';
+  else                             trendStrengthLabelAr = 'ضعيف جداً / عرضي';
+
+  // ─── Build EmaValue array with competitor colors ───────────────────────────
+  const maxSpread = Math.max(...emaValues.map((v, i) => Math.abs(v - currentPrice)));
+  const emas: EmaValue[] = lengths.map((len, i) => {
+    const val = emaValues[i];
+    const dist = Math.abs(val - currentPrice);
+    return {
+      length:        len,
+      value:         parseFloat(val.toFixed(val >= 100 ? 2 : 4)),
+      color:         EMA_COLORS[i],
+      spacingFactor: maxSpread > 0 ? Math.min(1, dist / maxSpread) : 0.1,
+    };
+  });
 
   return {
     symbol,
-    currentPrice: lastClose,
+    currentPrice,
     emas,
+    order,
     status,
     statusAr,
+    spreadPct:             parseFloat(spreadPct.toFixed(2)),
+    spreadLabel,
     trendStrengthPct,
-    trendStrengthLabelAr
+    trendStrengthLabelAr,
   };
 }

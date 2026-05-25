@@ -131,7 +131,7 @@ export function WyckoffCard({ data, symbol, timeframe }: Props) {
         <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0a] px-3 py-3" dir="rtl">
           <p className="text-[9px] text-orange-500 font-bold uppercase tracking-widest mb-2">STRUCTURE</p>
           {[
-            { label: 'الاتجاه',    val: data.structure.trend === 'UPTREND' ? 'صاعد ▲' : data.structure.trend === 'DOWNTREND' ? 'هابط ▼' : 'عرضي ↔', color: data.structure.trend === 'UPTREND' ? 'text-emerald-400' : data.structure.trend === 'DOWNTREND' ? 'text-red-400' : 'text-amber-400' },
+            { label: 'الاتجاه',    val: data.structure.trend.includes('صاعد') || data.structure.trend === 'UPTREND' ? 'صاعد ▲' : data.structure.trend.includes('هابط') || data.structure.trend === 'DOWNTREND' ? 'هابط ▼' : 'عرضي ↔', color: data.structure.trend.includes('صاعد') || data.structure.trend === 'UPTREND' ? 'text-emerald-400' : data.structure.trend.includes('هابط') || data.structure.trend === 'DOWNTREND' ? 'text-red-400' : 'text-amber-400' },
             { label: 'قمم أعلى',  val: data.structure.higherHighs ? 'نعم ✓' : 'لا ✗', color: data.structure.higherHighs ? 'text-emerald-300' : 'text-red-300' },
             { label: 'قيعان أعلى',val: data.structure.higherLows  ? 'نعم ✓' : 'لا ✗', color: data.structure.higherLows  ? 'text-emerald-300' : 'text-red-300' },
             { label: 'عرض النطاق', val: `${data.structure.rangeWidthPct}%`, color: 'text-white/60' },

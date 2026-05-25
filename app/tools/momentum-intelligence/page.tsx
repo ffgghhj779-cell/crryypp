@@ -13,6 +13,7 @@ import { ScanSearch, AlertCircle, Gauge, Activity, Zap, TrendingUp, Info } from 
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
 import { slugToTool } from '@/lib/tools/registry';
 import { calculateMomentumIntelligence, MomentumIntelligenceResult } from '@/lib/algorithms/momentum';
+import { fetchKlines } from '@/lib/binance/fetcher';
 import { notFound } from 'next/navigation';
 
 export default function MomentumIntelligencePage() {
@@ -25,7 +26,7 @@ export default function MomentumIntelligencePage() {
   const tool = slugToTool('momentum-intelligence');
   if (!tool) return notFound();
 
-  const handleCalculate = () => {
+  const handleCalculate = async () => {
     setError('');
     if (!symbol.trim()) return setError('أدخل اسم الأصل.');
     
@@ -33,15 +34,15 @@ export default function MomentumIntelligencePage() {
     setAnimated(false);
     
     try {
-      setTimeout(() => {
-        const res = calculateMomentumIntelligence(symbol.toUpperCase());
-        setResult(res);
-        setLoading(false);
-        setTimeout(() => setAnimated(true), 100);
-      }, 700);
+      const klines = await fetchKlines(symbol.toUpperCase().trim(), '1h', 100);
+      if (klines.length === 0) throw new Error('لا توجد بيانات متاحة لهذا الأصل.');
+      const res = calculateMomentumIntelligence(symbol.toUpperCase(), klines);
+      setResult(res);
+      setTimeout(() => setAnimated(true), 100);
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'حدث خطأ أثناء تقييم الزخم.');
+    } finally {
       setLoading(false);
     }
   };

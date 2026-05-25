@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ScanSearch, AlertCircle, ChevronDown, AlignJustify, Activity } from 'lucide-react';
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
 import { slugToTool } from '@/lib/tools/registry';
-import { analyzeMatrix4x4, Matrix4x4Result, MatrixCellScore } from '@/lib/algorithms/matrix4x4';
+import { analyzeMatrix4x4Single, Matrix4x4Result, MTFRow, MatrixSignal } from '@/lib/algorithms/matrix4x4';
 import { fetchKlines } from '@/lib/binance/fetcher';
 import { notFound } from 'next/navigation';
 
@@ -40,7 +40,7 @@ export default function Matrix4x4Page() {
       const klines = await fetchKlines(symbol.toUpperCase().trim(), '1h', 100);
       if (klines.length === 0) throw new Error('لا توجد بيانات متاحة لهذا الأصل.');
       
-      const res = analyzeMatrix4x4(symbol.toUpperCase().trim(), klines);
+      const res = analyzeMatrix4x4Single(symbol.toUpperCase().trim(), klines);
       setResult(res);
       setTimeout(() => setAnimated(true), 100);
     } catch (err: any) {
@@ -51,16 +51,22 @@ export default function Matrix4x4Page() {
     }
   };
 
-  const getCellColor = (score: MatrixCellScore) => {
-    if (score === 1) return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]';
-    if (score === -1) return 'bg-red-500/20 text-red-400 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]';
+  const getCellColor = (signal: MatrixSignal) => {
+    if (signal === 'bullish' || signal === 'oversold') return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]';
+    if (signal === 'bearish' || signal === 'overbought') return 'bg-red-500/20 text-red-400 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.3)]';
     return 'bg-gray-500/10 text-gray-500 border-white/[0.08]';
   };
 
-  const getCellText = (score: MatrixCellScore) => {
-    if (score === 1) return 'إيجابي';
-    if (score === -1) return 'سلبي';
+  const getCellText = (signal: MatrixSignal) => {
+    if (signal === 'bullish' || signal === 'oversold') return 'إيجابي';
+    if (signal === 'bearish' || signal === 'overbought') return 'سلبي';
     return 'محايد';
+  };
+
+  const getCellScore = (signal: MatrixSignal): number => {
+    if (signal === 'bullish' || signal === 'oversold') return 1;
+    if (signal === 'bearish' || signal === 'overbought') return -1;
+    return 0;
   };
 
   const indicators = ['RSI', 'MACD', 'EMA', 'Stoch'];
@@ -191,18 +197,18 @@ export default function Matrix4x4Page() {
                         </div>
                         
                         {/* Cells */}
-                        {[row.rsi, row.macd, row.ema, row.stoch].map((score, colIndex) => (
+                         {[row.rsi, row.macd, row.ema, row.position].map((ind, colIndex) => (
                           <motion.div
                             key={`${rowIndex}-${colIndex}`}
                             initial={{ rotateX: 90, opacity: 0 }}
                             animate={animated ? { rotateX: 0, opacity: 1 } : { rotateX: 90, opacity: 0 }}
                             transition={{ delay: 0.1 * (rowIndex * 4 + colIndex), duration: 0.4, type: "spring" }}
-                            className={`flex flex-col items-center justify-center rounded-lg border py-2 ${getCellColor(score)} transition-colors`}
+                            className={`flex flex-col items-center justify-center rounded-lg border py-2 ${getCellColor(ind.signal)} transition-colors`}
                             style={{ transformOrigin: "center" }}
                           >
-                            <span className="text-[10px] font-bold uppercase tracking-widest mb-0.5">{getCellText(score)}</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest mb-0.5">{getCellText(ind.signal)}</span>
                             <span className="text-[8px] opacity-60 font-mono">
-                              {score > 0 ? '+1' : score < 0 ? '-1' : '0'}
+                              {getCellScore(ind.signal) > 0 ? '+1' : getCellScore(ind.signal) < 0 ? '-1' : '0'}
                             </span>
                           </motion.div>
                         ))}

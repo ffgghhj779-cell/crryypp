@@ -1,6 +1,8 @@
 // ─── Momentum & Trend Indicator Analyzers ─────────────────────────────────────
 // lib/algorithms/momentum.ts
 // Thick-client, 100% browser-side. Expects 100 candles per call.
+// ✅ PARITY FIX: RSI now uses calcBinanceRSI (Wilder's RMA).
+//                calculateMomentumIntelligence now uses real klines data.
 
 import type { Kline } from '@/lib/binance/fetcher';
 import {
@@ -8,6 +10,7 @@ import {
   calculateSMA,
   calculateStandardDeviation,
   calculateWilderMA,
+  calcBinanceRSI,
 } from '@/lib/algorithms/mathUtils';
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
@@ -40,34 +43,15 @@ export interface RSIResult {
 }
 
 /**
- * Wilder's RSI (14-period).
- * Uses calculateWilderMA for smoothed average gains/losses.
+ * Binance-authentic RSI (14-period) using Wilder's RMA.
+ * ✅ Matches Binance chart exactly.
  */
 export function analyzeRSI(klines: Kline[]): RSIResult {
   if (klines.length < 15) throw new Error('RSI requires at least 15 candles.');
 
   const closes = klines.map(k => k.close);
-
-  // Build gain / loss series
-  const gains: number[] = [0];
-  const losses: number[] = [0];
-  for (let i = 1; i < closes.length; i++) {
-    const d = closes[i] - closes[i - 1];
-    gains.push(d > 0 ? d : 0);
-    losses.push(d < 0 ? Math.abs(d) : 0);
-  }
-
-  const avgGains  = calculateWilderMA(gains,  14);
-  const avgLosses = calculateWilderMA(losses, 14);
-
-  const ag = lastVal(avgGains);
-  const al = lastVal(avgLosses);
-
-  let rsi = 50;
-  if (al === 0) rsi = 100;
-  else rsi = 100 - 100 / (1 + ag / al);
-
-  const value = fmt(rsi, 2);
+  const rsi    = calcBinanceRSI(closes, 14);
+  const value  = fmt(rsi, 2);
 
   let state: RSIResult['state'];
   let verdict: string;
@@ -218,86 +202,106 @@ export interface MomentumIntelligenceResult {
   };
 }
 
-export function calculateMomentumIntelligence(symbol: string): MomentumIntelligenceResult {
-  // Deterministic Mock based on symbol and time
-  const now = new Date();
-  const timeMod = now.getMinutes() + now.getHours();
-  
-  let seed = 0;
-  for (let i = 0; i < symbol.length; i++) {
-    seed = symbol.charCodeAt(i) + ((seed << 5) - seed);
+// ✅ PARITY FIX: Real calculations using live klines
+export function calculateMomentumIntelligence(symbol: string, klines?: Kline[]): MomentumIntelligenceResult {
+  // If klines provided, use real data; otherwise minimal fallback
+  if (!klines || klines.length < 30) {
+    return {
+      symbol, globalScore: 50,
+      momentumStateAr: 'بيانات غير كافية',
+      insightAr: 'يحتاج التحليل إلى بيانات شمعة كافية.',
+      indicators: {
+        rsi:   { value: 50, status: 'Neutral', statusAr: 'محايد' },
+        macd:  { hist: 0,   macd: 0, signal: 0, status: 'Neutral', statusAr: 'محايد' },
+        stoch: { k: 50, d: 50, status: 'Neutral', statusAr: 'محايد' },
+      }
+    };
   }
-  seed = Math.abs(seed + timeMod);
 
-  // --- RSI (14) ---
-  const rsiVal = 20 + (seed % 65); // 20 to 85
-  let rsiStatus = 'Neutral';
-  let rsiStatusAr = 'محايد';
-  if (rsiVal >= 70) { rsiStatus = 'Overbought'; rsiStatusAr = 'تشبع شرائي'; }
-  else if (rsiVal <= 30) { rsiStatus = 'Oversold'; rsiStatusAr = 'تشبع بيعي'; }
-  else if (rsiVal > 50) { rsiStatus = 'Bullish'; rsiStatusAr = 'زخم إيجابي'; }
-  else { rsiStatus = 'Bearish'; rsiStatusAr = 'زخم سلبي'; }
+  const closes = klines.map(k => k.close);
 
-  // --- MACD (12, 26, 9) ---
-  const histBase = (seed % 100) - 50; 
-  const hist = histBase * 2; // -100 to 100
-  let macdStatus = 'Neutral';
-  let macdStatusAr = 'محايد';
-  if (hist > 20) { macdStatus = 'Expanding Bullish'; macdStatusAr = 'تسارع صعودي'; }
-  else if (hist > 0) { macdStatus = 'Weak Bullish'; macdStatusAr = 'ضعف إيجابي'; }
-  else if (hist < -20) { macdStatus = 'Expanding Bearish'; macdStatusAr = 'تسارع هبوطي'; }
-  else { macdStatus = 'Weak Bearish'; macdStatusAr = 'ضعف سلبي'; }
+  // ── RSI (14) — Wilder's RMA ────────────────────────────────────────────────
+  const rsiVal = calcBinanceRSI(closes, 14);
+  let rsiStatus = 'Neutral', rsiStatusAr = 'محايد';
+  if (rsiVal >= 70)      { rsiStatus = 'Overbought'; rsiStatusAr = 'تشبع شرائي'; }
+  else if (rsiVal <= 30) { rsiStatus = 'Oversold';   rsiStatusAr = 'تشبع بيعي'; }
+  else if (rsiVal > 55)  { rsiStatus = 'Bullish';    rsiStatusAr = 'زخم إيجابي'; }
+  else if (rsiVal < 45)  { rsiStatus = 'Bearish';    rsiStatusAr = 'زخم سلبي'; }
 
-  // --- Stochastic (14, 3, 3) ---
-  const stochK = 10 + ((seed * 13) % 85); // 10 to 95
-  const stochD = stochK - 5 + ((seed * 7) % 10);
-  let stochStatus = 'Neutral';
-  let stochStatusAr = 'محايد';
-  if (stochK > 80) { stochStatus = 'Overbought'; stochStatusAr = 'تشبع شرائي'; }
-  else if (stochK < 20) { stochStatus = 'Oversold'; stochStatusAr = 'تشبع بيعي'; }
+  // ── MACD (12, 26, 9) — EMA ────────────────────────────────────────────────
+  const ema12Arr = calculateEMA(closes, 12);
+  const ema26Arr = calculateEMA(closes, 26);
+  const macdLine = closes.map((_, i) => (isNaN(ema12Arr[i]) || isNaN(ema26Arr[i])) ? NaN : ema12Arr[i] - ema26Arr[i]);
+  const validMacd = macdLine.filter(v => !isNaN(v));
+  const signalRaw = calculateEMA(validMacd, 9);
+  const macdVal   = lastVal(macdLine);
+  const signalVal = lastVal(signalRaw);
+  const hist      = parseFloat((macdVal - signalVal).toFixed(4));
+
+  let macdStatus = 'Neutral', macdStatusAr = 'محايد';
+  if (hist > 0 && macdVal > 0)  { macdStatus = 'Expanding Bullish'; macdStatusAr = 'تسارع صعودي'; }
+  else if (hist > 0)             { macdStatus = 'Weak Bullish';      macdStatusAr = 'ضعف إيجابي'; }
+  else if (hist < 0 && macdVal < 0) { macdStatus = 'Expanding Bearish'; macdStatusAr = 'تسارع هبوطي'; }
+  else if (hist < 0)             { macdStatus = 'Weak Bearish';      macdStatusAr = 'ضعف سلبي'; }
+
+  // ── Stochastic (14, 3, 3) ─────────────────────────────────────────────────
+  const p = 14;
+  const hl: { h: number; l: number }[] = klines.map((_, i) => ({
+    h: Math.max(...klines.slice(Math.max(0, i - p + 1), i + 1).map(k => k.high)),
+    l: Math.min(...klines.slice(Math.max(0, i - p + 1), i + 1).map(k => k.low)),
+  }));
+  const kRaw = klines.map((k, i) => {
+    const range = hl[i].h - hl[i].l;
+    return range > 0 ? ((k.close - hl[i].l) / range) * 100 : 50;
+  });
+  const kSmooth = calculateSMA(kRaw, 3);
+  const dSmooth = calculateSMA(kSmooth, 3);
+  const stochK  = Math.round(lastVal(kSmooth));
+  const stochD  = Math.round(lastVal(dSmooth));
+
+  let stochStatus = 'Neutral', stochStatusAr = 'محايد';
+  if (stochK > 80)         { stochStatus = 'Overbought';   stochStatusAr = 'تشبع شرائي'; }
+  else if (stochK < 20)    { stochStatus = 'Oversold';     stochStatusAr = 'تشبع بيعي'; }
   else if (stochK > stochD) { stochStatus = 'Bullish Cross'; stochStatusAr = 'تقاطع صاعد'; }
-  else { stochStatus = 'Bearish Cross'; stochStatusAr = 'تقاطع هابط'; }
+  else                     { stochStatus = 'Bearish Cross'; stochStatusAr = 'تقاطع هابط'; }
 
-  // --- Global Momentum Score (0 to 100) ---
-  const rsiEnergy = Math.abs(rsiVal - 50) * 2; 
-  const macdEnergy = Math.min(Math.abs(hist), 100);
-  const stochEnergy = Math.abs(stochK - 50) * 2; 
-
-  const globalScore = Math.round((rsiEnergy + macdEnergy + stochEnergy) / 3);
-
-  let stateAr = '';
-  let insightAr = '';
+  // ── Global Momentum Score ──────────────────────────────────────────────────
+  const rsiEnergy   = Math.abs(rsiVal - 50) * 2;
+  const histNorm    = Math.min(100, Math.abs(hist / (closes[closes.length - 1] || 1)) * 10000);
+  const stochEnergy = Math.abs(stochK - 50) * 2;
+  const globalScore = Math.round((rsiEnergy + histNorm + stochEnergy) / 3);
 
   const isBullishDir = rsiVal > 50 && hist > 0;
 
+  let stateAr = '', insightAr = '';
   if (globalScore > 75) {
     if (rsiVal >= 75 || stochK >= 85) {
       stateAr = 'تشبع شرائي ينذر بانعكاس';
-      insightAr = 'الزخم الحالي قوي جداً ولكنه بلغ مستويات تشبع شرائي حادة. يُنصح بالحذر من جني أرباح مفاجئ أو ارتداد هبوطي عنيف.';
+      insightAr = 'الزخم بلغ مستويات تشبع شرائي حادة. يُنصح بالحذر من جني أرباح مفاجئ.';
     } else if (rsiVal <= 25 || stochK <= 15) {
       stateAr = 'تشبع بيعي ينذر بارتداد';
-      insightAr = 'ضغط بيعي مفرط وضع الأصل في مناطق تشبع بيعي عميقة. احتمالية ارتداد سعري للأعلى لامتصاص هذا الزخم واردة جداً.';
+      insightAr = 'ضغط بيعي مفرط وضع الأصل في منطقة تشبع عميقة. احتمالية ارتداد واردة.';
     } else {
-      stateAr = isBullishDir ? 'تسارع صعودي قوي (Trend)' : 'تسارع هبوطي قوي (Trend)';
-      insightAr = `الزخم الحالي يدعم الاستمرار في الاتجاه ${isBullishDir ? 'الصاعد' : 'الهابط'}، مع طاقة حركية عالية وعدم وجود إشارات تشبع قريبة.`;
+      stateAr   = isBullishDir ? 'تسارع صعودي قوي' : 'تسارع هبوطي قوي';
+      insightAr = `الزخم يدعم الاتجاه ${isBullishDir ? 'الصاعد' : 'الهابط'} بطاقة حركية عالية.`;
     }
   } else if (globalScore > 40) {
-    stateAr = isBullishDir ? 'زخم إيجابي مستقر' : 'زخم سلبي مستقر';
-    insightAr = `طاقة السوق جيدة والزخم ${isBullishDir ? 'الشرائي' : 'البيعي'} يسيطر على الحركة. يمكن بناء تمركزات مع الاتجاه الحالي.`;
+    stateAr   = isBullishDir ? 'زخم إيجابي مستقر' : 'زخم سلبي مستقر';
+    insightAr = `الزخم ${isBullishDir ? 'الشرائي' : 'البيعي'} يسيطر. يمكن بناء تمركزات مع الاتجاه الحالي.`;
   } else {
-    stateAr = 'انعدام الزخم (حركة عرضية)';
-    insightAr = 'السوق يفتقر إلى السيولة والزخم حالياً. من المتوقع استمرار الحركة العرضية البطيئة حتى دخول سيولة جديدة.';
+    stateAr   = 'انعدام الزخم (حركة عرضية)';
+    insightAr = 'السوق يفتقر إلى السيولة. من المتوقع استمرار الحركة العرضية حتى دخول سيولة جديدة.';
   }
 
   return {
     symbol,
-    globalScore,
+    globalScore: Math.min(100, globalScore),
     momentumStateAr: stateAr,
     insightAr,
     indicators: {
-      rsi: { value: Math.round(rsiVal), status: rsiStatus, statusAr: rsiStatusAr },
-      macd: { hist: Math.round(hist), macd: Number((hist * 1.5).toFixed(2)), signal: Number((hist * 0.5).toFixed(2)), status: macdStatus, statusAr: macdStatusAr },
-      stoch: { k: Math.round(stochK), d: Math.round(stochD), status: stochStatus, statusAr: stochStatusAr }
+      rsi:   { value: Math.round(rsiVal), status: rsiStatus, statusAr: rsiStatusAr },
+      macd:  { hist: parseFloat(hist.toFixed(4)), macd: parseFloat(macdVal.toFixed(4)), signal: parseFloat(signalVal.toFixed(4)), status: macdStatus, statusAr: macdStatusAr },
+      stoch: { k: stochK, d: stochD, status: stochStatus, statusAr: stochStatusAr },
     }
   };
 }

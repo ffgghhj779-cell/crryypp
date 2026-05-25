@@ -1,7 +1,8 @@
 // ─── Core Math Utilities ──────────────────────────────────────────────────────
 // All functions operate on plain number arrays for maximum reusability.
 // No external dependencies — 100% client-side, zero latency.
-// PHASE 1 FIX: Added NaN/Infinity guards and floating-point precision utilities.
+// PHASE 2 FIX: All RSI/ATR now use Wilder's RMA (matching Binance exactly).
+//              Added fm() price formatter matching competitor source.
 
 /**
  * Clamp a value between min and max (inclusive).
@@ -18,25 +19,35 @@ export function isValidNumber(n: number): boolean {
 }
 
 /**
+ * Price formatter — matches competitor fm() function exactly.
+ * Handles all price ranges from sub-penny to six-figure assets.
+ */
+export function fm(p: number): string {
+  if (!isValidNumber(p) || p === 0) return '0';
+  const abs = Math.abs(p);
+  if (abs >= 10000) return p.toFixed(1);
+  if (abs >= 1000)  return p.toFixed(2);
+  if (abs >= 100)   return p.toFixed(3);
+  if (abs >= 10)    return p.toFixed(4);
+  if (abs >= 1)     return p.toFixed(5);
+  if (abs >= 0.1)   return p.toFixed(6);
+  if (abs >= 0.01)  return p.toFixed(7);
+  return p.toFixed(8);
+}
+
+/**
  * Simple Moving Average.
- *
  * Returns an array of the same length as `data`.
  * The first `period - 1` entries are `NaN` (insufficient data).
- *
- * @param data   - Raw price series (e.g. close prices)
- * @param period - Lookback window
  */
 export function calculateSMA(data: number[], period: number): number[] {
   if (period <= 0 || !Number.isInteger(period)) {
     throw new RangeError(`SMA period must be a positive integer, got ${period}`);
   }
 
-  // FIX: filter out non-finite input values to prevent NaN propagation
   const result: number[] = new Array(data.length).fill(NaN);
-
   if (data.length < period) return result;
 
-  // Seed: sum of the first window (guard against NaN inputs)
   let windowSum = 0;
   let validCount = 0;
   for (let i = 0; i < period; i++) {
@@ -44,7 +55,6 @@ export function calculateSMA(data: number[], period: number): number[] {
   }
   if (validCount === period) result[period - 1] = windowSum / period;
 
-  // Slide the window
   for (let i = period; i < data.length; i++) {
     const entering = isValidNumber(data[i])          ? data[i]          : 0;
     const leaving  = isValidNumber(data[i - period]) ? data[i - period] : 0;
@@ -57,13 +67,8 @@ export function calculateSMA(data: number[], period: number): number[] {
 
 /**
  * Exponential Moving Average.
- *
- * Uses the standard EMA multiplier: k = 2 / (period + 1).
- * Seeded from the SMA of the first `period` values.
- * The first `period - 1` entries are `NaN`.
- *
- * @param data   - Raw price series
- * @param period - Lookback window (span)
+ * Uses k = 2 / (period + 1). Seeded from SMA of first `period` values.
+ * First `period - 1` entries are `NaN`.
  */
 export function calculateEMA(data: number[], period: number): number[] {
   if (period <= 0 || !Number.isInteger(period)) {
@@ -71,16 +76,13 @@ export function calculateEMA(data: number[], period: number): number[] {
   }
 
   const result: number[] = new Array(data.length).fill(NaN);
-
   if (data.length < period) return result;
 
-  // Seed from SMA of first window
   let seed = 0;
   for (let i = 0; i < period; i++) seed += data[i];
   result[period - 1] = seed / period;
 
   const k = 2 / (period + 1);
-
   for (let i = period; i < data.length; i++) {
     result[i] = data[i] * k + result[i - 1] * (1 - k);
   }
@@ -89,30 +91,18 @@ export function calculateEMA(data: number[], period: number): number[] {
 }
 
 /**
- * Rolling Standard Deviation (population σ) over a trailing `period` window.
- *
- * Returns a single number — the σ of the **last** `period` values in `data`.
- * Useful for Bollinger Bands, GARCH seeding, and volatility estimates.
- *
- * @param data   - Raw price series (must have at least `period` elements)
- * @param period - Lookback window
+ * Rolling Standard Deviation (population σ) over trailing `period` window.
  */
 export function calculateStandardDeviation(data: number[], period: number): number {
   if (period <= 0 || !Number.isInteger(period)) {
     throw new RangeError(`StdDev period must be a positive integer, got ${period}`);
   }
   if (data.length < period) {
-    throw new RangeError(
-      `Not enough data: need ${period} points, got ${data.length}`,
-    );
+    throw new RangeError(`Not enough data: need ${period} points, got ${data.length}`);
   }
 
-  // FIX: filter out non-finite values before computing σ to prevent NaN
-  const slice = data
-    .slice(data.length - period)
-    .filter(v => isValidNumber(v));
-
-  if (slice.length < 2) return 0; // Not enough valid points — return 0 not NaN
+  const slice = data.slice(data.length - period).filter(v => isValidNumber(v));
+  if (slice.length < 2) return 0;
 
   const mean     = slice.reduce((acc, v) => acc + v, 0) / slice.length;
   const variance = slice.reduce((acc, v) => acc + (v - mean) ** 2, 0) / slice.length;
@@ -121,11 +111,8 @@ export function calculateStandardDeviation(data: number[], period: number): numb
 }
 
 /**
- * Wilder's Smoothed Moving Average — used internally by RSI, ATR, ADX.
- * Seeded from SMA of the first `period` values.
- *
- * @param data   - Raw series
- * @param period - Wilder period
+ * Wilder's Smoothed Moving Average (RMA) — used by RSI, ATR, ADX.
+ * ⚠️ This is the BINANCE-AUTHENTIC implementation. Seeded from SMA.
  */
 export function calculateWilderMA(data: number[], period: number): number[] {
   if (period <= 0 || !Number.isInteger(period)) {
@@ -135,7 +122,6 @@ export function calculateWilderMA(data: number[], period: number): number[] {
   const result: number[] = new Array(data.length).fill(NaN);
   if (data.length < period) return result;
 
-  // Seed
   let seed = 0;
   for (let i = 0; i < period; i++) seed += data[i];
   result[period - 1] = seed / period;
@@ -145,4 +131,193 @@ export function calculateWilderMA(data: number[], period: number): number[] {
   }
 
   return result;
+}
+
+/**
+ * Binance-Authentic RSI using Wilder's RMA method.
+ * ✅ Matches Binance chart exactly (as verified from competitor source calcBinanceRSI).
+ * Returns a single RSI value for the last candle.
+ */
+export function calcBinanceRSI(closes: number[], period = 14): number {
+  if (closes.length < period + 1) return 50;
+
+  let gains = 0;
+  let losses = 0;
+
+  // Initial SMA seed for first period
+  for (let i = 1; i <= period; i++) {
+    const diff = closes[i] - closes[i - 1];
+    if (diff > 0) gains += diff;
+    else losses -= diff;
+  }
+
+  let avgGain = gains / period;
+  let avgLoss = losses / period;
+
+  // Wilder's RMA smoothing for the rest
+  for (let i = period + 1; i < closes.length; i++) {
+    const diff = closes[i] - closes[i - 1];
+    const gain = diff > 0 ? diff : 0;
+    const loss = diff < 0 ? -diff : 0;
+    avgGain = ((avgGain * (period - 1)) + gain) / period;
+    avgLoss = ((avgLoss * (period - 1)) + loss) / period;
+  }
+
+  if (avgLoss === 0) return 100;
+  const rs = avgGain / avgLoss;
+  return 100 - (100 / (1 + rs));
+}
+
+/**
+ * Returns a full RSI array (same length as closes, NaN for initial period).
+ * Uses Wilder's RMA — matches Binance.
+ */
+export function calcBinanceRSIArray(closes: number[], period = 14): number[] {
+  const result: number[] = new Array(closes.length).fill(NaN);
+  if (closes.length < period + 1) return result;
+
+  let gains = 0, losses = 0;
+  for (let i = 1; i <= period; i++) {
+    const diff = closes[i] - closes[i - 1];
+    if (diff > 0) gains += diff; else losses -= diff;
+  }
+  let avgGain = gains / period;
+  let avgLoss = losses / period;
+
+  const rs0 = avgLoss === 0 ? Infinity : avgGain / avgLoss;
+  result[period] = avgLoss === 0 ? 100 : 100 - (100 / (1 + rs0));
+
+  for (let i = period + 1; i < closes.length; i++) {
+    const diff = closes[i] - closes[i - 1];
+    avgGain = ((avgGain * (period - 1)) + (diff > 0 ? diff : 0)) / period;
+    avgLoss = ((avgLoss * (period - 1)) + (diff < 0 ? -diff : 0)) / period;
+    const rs = avgLoss === 0 ? Infinity : avgGain / avgLoss;
+    result[i] = avgLoss === 0 ? 100 : 100 - (100 / (1 + rs));
+  }
+
+  return result;
+}
+
+/**
+ * Finds local peaks in array (index where value > all neighbors within radius).
+ */
+export function findPeaks(data: (number | null)[], start: number, end: number, radius = 2): number[] {
+  const peaks: number[] = [];
+  for (let i = start + radius; i < end - radius; i++) {
+    const v = data[i];
+    if (v === null || v === undefined || isNaN(v as number)) continue;
+    let isPeak = true;
+    for (let j = i - radius; j <= i + radius; j++) {
+      if (j === i) continue;
+      const vj = data[j];
+      if (vj !== null && vj !== undefined && !isNaN(vj as number) && (vj as number) >= (v as number)) {
+        isPeak = false; break;
+      }
+    }
+    if (isPeak) peaks.push(i);
+  }
+  return peaks;
+}
+
+/**
+ * Finds local troughs in array.
+ */
+export function findTroughs(data: (number | null)[], start: number, end: number, radius = 2): number[] {
+  const troughs: number[] = [];
+  for (let i = start + radius; i < end - radius; i++) {
+    const v = data[i];
+    if (v === null || v === undefined || isNaN(v as number)) continue;
+    let isTrough = true;
+    for (let j = i - radius; j <= i + radius; j++) {
+      if (j === i) continue;
+      const vj = data[j];
+      if (vj !== null && vj !== undefined && !isNaN(vj as number) && (vj as number) <= (v as number)) {
+        isTrough = false; break;
+      }
+    }
+    if (isTrough) troughs.push(i);
+  }
+  return troughs;
+}
+
+/**
+ * Calculates MACD line, signal line, and histogram.
+ * Standard: EMA(12) - EMA(26), Signal = EMA(9) of MACD line.
+ */
+export function calcMACD(closes: number[]): { macd: number[]; signal: number[]; hist: number[] } {
+  const ema12 = calculateEMA(closes, 12);
+  const ema26 = calculateEMA(closes, 26);
+  const macd  = closes.map((_, i) => (isNaN(ema12[i]) || isNaN(ema26[i])) ? NaN : ema12[i] - ema26[i]);
+  const validMacd = macd.filter(v => !isNaN(v));
+  const signalRaw = calculateEMA(validMacd, 9);
+
+  // Re-align signal to full length
+  const signal: number[] = new Array(closes.length).fill(NaN);
+  let si = 0;
+  for (let i = 0; i < closes.length; i++) {
+    if (!isNaN(macd[i])) {
+      signal[i] = signalRaw[si++] ?? NaN;
+    }
+  }
+
+  const hist = macd.map((v, i) => (isNaN(v) || isNaN(signal[i])) ? NaN : v - signal[i]);
+  return { macd, signal, hist };
+}
+
+/**
+ * Calculates On-Balance Volume (OBV) array.
+ */
+export function calcOBV(klines: { close: number; volume: number }[]): number[] {
+  const obv: number[] = [0];
+  for (let i = 1; i < klines.length; i++) {
+    const prev = obv[i - 1];
+    if (klines[i].close > klines[i - 1].close)      obv.push(prev + klines[i].volume);
+    else if (klines[i].close < klines[i - 1].close) obv.push(prev - klines[i].volume);
+    else                                              obv.push(prev);
+  }
+  return obv;
+}
+
+/**
+ * Gann Square of Nine — directional scale factor.
+ * ✅ Exactly matches competitor sq9ScaleFactor() including all direction-aware branches.
+ */
+export function getSF(p: number, direction: 'up' | 'down' = 'up'): number {
+  if (p >= 10000) {
+    return direction === 'up' ? 0.0001 : (p >= 40000 ? 0.0001 : 0.001);
+  } else if (p >= 1000) {
+    return 0.01;
+  } else if (p >= 100) {
+    return 0.1;
+  } else if (p >= 10) {
+    return 1.0;
+  } else if (p >= 1) {
+    return direction === 'up' ? 1.0 : (p >= 4 ? 1.0 : 100.0);
+  } else if (p >= 0.1) {
+    return direction === 'up' ? 100.0 : (p >= 0.4 ? 100.0 : 10000.0);
+  } else if (p >= 0.01) {
+    return direction === 'up' ? 10000.0 : (p >= 0.04 ? 10000.0 : 1000000.0);
+  } else if (p >= 0.001) {
+    return direction === 'up' ? 1000000.0 : (p >= 0.004 ? 1000000.0 : 100000000.0);
+  } else {
+    return direction === 'up' ? 100000000.0 : (p >= 0.0004 ? 100000000.0 : 10000000000.0);
+  }
+}
+
+/**
+ * Gann Square of Nine — compute a single level.
+ * ✅ Matches competitor sq9Level() exactly.
+ */
+export function sq9Level(price: number, angleDeg: number, direction: 'up' | 'down'): number {
+  const sf   = getSF(price, direction);
+  const root = Math.sqrt(price * sf);
+  const inc  = angleDeg / 180;
+
+  if (direction === 'up') {
+    return Math.pow(root + inc, 2) / sf;
+  } else {
+    const newRoot = root - inc;
+    if (newRoot < 0) return 0;
+    return Math.pow(newRoot, 2) / sf;
+  }
 }

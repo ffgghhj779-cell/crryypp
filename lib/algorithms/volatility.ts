@@ -1,11 +1,17 @@
 /**
  * lib/algorithms/volatility.ts
  *
- * ATR Volatility Engine (محرك التقلبات)
- * Calculates Average True Range (ATR) and SMA of ATR to determine volatility state.
+ * ATR Volatility Engine (محرك التقلبات) — Squeeze Detector
+ * ✅ PARITY FIX: Added Bollinger + Keltner squeeze detection.
+ *    - Squeeze condition: BB inside KC (matching competitor calculations.js)
+ *    - KC multiplier = 1.5 (competitor standard)
+ *    - BB: period=20, mult=2
+ *    - ATR targets: t1=1.5×, t2=2.5×, t3=4× (from competitor source)
+ *    - Squeeze intensity: (1 - bbW/kcW) * 100
  */
 
 import type { Kline } from '@/lib/binance/fetcher';
+import { calculateEMA, calculateSMA, calculateStandardDeviation } from './mathUtils';
 
 export type VolatilityState = 'Contracting' | 'Expanding';
 
@@ -17,76 +23,136 @@ export interface VolatilityResult {
   state: VolatilityState;
   stateAr: string;
   safeStopLossDist: number;
-  volatilityPct: number; // 0 to 100 for gauge
+  volatilityPct: number;          // 0 to 100 for gauge
+
+  // Squeeze detector (Bollinger + Keltner)
+  inSqueeze: boolean;
+  squeezeIntensityPct: number;    // 0–100
+  squeezeStateAr: string;
+
+  // ATR price targets (matches competitor source)
+  targetUp1: number;   // price + ATR × 1.5
+  targetUp2: number;   // price + ATR × 2.5
+  targetUp3: number;   // price + ATR × 4.0
+  targetDn1: number;   // price - ATR × 1.5
+  targetDn2: number;   // price - ATR × 2.5
+  targetDn3: number;   // price - ATR × 4.0
 }
 
-export function calculateVolatility(symbol: string, klines: Kline[]): VolatilityResult {
-  const lastClose = klines.length > 0 ? klines[klines.length - 1].close : 65000;
-  
-  const trList: number[] = [];
+// ─── True Range list ──────────────────────────────────────────────────────────
+function calcTRList(klines: Kline[]): number[] {
+  const trs: number[] = [];
   for (let i = 1; i < klines.length; i++) {
-    const high = klines[i].high;
-    const low = klines[i].low;
-    const prevClose = klines[i - 1].close;
-    
-    const tr = Math.max(
-      high - low,
-      Math.abs(high - prevClose),
-      Math.abs(low - prevClose)
-    );
-    trList.push(tr);
+    const h = klines[i].high, l = klines[i].low, pc = klines[i - 1].close;
+    trs.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc)));
   }
+  return trs;
+}
 
-  const atrList: number[] = [];
-  for (let i = 13; i < trList.length; i++) {
-    const sum = trList.slice(i - 13, i + 1).reduce((a, b) => a + b, 0);
-    atrList.push(sum / 14);
+// ─── ATR using Wilder's RMA ───────────────────────────────────────────────────
+function calcATRWilder(klines: Kline[], p = 14): number[] {
+  const trs = calcTRList(klines);
+  const out: number[] = new Array(klines.length).fill(NaN);
+  if (trs.length < p) return out;
+
+  // Initial SMA seed
+  let seed = trs.slice(0, p).reduce((a, b) => a + b, 0) / p;
+  out[p] = seed; // index p (because tr starts at index 1 of klines)
+  for (let i = p; i < trs.length; i++) {
+    seed = (seed * (p - 1) + trs[i]) / p;
+    out[i + 1] = seed;
   }
+  return out;
+}
 
-  let atrValue = 0;
-  let smaAtrValue = 0;
+// ─── Main export ──────────────────────────────────────────────────────────────
+export function calculateVolatility(symbol: string, klines: Kline[]): VolatilityResult {
+  const lastClose  = klines.length > 0 ? klines[klines.length - 1].close : 65000;
+  const closes     = klines.map(k => k.close);
 
-  if (atrList.length >= 20) {
-    atrValue = atrList[atrList.length - 1];
-    const sumAtr = atrList.slice(atrList.length - 20).reduce((a, b) => a + b, 0);
-    smaAtrValue = sumAtr / 20;
-  } else if (atrList.length > 0) {
-    atrValue = atrList[atrList.length - 1];
-    smaAtrValue = atrList.reduce((a, b) => a + b, 0) / atrList.length;
-  } else {
-    // Deterministic Mock
-    const seedStr = symbol + (lastClose).toString();
-    let seed = 0;
-    for (let i = 0; i < seedStr.length; i++) {
-      seed = seedStr.charCodeAt(i) + ((seed << 5) - seed);
-    }
-    seed = Math.abs(seed);
-    
-    atrValue = lastClose * 0.02 * (1 + (seed % 50) / 100);
-    smaAtrValue = lastClose * 0.025;
-  }
+  // ─── ATR(14) ─────────────────────────────────────────────────────────────
+  const atrArr     = calcATRWilder(klines, 14);
+  const validATR   = atrArr.filter(v => !isNaN(v));
+  const atrValue   = validATR.length > 0 ? validATR[validATR.length - 1] : lastClose * 0.02;
+
+  // 20-period SMA of ATR
+  const validSlice = validATR.slice(-20);
+  const smaAtrValue = validSlice.length > 0
+    ? validSlice.reduce((a, b) => a + b, 0) / validSlice.length
+    : atrValue;
 
   const state: VolatilityState = atrValue > smaAtrValue ? 'Expanding' : 'Contracting';
-  const stateAr = state === 'Expanding' ? 'انفجار سعري - تقلب عالي' : 'انضغاط السعر - هدوء';
-  
+  const stateAr = state === 'Expanding' ? 'انفجار سعري — تقلب عالٍ' : 'انضغاط سعري — هدوء';
+
   const safeStopLossDist = atrValue * 1.5;
-  
-  // Volatility Percentage for Speedometer Gauge
-  // If ATR = SMA, pct = 50%
-  // If ATR >= 2x SMA, pct = 100%
-  // If ATR = 0, pct = 0%
-  let volatilityPct = (atrValue / smaAtrValue) * 50;
-  if (volatilityPct > 100) volatilityPct = 100;
-  if (volatilityPct < 0 || isNaN(volatilityPct)) volatilityPct = 0;
+
+  // Volatility gauge (ATR / SMA_ATR, capped at 100%)
+  let volatilityPct = (smaAtrValue > 0) ? (atrValue / smaAtrValue) * 50 : 0;
+  volatilityPct = Math.min(100, Math.max(0, isNaN(volatilityPct) ? 0 : volatilityPct));
+
+  // ─── Bollinger Bands (20, 2σ) ─────────────────────────────────────────────
+  let inSqueeze = false;
+  let squeezeIntensityPct = 0;
+  let squeezeStateAr = 'لا ضغط';
+
+  if (closes.length >= 20) {
+    const sma20Arr = calculateSMA(closes, 20);
+    const sma20    = sma20Arr[sma20Arr.length - 1];
+    const sigma    = isNaN(sma20)
+      ? 0
+      : (() => {
+          const slice = closes.slice(-20);
+          const mean  = slice.reduce((a, b) => a + b, 0) / slice.length;
+          return Math.sqrt(slice.reduce((a, v) => a + (v - mean) ** 2, 0) / slice.length);
+        })();
+
+    const bbUpper = sma20 + 2 * sigma;
+    const bbLower = sma20 - 2 * sigma;
+    const bbW     = bbUpper - bbLower;
+
+    // Keltner Channel (EMA20, ATR14, mult=1.5) — matches competitor
+    const ema20Arr = calculateEMA(closes, 20);
+    const ema20    = ema20Arr[ema20Arr.length - 1];
+    const kcMult   = 1.5;
+    const kcUpper  = ema20 + kcMult * atrValue;
+    const kcLower  = ema20 - kcMult * atrValue;
+    const kcW      = kcUpper - kcLower;
+
+    // Squeeze = BB inside KC
+    inSqueeze = (bbUpper < kcUpper) && (bbLower > kcLower);
+    squeezeIntensityPct = kcW > 0
+      ? Math.max(0, Math.min(100, Math.round((1 - (bbW / kcW)) * 100)))
+      : 0;
+    squeezeStateAr = inSqueeze
+      ? `ضغط نشط (${squeezeIntensityPct}%) — انفجار سعري وشيك`
+      : 'لا ضغط — السوق في حالة عادية';
+  }
+
+  // ─── ATR Price Targets (matches competitor source) ────────────────────────
+  const targetUp1 = lastClose + atrValue * 1.5;
+  const targetUp2 = lastClose + atrValue * 2.5;
+  const targetUp3 = lastClose + atrValue * 4.0;
+  const targetDn1 = lastClose - atrValue * 1.5;
+  const targetDn2 = lastClose - atrValue * 2.5;
+  const targetDn3 = lastClose - atrValue * 4.0;
 
   return {
     symbol,
-    currentPrice: lastClose,
-    atrValue,
-    smaAtrValue,
+    currentPrice:        lastClose,
+    atrValue:            parseFloat(atrValue.toFixed(lastClose >= 1000 ? 1 : 4)),
+    smaAtrValue:         parseFloat(smaAtrValue.toFixed(lastClose >= 1000 ? 1 : 4)),
     state,
     stateAr,
-    safeStopLossDist,
-    volatilityPct: Math.round(volatilityPct)
+    safeStopLossDist:    parseFloat(safeStopLossDist.toFixed(lastClose >= 1000 ? 1 : 4)),
+    volatilityPct:       Math.round(volatilityPct),
+    inSqueeze,
+    squeezeIntensityPct,
+    squeezeStateAr,
+    targetUp1: parseFloat(targetUp1.toFixed(lastClose >= 1000 ? 1 : 4)),
+    targetUp2: parseFloat(targetUp2.toFixed(lastClose >= 1000 ? 1 : 4)),
+    targetUp3: parseFloat(targetUp3.toFixed(lastClose >= 1000 ? 1 : 4)),
+    targetDn1: parseFloat(targetDn1.toFixed(lastClose >= 1000 ? 1 : 4)),
+    targetDn2: parseFloat(targetDn2.toFixed(lastClose >= 1000 ? 1 : 4)),
+    targetDn3: parseFloat(targetDn3.toFixed(lastClose >= 1000 ? 1 : 4)),
   };
 }
