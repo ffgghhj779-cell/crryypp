@@ -98,8 +98,8 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
   { name: 'SQ9 - Square of Nine',     tag: 'Gann SQ9',    category: 'math',     subtitle: 'حاسبة جان للتربيع الزمني والسعري', tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20', requiredInputs: [] },
   // D – Momentum & Signals
   { name: 'Divergence Scanner',       tag: 'Momentum',    category: 'momentum', subtitle: 'RSI & MACD hidden/regular div',   tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
-  { name: 'Trading VIP 1',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
-  { name: 'Trading VIP 2',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
+  { name: 'Trading VIP 1',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: [] },
+  { name: 'Trading VIP 2',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: [] },
   { name: 'Trading VIP 3',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: [] },
   { name: 'Trading VIP 4',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
   { name: 'Trading VIP 5',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
