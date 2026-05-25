@@ -31,6 +31,18 @@ from .elliott_guard import (
     PatternType,
 )
 
+from .confluence_validator import (
+    ConfluenceValidator,
+    ConfluenceCheck,
+    ConfluentResult,
+    compute_rsi,
+    compute_volume_sma,
+    RSI_PERIOD,
+    VOLUME_SMA_PERIOD,
+    RSI_BULLISH_THRESHOLD,
+    RSI_BEARISH_THRESHOLD,
+)
+
 from .mtf_state_machine import (
     MTFStateMachine,
     MTFResult,
@@ -54,10 +66,16 @@ __all__ = [
     "RuleResult", "GuidelineResult",
     "Direction", "PatternType",
 
+    # confluence_validator
+    "ConfluenceValidator", "ConfluenceCheck", "ConfluentResult",
+    "compute_rsi", "compute_volume_sma",
+    "RSI_PERIOD", "VOLUME_SMA_PERIOD",
+    "RSI_BULLISH_THRESHOLD", "RSI_BEARISH_THRESHOLD",
+
     # mtf_state_machine
     "MTFStateMachine", "MTFResult", "MTFAlignment",
     "MacroWavePosition", "MTFConstraint",
     "classify_macro_state", "MTF_CONSTRAINT_TABLE",
 ]
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"  # v1.1: Confluence Validation (RSI + Volume)

@@ -7,6 +7,9 @@ import { Hexagon, RefreshCcw } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState, useMemo, useEffect } from 'react';
 
+// Module-level constant — moved out of useMemo to fix TS2304 dep array error
+const LAST_CYCLE_LOW = new Date('2022-11-21T00:00:00Z');
+
 export default function CycleCalculatorPage() {
   const tool = slugToTool('cycle-calculator');
   const [loading, setLoading] = useState(true);
@@ -17,7 +20,7 @@ export default function CycleCalculatorPage() {
   }, []);
 
   const cycles = useMemo(() => {
-    const lastLowDate = new Date('2022-11-21T00:00:00Z');
+    const lastLowDate = LAST_CYCLE_LOW;
     // Basic Geometric time cycle offsets in days (Square of 9 logic: 90, 180, 270, 360)
     // Here we just project a few upcoming dates based on multiples of 90 days from the low.
     const dates = [];
@@ -36,7 +39,7 @@ export default function CycleCalculatorPage() {
       }
     }
     return dates;
-  }, [lastLowDate]);
+  }, []);
 
   if (!tool) return notFound();
 

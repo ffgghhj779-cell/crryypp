@@ -42,6 +42,7 @@ from dataclasses import dataclass, field
 from typing import Literal
 
 from .pivot_engine import (
+    OHLCVBar,
     Pivot,
     compute_leg_lengths,
     compute_pivot_slopes,
@@ -49,6 +50,7 @@ from .pivot_engine import (
     is_fibonacci_confluence,
     FIBO_TOLERANCE,
 )
+from .confluence_validator import ConfluenceValidator, ConfluentResult
 
 log = logging.getLogger(__name__)
 
@@ -88,17 +90,18 @@ class ElliottGuardResult:
     """
     Full validation result for a candidate wave count (one set of pivots).
 
-    valid          : True if all 3 inviolable rules pass
-    pattern_type   : Classified pattern type
-    direction      : bullish / bearish
-    rules          : List of RuleResult (3 critical + optional diagonal check)
-    guidelines     : List of GuidelineResult (Fibonacci relations)
-    rules_score    : 0 or 40 (binary — all rules pass or all fail)
-    structure_score: 0–20 (based on wave structure quality)
-    fib_score      : 0–25 (based on Fibonacci relation quality)
-    is_diagonal    : True if Wave 4 overlaps Wave 1 (diagonal pattern)
-    current_wave   : The wave label currently in progress (for MTF context)
-    invalidation   : The price level that mathematically invalidates this count
+    valid            : True if all 3 inviolable rules pass AND confluence confirmed
+    pattern_type     : Classified pattern type
+    direction        : bullish / bearish
+    rules            : List of RuleResult (3 critical + optional diagonal check)
+    guidelines       : List of GuidelineResult (Fibonacci relations)
+    rules_score      : 0 or 40 (binary — all rules pass or all fail)
+    structure_score  : 0–20 (based on wave structure quality)
+    fib_score        : 0–25 (based on Fibonacci relation quality)
+    is_diagonal      : True if Wave 4 overlaps Wave 1 (diagonal pattern)
+    current_wave     : The wave label currently in progress (for MTF context)
+    invalidation     : The price level that mathematically invalidates this count
+    confluence       : RSI + Volume confluence result for W3 and W5 (impulse only)
     """
     valid:            bool
     pattern_type:     PatternType
@@ -114,9 +117,10 @@ class ElliottGuardResult:
     base_score:       int   = 0           # rules + structure (before MTF/momentum)
     reject_reason:    str   = ""          # Why it was discarded (if not valid)
     pivots:           list[Pivot] = field(default_factory=list)
+    confluence:       "ConfluentResult | None" = field(default=None)
 
     def to_dict(self) -> dict:
-        return {
+        d = {
             "valid":           self.valid,
             "pattern_type":    self.pattern_type,
             "direction":       self.direction,
@@ -151,6 +155,9 @@ class ElliottGuardResult:
                 for g in self.guidelines
             ],
         }
+        if self.confluence is not None:
+            d["confluence"] = self.confluence.to_dict()
+        return d
 
 
 # ─── Direction Classifier ─────────────────────────────────────────────────────
@@ -176,9 +183,12 @@ class ElliottGuard:
 
     Usage:
         guard = ElliottGuard()
-        result = guard.validate_impulse(pivots_6)    # 5-wave impulse
-        result = guard.validate_corrective(pivots_4) # A-B-C correction
+        result = guard.validate_impulse(pivots_6, ohlcv=bars)    # 5-wave impulse
+        result = guard.validate_corrective(pivots_4)              # A-B-C correction
     """
+
+    def __init__(self) -> None:
+        self._confluence_validator = ConfluenceValidator()
 
     # ═══════════════════════════════════════════════════════════════════════
     #  INVIOLABLE RULES — failure = immediate discard
@@ -502,7 +512,11 @@ class ElliottGuard:
     #  PUBLIC API: validate_impulse
     # ═══════════════════════════════════════════════════════════════════════
 
-    def validate_impulse(self, pivots: list[Pivot]) -> ElliottGuardResult:
+    def validate_impulse(
+        self,
+        pivots: list[Pivot],
+        ohlcv:  "list[OHLCVBar] | None" = None,
+    ) -> ElliottGuardResult:
         """
         Validate a 6-pivot sequence as an Elliott Wave 5-wave impulse.
 
@@ -514,7 +528,13 @@ class ElliottGuard:
         W4 = end of Wave 4 (retracement)
         W5 = end of Wave 5 (final push)
 
-        Returns ElliottGuardResult with valid=True ONLY if all 3 rules pass.
+        When `ohlcv` is provided, ALSO runs Confluence Validation:
+        - Wave 3 AND Wave 5 must have RSI > 60 (bullish) or < 40 (bearish)
+        - Wave 3 AND Wave 5 volume must exceed 20-period SMA of Volume
+        If confluence fails, the wave count is immediately discarded.
+
+        Returns ElliottGuardResult with valid=True ONLY if all 3 rules pass
+        AND confluence is confirmed (when ohlcv provided).
         """
         if len(pivots) != 6:
             return ElliottGuardResult(
@@ -597,10 +617,42 @@ class ElliottGuard:
         invalidation  = self._compute_invalidation(pivots, direction)
         base_score    = rules_score + structure_score
 
+        # ── Phase 3.5: Confluence Validation (RSI + Volume) ─────────────────
+        # Only applied when ohlcv data is available (i.e., from the orchestrator)
+        confluence_result: "ConfluentResult | None" = None
+        if ohlcv is not None and not is_diagonal:
+            confluence_result = self._confluence_validator.validate_impulse_confluence(
+                bars=ohlcv,
+                pivots=pivots,
+                direction=direction,
+            )
+            if not confluence_result.passed:
+                log.info(
+                    f"[ElliottGuard] DISCARD (confluence): {direction} {pattern_type} — "
+                    f"{confluence_result.reject_reason}"
+                )
+                return ElliottGuardResult(
+                    valid=False,
+                    pattern_type=pattern_type,
+                    direction=direction,
+                    rules=rules,
+                    guidelines=guidelines,
+                    rules_score=rules_score,
+                    structure_score=structure_score,
+                    fib_score=fib_score,
+                    is_diagonal=is_diagonal,
+                    current_wave=current_wave,
+                    invalidation=invalidation,
+                    base_score=0,  # Penalize to bottom of ranking
+                    reject_reason=f"Confluence R4: {confluence_result.reject_reason}",
+                    pivots=pivots,
+                    confluence=confluence_result,
+                )
+
         log.info(
             f"[ElliottGuard] VALID {direction} {pattern_type}: "
             f"rules={rules_score} struct={structure_score} fib={fib_score} "
-            f"base={base_score} current_wave={current_wave}"
+            f"base={base_score} current_wave={current_wave} confluence=PASS"
         )
 
         return ElliottGuardResult(
@@ -617,6 +669,7 @@ class ElliottGuard:
             invalidation=invalidation,
             base_score=base_score,
             pivots=pivots,
+            confluence=confluence_result,
         )
 
     # ═══════════════════════════════════════════════════════════════════════
@@ -797,11 +850,15 @@ class ElliottGuard:
         impulse_candidates:    list[list[Pivot]],
         corrective_candidates: list[list[Pivot]],
         max_results:           int = 5,
+        ohlcv:                 "list[OHLCVBar] | None" = None,
     ) -> list[ElliottGuardResult]:
         """
         Validate all candidate pivot windows (impulse + corrective).
         Returns only VALID results, sorted by base_score descending.
         Limits to max_results to prevent downstream processing explosion.
+
+        When `ohlcv` is provided, impulse candidates are ALSO subject to
+        strict Confluence Validation (RSI + Volume) at Wave 3 and Wave 5.
 
         This is the primary entry point called by the orchestrator.
         It receives all sliding windows from extract_wave_candidates()
@@ -810,14 +867,16 @@ class ElliottGuard:
         valid_results: list[ElliottGuardResult] = []
 
         # Validate impulse candidates (6-pivot windows)
+        # Pass ohlcv so confluence validation can run
         for candidate in impulse_candidates:
-            result = self.validate_impulse(candidate)
+            result = self.validate_impulse(candidate, ohlcv=ohlcv)
             if result.valid:
                 valid_results.append(result)
                 if len(valid_results) >= max_results * 2:  # Collect extra, trim later
                     break
 
         # Validate corrective candidates (4-pivot windows)
+        # No confluence check for correctives (RSI/Volume rules apply to impulse W3/W5 only)
         for candidate in corrective_candidates:
             result = self.validate_corrective(candidate)
             if result.valid:
@@ -827,4 +886,8 @@ class ElliottGuard:
 
         # Sort by base_score descending, return top max_results
         valid_results.sort(key=lambda r: r.base_score, reverse=True)
+
+        # Clear confluence validator cache between runs
+        self._confluence_validator.clear_cache()
+
         return valid_results[:max_results]

@@ -19,12 +19,16 @@ body {
   height: var(--app-stable-height, 100dvh);
   overflow: hidden;
   overscroll-behavior: none;
+  /* PHASE 2 UI UPSCALING: Increase base font from default 14px to 16px */
+  font-size: 16px;
   /* Prevent text size inflation on mobile */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   /* Prevent sub-pixel rendering artifacts on body */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Letter spacing for Arabic readability */
+  letter-spacing: 0.01em;
 }
 
 /* Next.js app wrapper */
@@ -270,21 +274,22 @@ input[type="range"] {
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
+  /* PHASE 2: bumped from 18×18 to 22×22 for better touch target */
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #f97316;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.6);
   border: 2px solid rgba(0,0,0,0.3);
 }
 input[type="range"]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #f97316;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.6);
   border: 2px solid rgba(0,0,0,0.3);
 }
 
@@ -312,12 +317,14 @@ input[type="range"]::-moz-range-thumb {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
+  /* PHASE 2: bumped from 16×16 to 20×20 */
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.08);
-  font-size: 8px;
+  /* PHASE 2: bumped from 8px to 10px */
+  font-size: 10px;
   font-weight: 800;
   color: rgba(255,255,255,0.3);
   font-family: monospace;

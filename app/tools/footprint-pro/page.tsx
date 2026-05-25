@@ -118,7 +118,7 @@ export default function FootprintProPage() {
 
                     {/* Price */}
                     <div className={`text-xs font-mono font-black text-center w-1/3 ${isPOC ? 'text-indigo-400 shadow-indigo-400/50' : 'text-white/60'}`} style={{ textShadow: isPOC ? '0 0 10px currentColor' : 'none' }}>
-                      {c.priceLevel.toLocaleString(undefined, { minimumFractionDigits: currentPrice > 1000 ? 1 : 2, maximumFractionDigits: currentPrice > 1000 ? 1 : 2 })}
+                      {c.priceLevel.toLocaleString(undefined, { minimumFractionDigits: (currentPrice ?? 0) > 1000 ? 1 : 2, maximumFractionDigits: (currentPrice ?? 0) > 1000 ? 1 : 2 })}
                       {isPOC && <div className="text-[8px] uppercase tracking-widest mt-0.5 text-indigo-400/80">نقطة الارتكاز</div>}
                     </div>
 

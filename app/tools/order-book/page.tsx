@@ -111,7 +111,7 @@ export default function OrderBookPage() {
             {/* Current Price Divider */}
             <div className="flex items-center justify-center py-3 my-1 border-y border-white/[0.05] bg-white/[0.02]">
               <span className="text-xl font-black text-white tracking-widest font-mono">
-                {formatPrice(currentPrice)}
+                {formatPrice(currentPrice ?? 0)}
               </span>
             </div>
 

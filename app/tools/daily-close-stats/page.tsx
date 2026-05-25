@@ -41,7 +41,7 @@ export default function DailyCloseStatsPage() {
   const lastCandle = candles[candles.length - 1];
   const dailyOpen = lastCandle ? lastCandle.open : 0;
   
-  const distanceToOpen = currentPrice - dailyOpen;
+  const distanceToOpen = (currentPrice ?? 0) - dailyOpen;
   const distancePct = dailyOpen > 0 ? (distanceToOpen / dailyOpen) * 100 : 0;
   const isPositive = distanceToOpen >= 0;
 
@@ -112,7 +112,9 @@ export default function DailyCloseStatsPage() {
               <div className="rounded-2xl border border-white/[0.05] bg-[#0d0d0d] p-5 flex flex-col gap-2">
                 <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">السعر الحالي (Now)</span>
                 <span className="text-xl font-black text-white/90 font-mono">
-                  ${currentPrice.toLocaleString(undefined, { minimumFractionDigits: currentPrice > 1000 ? 1 : 4 })}
+                  ${currentPrice != null
+                    ? currentPrice.toLocaleString(undefined, { minimumFractionDigits: currentPrice > 1000 ? 1 : 4 })
+                    : '----'}
                 </span>
               </div>
             </div>

@@ -93,15 +93,17 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             dir="rtl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-white/[0.08] shrink-0 relative overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-white/[0.08] shrink-0 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 blur-[40px] pointer-events-none rounded-full" />
               <div className="flex flex-col z-10">
-                <h2 className="text-lg font-black text-white tracking-tight">القائمة الرئيسية</h2>
-                <span className="text-[10px] font-mono text-orange-500 uppercase tracking-widest">Master Navigation</span>
+                {/* PHASE 2: bumped from text-lg to text-xl */}
+                <h2 className="text-xl font-black text-white tracking-tight">القائمة الرئيسية</h2>
+                {/* PHASE 2: bumped from text-[10px] to text-xs */}
+                <span className="text-xs font-mono text-orange-500 uppercase tracking-widest">Master Navigation</span>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 text-white/70 hover:text-white transition-colors z-10"
+                className="p-2.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 text-white/70 hover:text-white transition-colors z-10"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -113,12 +115,13 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 const Icon = category.icon;
                 return (
                   <div key={idx} className="flex flex-col">
-                    {/* Category Title */}
-                    <div className="flex items-center gap-2 px-2 mb-3">
-                      <div className="p-1.5 bg-white/5 border border-white/10 rounded-lg text-white/50">
+                    {/* Category Title - PHASE 2: p-2 → p-3, gap-2 → gap-3 */}
+                    <div className="flex items-center gap-3 px-2 mb-3">
+                      <div className="p-2 bg-white/5 border border-white/10 rounded-lg text-white/60">
                         <Icon className="w-4 h-4" />
                       </div>
-                      <h3 className="text-sm font-bold text-white/80">{category.title}</h3>
+                      {/* PHASE 2: bumped from text-sm to text-base, font-bold kept */}
+                      <h3 className="text-base font-bold text-white/90">{category.title}</h3>
                     </div>
 
                     {/* Links list */}
@@ -131,7 +134,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                             key={itemIdx} 
                             href={item.path}
                             onClick={onClose}
-                            className={`relative flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 ${
+                            className={`relative flex items-center justify-between px-4 py-3.5 rounded-xl transition-all duration-200 ${
                               isActive 
                                 ? 'bg-orange-500/10 border border-orange-500/30' 
                                 : 'hover:bg-white/5 border border-transparent'
@@ -147,14 +150,15 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                               <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-1/2 bg-orange-500 rounded-l-full shadow-[0_0_10px_rgba(249,115,22,0.8)]" />
                             )}
                             
-                            <span className={`text-xs font-bold z-10 ${isActive ? 'text-orange-400' : 'text-white/60'}`}>
+                            {/* PHASE 2: bumped from text-xs to text-sm */}
+                            <span className={`text-sm font-bold z-10 ${isActive ? 'text-orange-400' : 'text-white/70'}`}>
                               {item.name}
                             </span>
                             
                             {isActive ? (
-                              <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,1)] z-10" />
+                              <div className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,1)] z-10" />
                             ) : (
-                              <ChevronLeft className="w-3 h-3 text-white/20 z-10" />
+                              <ChevronLeft className="w-3.5 h-3.5 text-white/25 z-10" />
                             )}
                           </Link>
                         );
@@ -166,8 +170,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-white/[0.08] shrink-0 text-center bg-[#050505]">
-              <span className="text-[10px] text-white/30 font-mono tracking-widest">
+            <div className="p-5 border-t border-white/[0.08] shrink-0 text-center bg-[#050505]">
+              {/* PHASE 2: bumped from text-[10px] to text-xs */}
+              <span className="text-xs text-white/30 font-mono tracking-widest">
                 Crypto Terminal 360 · v3.0
               </span>
             </div>

@@ -259,11 +259,17 @@ class EWAOrchestrator:
         )
 
         # ── Phase 3: Elliott Guard validation ───────────────────────────────
+        # Pass the raw ohlcv arrays so the Confluence Validator (Phase 3.5)
+        # can compute RSI and Volume SMA at the Wave 3 and Wave 5 breakout bars.
         valid_macro = self.guard.validate_all_candidates(
-            macro_impulse_candidates, macro_corrective_candidates, max_results=5
+            macro_impulse_candidates, macro_corrective_candidates,
+            max_results=5,
+            ohlcv=macro_ohlcv,
         )
         valid_micro = self.guard.validate_all_candidates(
-            micro_impulse_candidates, micro_corrective_candidates, max_results=8
+            micro_impulse_candidates, micro_corrective_candidates,
+            max_results=8,
+            ohlcv=micro_ohlcv,
         )
 
         log.info(

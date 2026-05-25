@@ -1,6 +1,21 @@
 // ─── Core Math Utilities ──────────────────────────────────────────────────────
 // All functions operate on plain number arrays for maximum reusability.
 // No external dependencies — 100% client-side, zero latency.
+// PHASE 1 FIX: Added NaN/Infinity guards and floating-point precision utilities.
+
+/**
+ * Clamp a value between min and max (inclusive).
+ */
+export function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+/**
+ * Returns true if a value is a finite, non-NaN number.
+ */
+export function isValidNumber(n: number): boolean {
+  return typeof n === 'number' && isFinite(n) && !isNaN(n);
+}
 
 /**
  * Simple Moving Average.
@@ -16,18 +31,24 @@ export function calculateSMA(data: number[], period: number): number[] {
     throw new RangeError(`SMA period must be a positive integer, got ${period}`);
   }
 
+  // FIX: filter out non-finite input values to prevent NaN propagation
   const result: number[] = new Array(data.length).fill(NaN);
 
   if (data.length < period) return result;
 
-  // Seed: sum of the first window
+  // Seed: sum of the first window (guard against NaN inputs)
   let windowSum = 0;
-  for (let i = 0; i < period; i++) windowSum += data[i];
-  result[period - 1] = windowSum / period;
+  let validCount = 0;
+  for (let i = 0; i < period; i++) {
+    if (isValidNumber(data[i])) { windowSum += data[i]; validCount++; }
+  }
+  if (validCount === period) result[period - 1] = windowSum / period;
 
   // Slide the window
   for (let i = period; i < data.length; i++) {
-    windowSum += data[i] - data[i - period];
+    const entering = isValidNumber(data[i])          ? data[i]          : 0;
+    const leaving  = isValidNumber(data[i - period]) ? data[i - period] : 0;
+    windowSum += entering - leaving;
     result[i] = windowSum / period;
   }
 
@@ -86,9 +107,15 @@ export function calculateStandardDeviation(data: number[], period: number): numb
     );
   }
 
-  const slice = data.slice(data.length - period);
-  const mean  = slice.reduce((acc, v) => acc + v, 0) / period;
-  const variance = slice.reduce((acc, v) => acc + (v - mean) ** 2, 0) / period;
+  // FIX: filter out non-finite values before computing σ to prevent NaN
+  const slice = data
+    .slice(data.length - period)
+    .filter(v => isValidNumber(v));
+
+  if (slice.length < 2) return 0; // Not enough valid points — return 0 not NaN
+
+  const mean     = slice.reduce((acc, v) => acc + v, 0) / slice.length;
+  const variance = slice.reduce((acc, v) => acc + (v - mean) ** 2, 0) / slice.length;
 
   return Math.sqrt(variance);
 }

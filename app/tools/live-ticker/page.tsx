@@ -21,8 +21,7 @@ export default function LiveTickerPage() {
   let changePct = 0;
   let isPositive = true;
 
-  if (lastCandle) {
-    // If it's daily timeframe, open of today is good. Otherwise use previous candle close.
+  if (lastCandle && currentPrice !== null) {
     const referencePrice = previousCandle ? previousCandle.close : lastCandle.open;
     changePct = ((currentPrice - referencePrice) / referencePrice) * 100;
     isPositive = changePct >= 0;
@@ -76,7 +75,9 @@ export default function LiveTickerPage() {
               <div className="flex items-baseline gap-2">
                 <span className="text-4xl text-white/40 font-mono font-light">$</span>
                 <span className="text-6xl font-black text-white font-mono tracking-tighter" style={{ textShadow: '0 0 30px rgba(255,255,255,0.2)' }}>
-                  {currentPrice.toLocaleString(undefined, { minimumFractionDigits: currentPrice > 1000 ? 1 : 4 })}
+                  {currentPrice != null
+                    ? currentPrice.toLocaleString(undefined, { minimumFractionDigits: currentPrice > 1000 ? 1 : 4 })
+                    : '----'}
                 </span>
               </div>
             </div>

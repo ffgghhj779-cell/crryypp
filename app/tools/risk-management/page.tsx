@@ -23,15 +23,15 @@ export default function RiskManagementPage() {
   const r = parseFloat(riskPercent);
   const sl = parseFloat(stopLoss);
   
-  const isValid = !isNaN(c) && !isNaN(r) && !isNaN(sl) && sl > 0 && currentPrice > 0;
+  const isValid = !isNaN(c) && !isNaN(r) && !isNaN(sl) && sl > 0 && (currentPrice ?? 0) > 0;
   
   let positionSizeUsd = 0;
   let riskAmountUsd = 0;
 
   if (isValid) {
     riskAmountUsd = c * (r / 100);
-    const priceDiff = Math.abs(currentPrice - sl);
-    const slPercent = priceDiff / currentPrice;
+    const priceDiff = Math.abs((currentPrice ?? 0) - sl);
+    const slPercent = priceDiff / (currentPrice ?? 1);
     
     // Position Size = Risk Amount / Stop Loss Percentage
     positionSizeUsd = slPercent > 0 ? riskAmountUsd / slPercent : 0;
@@ -88,7 +88,7 @@ export default function RiskManagementPage() {
           <div className="flex flex-col gap-2">
             <label className="text-xs font-bold text-white/60 flex justify-between">
               <span>سعر وقف الخسارة (Stop Loss):</span>
-              <span className="text-[10px] text-cyan-500/70">السعر الحالي: ${formatUsd(currentPrice)}</span>
+              <span className="text-[10px] text-cyan-500/70">السعر الحالي: ${currentPrice != null ? formatUsd(currentPrice) : '----'}</span>
             </label>
             <input 
               type="number" 
