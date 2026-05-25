@@ -89,6 +89,7 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
   { name: 'Order Flow CDD',           tag: 'Smart Money', category: 'smc',      subtitle: 'Cumulative Delta Divergence',      tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20',         requiredInputs: ['symbol', 'timeframe', 'period'] },
   { name: 'Liquidity Sweep',          tag: 'Smart Money', category: 'smc',      subtitle: 'Stop-hunt & sweep detector',      tagColor: 'text-sky-400 bg-sky-500/10 border-sky-500/20',         requiredInputs: ['symbol', 'timeframe'] },
   // C – Advanced Math
+  { name: 'Fibonacci Matrix',         tag: 'Quant',       category: 'math',     subtitle: 'مصفوفة فيبوناتشي — تقاطع الزمن والسعر', tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: [] },
   { name: 'Monte Carlo',              tag: 'Quant',       category: 'math',     subtitle: '1000-iteration price projection',  tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol', 'price_start', 'price_end', 'period'] },
   { name: 'GARCH',                    tag: 'Quant',       category: 'math',     subtitle: 'Volatility forecasting bands',     tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol', 'timeframe', 'period'] },
   { name: 'Markov Model (HMM)',       tag: 'Quant',       category: 'math',     subtitle: 'Market regime classifier',         tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol', 'timeframe'] },
