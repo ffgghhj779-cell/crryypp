@@ -128,6 +128,11 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
   { name: 'Volume Delta',             tag: 'Volume',      category: 'widget',   subtitle: 'محلل دلتا الحجم',                tagColor: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20', requiredInputs: [] },
   { name: 'Footprint Pro',            tag: 'OrderFlow',   category: 'widget',   subtitle: 'محلل بصمة الحجم',                tagColor: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20', requiredInputs: [] },
   { name: 'Liquidity Heatmap',        tag: 'Liquidity',   category: 'widget',   subtitle: 'خريطة السيولة',                  tagColor: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20', requiredInputs: [] },
+  // H – Geometry & Fibonacci Dashboards
+  { name: 'Price Angle',              tag: 'Geometry',    category: 'math',     subtitle: 'حاسبة الزوايا السعرية',           tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: [] },
+  { name: 'Fib Angle Cluster',        tag: 'Geometry',    category: 'math',     subtitle: 'فيبو + زوايا',                   tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: [] },
+  { name: 'Fibonacci Circles',        tag: 'Geometry',    category: 'math',     subtitle: 'دوائر فيبوناتشي',                tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: [] },
+  { name: 'Fib Spiral',               tag: 'Geometry',    category: 'math',     subtitle: 'الحلزون الذهبي',                 tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: [] },
 ];
 
 // ─── Mock Engine ──────────────────────────────────────────────────────────────
