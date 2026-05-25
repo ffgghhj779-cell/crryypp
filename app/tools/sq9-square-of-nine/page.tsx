@@ -29,7 +29,7 @@ export default function GannSQ9Page() {
   const [animated, setAnimated] = useState(false);
 
   // ── Guard ──────────────────────────────────────────────────────────────────
-  const tool = slugToTool('gann-sq9');
+  const tool = slugToTool('sq9-square-of-nine');
   if (!tool) return notFound();
 
   // ── Handlers ───────────────────────────────────────────────────────────────
