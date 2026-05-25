@@ -4,6 +4,7 @@ import { Activity, Calendar, Clock, Search, RefreshCw, BarChart2, Star, DollarSi
 import { useAppStore } from '@/store/useAppStore';
 import { useState } from 'react';
 import { HistorySidebar } from '@/components/layout/HistorySidebar';
+import { Sidebar } from '@/components/Sidebar';
 
 export function TopBar() {
   const { setActiveModal, wsStatus } = useAppStore();
@@ -70,13 +71,16 @@ export function TopBar() {
 
 export function BottomNav() {
   const { setActiveModal } = useAppStore();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div
-      className="shrink-0 z-40 border-t border-white/[0.06] glass-dark"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}
-    >
-      <div className="flex items-center justify-around px-1 py-1.5" dir="rtl">
+    <>
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div
+        className="shrink-0 z-40 border-t border-white/[0.06] glass-dark"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}
+      >
+        <div className="flex items-center justify-around px-1 py-1.5" dir="rtl">
         {/* الرئيسية — Home (active) */}
         <NavButton
           icon={<Home className="w-[22px] h-[22px]" />}
@@ -109,10 +113,11 @@ export function BottomNav() {
         <NavButton
           icon={<Menu className="w-[22px] h-[22px]" />}
           label="القائمة"
-          onClick={() => setActiveModal('market_cap')}
+          onClick={() => setSidebarOpen(true)}
         />
       </div>
     </div>
+    </>
   );
 }
 
