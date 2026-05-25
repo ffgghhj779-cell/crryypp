@@ -7,48 +7,104 @@
  * Analyzes trend using 5 classic indicators and outputs a visual confidence score.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ScanSearch, AlertCircle, ChevronDown, Compass, CheckCircle2, XCircle, MinusCircle, Info } from 'lucide-react';
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
 import { slugToTool } from '@/lib/tools/registry';
-import { calculateTrendCompass, TrendCompassResult, CompassBias } from '@/lib/algorithms/trendCompass';
-import { fetchKlines } from '@/lib/binance/fetcher';
+import { calculateTrendCompass, TrendCompassResult } from '@/lib/algorithms/trendCompass';
+import { fetchLiveCandles, BinanceKline } from '@/lib/api/binance';
 import { notFound } from 'next/navigation';
 
 export default function TrendCompassPage() {
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [timeframe, setTimeframe] = useState('1d');
   
+  const [liveData, setLiveData] = useState<BinanceKline[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   const [result, setResult] = useState<TrendCompassResult | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [calculating, setCalculating] = useState(false);
   const [error, setError] = useState('');
   const [animated, setAnimated] = useState(false);
 
   const tool = slugToTool('trend-compass');
-  if (!tool) return notFound();
 
+  // 1. Fetch initial live data on mount
+  useEffect(() => {
+    let mounted = true;
+    const fetchInitial = async () => {
+      setIsLoading(true);
+      setError('');
+      try {
+        const klines = await fetchLiveCandles('BTCUSDT', '1d', 200);
+        if (mounted) {
+          setLiveData(klines);
+          if (klines.length > 0) {
+            // Optionally auto-calculate on mount
+            const res = calculateTrendCompass('BTCUSDT', '1D', klines as any);
+            setResult(res);
+            setTimeout(() => setAnimated(true), 100);
+          }
+        }
+      } catch (err: any) {
+        if (mounted) setError(err.message || 'فشل جلب البيانات المباشرة.');
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    };
+    fetchInitial();
+    return () => { mounted = false; };
+  }, []);
+
+  // 2. Fetch new data when user explicitly clicks the button
   const handleCalculate = async () => {
     setError('');
     if (!symbol.trim()) return setError('أدخل اسم الأصل.');
     
-    setLoading(true);
+    setCalculating(true);
     setAnimated(false);
     
     try {
-      const klines = await fetchKlines(symbol.toUpperCase().trim(), timeframe.toLowerCase(), 100);
+      const klines = await fetchLiveCandles(symbol.toUpperCase().trim(), timeframe.toLowerCase(), 200);
       if (klines.length === 0) throw new Error('لا توجد بيانات متاحة لهذا الأصل.');
       
-      const res = calculateTrendCompass(symbol.toUpperCase().trim(), timeframe.toUpperCase(), klines);
+      setLiveData(klines);
+      const res = calculateTrendCompass(symbol.toUpperCase().trim(), timeframe.toUpperCase(), klines as any);
       setResult(res);
       setTimeout(() => setAnimated(true), 100);
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'حدث خطأ أثناء جلب البيانات أو المعالجة.');
     } finally {
-      setLoading(false);
+      setCalculating(false);
     }
   };
+
+  // Sleek, glowing loading skeleton for initial mount
+  if (!tool) return notFound();
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
+        <ToolPageHeader tool={tool} />
+        <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] gap-4">
+          <div className="relative flex items-center justify-center">
+            {/* Pulsing neon spinner */}
+            <motion.div 
+              animate={{ rotate: 360 }} 
+              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+              className="w-16 h-16 rounded-full border-t-2 border-r-2 border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.5)]"
+            />
+            <Compass className="absolute w-6 h-6 text-orange-400 opacity-80" />
+          </div>
+          <p className="text-orange-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">
+            جاري الاتصال بالسوق...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
@@ -59,6 +115,11 @@ export default function TrendCompassPage() {
           <span className="text-[9px] font-black text-orange-500/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full flex items-center gap-1">
             <Compass className="w-3 h-3" /> Trend Analysis
           </span>
+          {liveData.length > 0 && (
+            <span className="text-[9px] font-black text-emerald-500/70 tracking-widest uppercase border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 rounded-full flex items-center gap-1">
+              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" /> Live
+            </span>
+          )}
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">
           بوصلة الاتجاه (Trend Compass)
@@ -117,15 +178,15 @@ export default function TrendCompassPage() {
 
           <button
             onClick={handleCalculate}
-            disabled={loading}
+            disabled={calculating}
             className="w-full mt-2 flex items-center justify-center gap-2.5 rounded-xl py-4 font-black text-sm tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
             style={{
-              background: loading ? 'linear-gradient(135deg, #7c2d12, #431407)' : 'linear-gradient(135deg, #ea580c, #9a3412)',
-              boxShadow: !loading ? '0 0 20px rgba(234, 88, 12, 0.25)' : 'none'
+              background: calculating ? 'linear-gradient(135deg, #7c2d12, #431407)' : 'linear-gradient(135deg, #ea580c, #9a3412)',
+              boxShadow: !calculating ? '0 0 20px rgba(234, 88, 12, 0.25)' : 'none'
             }}
           >
-            {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-4 h-4" />}
-            {loading ? 'جاري قراءة البوصلة...' : 'تشغيل بوصلة الاتجاه'}
+            {calculating ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-4 h-4" />}
+            {calculating ? 'جاري قراءة البوصلة...' : 'تشغيل بوصلة الاتجاه'}
           </button>
         </div>
 
