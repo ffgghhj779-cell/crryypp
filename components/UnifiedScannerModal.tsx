@@ -118,6 +118,11 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
   // E – TradingView Widgets
   { name: 'Economic Calendar',        tag: 'Widget',      category: 'widget',   subtitle: 'Macro event calendar',            tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20',      requiredInputs: [] },
   { name: 'Heatmap',                  tag: 'Widget',      category: 'widget',   subtitle: 'Crypto market heatmap',           tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20',      requiredInputs: [] },
+  // F – Informational Dashboards
+  { name: 'Live Ticker',              tag: 'Info',        category: 'widget',   subtitle: 'السعر الحي — متابعة آنية',         tagColor: 'text-blue-400 bg-blue-500/10 border-blue-500/20',      requiredInputs: [] },
+  { name: 'Fear And Greed',           tag: 'Sentiment',   category: 'widget',   subtitle: 'مؤشر الخوف والطمع',              tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: [] },
+  { name: 'Halving Pulse',            tag: 'Event',       category: 'widget',   subtitle: 'نبض الوقت — عداد التنصيف',        tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20',      requiredInputs: [] },
+  { name: 'Daily Close Stats',        tag: 'Stats',       category: 'widget',   subtitle: 'إحصاءات الإغلاق اليومي',          tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: [] },
 ];
 
 // ─── Mock Engine ──────────────────────────────────────────────────────────────
