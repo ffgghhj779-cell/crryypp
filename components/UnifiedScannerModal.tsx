@@ -123,6 +123,11 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
   { name: 'Fear And Greed',           tag: 'Sentiment',   category: 'widget',   subtitle: 'مؤشر الخوف والطمع',              tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: [] },
   { name: 'Halving Pulse',            tag: 'Event',       category: 'widget',   subtitle: 'نبض الوقت — عداد التنصيف',        tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20',      requiredInputs: [] },
   { name: 'Daily Close Stats',        tag: 'Stats',       category: 'widget',   subtitle: 'إحصاءات الإغلاق اليومي',          tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: [] },
+  // G – Order Flow & Liquidity Dashboards
+  { name: 'Order Book',               tag: 'Depth',       category: 'widget',   subtitle: 'تحليل دفتر الأوامر',               tagColor: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20', requiredInputs: [] },
+  { name: 'Volume Delta',             tag: 'Volume',      category: 'widget',   subtitle: 'محلل دلتا الحجم',                tagColor: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20', requiredInputs: [] },
+  { name: 'Footprint Pro',            tag: 'OrderFlow',   category: 'widget',   subtitle: 'محلل بصمة الحجم',                tagColor: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20', requiredInputs: [] },
+  { name: 'Liquidity Heatmap',        tag: 'Liquidity',   category: 'widget',   subtitle: 'خريطة السيولة',                  tagColor: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20', requiredInputs: [] },
 ];
 
 // ─── Mock Engine ──────────────────────────────────────────────────────────────
