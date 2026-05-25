@@ -280,44 +280,32 @@ export function calcOBV(klines: { close: number; volume: number }[]): number[] {
 
 /**
  * Gann Square of Nine — directional scale factor.
- * ✅ Exactly matches competitor sq9ScaleFactor() including all direction-aware branches.
+ * ✅ EXACT copy of competitor getSF() from sources/calculations.js line 19.
+ * function getSF(p,d){if(p>=10000)return d==='up'?0.0001:(p>=40000?0.0001:0.001);
+ *   if(p>=1000)return 0.01;if(p>=100)return 0.1;
+ *   if(p>=5)return d==='down'?100:1;
+ *   if(p>=1)return d==='down'?100:1;
+ *   return 100}
  */
 export function getSF(p: number, direction: 'up' | 'down' = 'up'): number {
-  if (p >= 10000) {
-    return direction === 'up' ? 0.0001 : (p >= 40000 ? 0.0001 : 0.001);
-  } else if (p >= 1000) {
-    return 0.01;
-  } else if (p >= 100) {
-    return 0.1;
-  } else if (p >= 10) {
-    return 1.0;
-  } else if (p >= 1) {
-    return direction === 'up' ? 1.0 : (p >= 4 ? 1.0 : 100.0);
-  } else if (p >= 0.1) {
-    return direction === 'up' ? 100.0 : (p >= 0.4 ? 100.0 : 10000.0);
-  } else if (p >= 0.01) {
-    return direction === 'up' ? 10000.0 : (p >= 0.04 ? 10000.0 : 1000000.0);
-  } else if (p >= 0.001) {
-    return direction === 'up' ? 1000000.0 : (p >= 0.004 ? 1000000.0 : 100000000.0);
-  } else {
-    return direction === 'up' ? 100000000.0 : (p >= 0.0004 ? 100000000.0 : 10000000000.0);
-  }
+  if (p >= 10000) return direction === 'up' ? 0.0001 : (p >= 40000 ? 0.0001 : 0.001);
+  if (p >= 1000)  return 0.01;
+  if (p >= 100)   return 0.1;
+  if (p >= 5)     return direction === 'down' ? 100 : 1;
+  if (p >= 1)     return direction === 'down' ? 100 : 1;
+  return 100; // sub-$1 assets (e.g. DOGE, XRP, SHIB)
 }
 
 /**
  * Gann Square of Nine — compute a single level.
- * ✅ Matches competitor sq9Level() exactly.
+ * ✅ EXACT copy of competitor sc() from sources/calculations.js line 20.
+ * function sc(p,deg,d){let m=getSF(p,d),r=Math.sqrt(p*m),f=deg/180,
+ *   nr=d==='up'?r+f:r-f;return nr<0?0:(nr*nr)/m}
  */
 export function sq9Level(price: number, angleDeg: number, direction: 'up' | 'down'): number {
-  const sf   = getSF(price, direction);
-  const root = Math.sqrt(price * sf);
-  const inc  = angleDeg / 180;
-
-  if (direction === 'up') {
-    return Math.pow(root + inc, 2) / sf;
-  } else {
-    const newRoot = root - inc;
-    if (newRoot < 0) return 0;
-    return Math.pow(newRoot, 2) / sf;
-  }
+  const m  = getSF(price, direction);
+  const r  = Math.sqrt(price * m);
+  const f  = angleDeg / 180;
+  const nr = direction === 'up' ? r + f : r - f;
+  return nr < 0 ? 0 : (nr * nr) / m;
 }
