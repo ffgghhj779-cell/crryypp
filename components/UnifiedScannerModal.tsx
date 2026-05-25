@@ -109,6 +109,7 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
   { name: 'Triple Lens',              tag: 'Multifactor', category: 'momentum', subtitle: 'العدسة الثلاثية — Ichimoku / BB / Volume', tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: [] },
   { name: 'Unified Decision - 6 Tools', tag: 'Consensus',   category: 'momentum', subtitle: 'القرار الموحد — 6 مؤشرات مجمعة',  tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20', requiredInputs: [] },
   { name: 'CHOP Index',               tag: 'Momentum',    category: 'momentum', subtitle: 'Choppiness vs trend strength',    tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
+  { name: 'ATR Volatility',           tag: 'Volatility',  category: 'momentum', subtitle: 'محرك التقلبات — حساب الإيقاف الآمن (ATR)', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20', requiredInputs: [] },
   // E – TradingView Widgets
   { name: 'Economic Calendar',        tag: 'Widget',      category: 'widget',   subtitle: 'Macro event calendar',            tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20',      requiredInputs: [] },
   { name: 'Heatmap',                  tag: 'Widget',      category: 'widget',   subtitle: 'Crypto market heatmap',           tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20',      requiredInputs: [] },
