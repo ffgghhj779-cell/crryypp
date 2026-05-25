@@ -143,6 +143,11 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
   { name: 'Flow Index',               tag: 'Volume',      category: 'math',     subtitle: 'مؤشر التدفق',                    tagColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20', requiredInputs: [] },
   { name: 'MFI MTF',                  tag: 'Volume',      category: 'math',     subtitle: 'تدفق الأموال المتعدد',             tagColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20', requiredInputs: [] },
   { name: 'DeMark TD',                tag: 'Pattern',     category: 'pattern',  subtitle: 'نموذج الإرهاق (TD)',             tagColor: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20', requiredInputs: [] },
+  // K – Macro & Cyclical Dashboards
+  { name: 'Macro Network',            tag: 'Macro',       category: 'widget',   subtitle: 'ماكرو الشبكة والتعدين',            tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20', requiredInputs: [] },
+  { name: 'Cycle Calculator',         tag: 'Cycles',      category: 'math',     subtitle: 'حاسبة الدورات والأشكال',           tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20', requiredInputs: [] },
+  { name: 'Periodic Bands',           tag: 'Bands',       category: 'math',     subtitle: 'حاسبة النطاقات الدورية',           tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20', requiredInputs: [] },
+  { name: 'Cycle Confluence',         tag: 'Cycles',      category: 'math',     subtitle: 'توافق الدورات',                  tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20', requiredInputs: [] },
 ];
 
 // ─── Mock Engine ──────────────────────────────────────────────────────────────
