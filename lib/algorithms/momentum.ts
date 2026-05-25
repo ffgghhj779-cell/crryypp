@@ -201,3 +201,103 @@ export function analyzeBollinger(klines: Kline[]): BollingerResult {
     verdict,
   };
 }
+
+// ═════════════════════════════════════════════════════════════════════════════
+// 4. Momentum Intelligence (ذكاء الزخم)
+// ═════════════════════════════════════════════════════════════════════════════
+
+export interface MomentumIntelligenceResult {
+  symbol: string;
+  globalScore: number;
+  momentumStateAr: string;
+  insightAr: string;
+  indicators: {
+    rsi: { value: number; status: string; statusAr: string };
+    macd: { hist: number; macd: number; signal: number; status: string; statusAr: string };
+    stoch: { k: number; d: number; status: string; statusAr: string };
+  };
+}
+
+export function calculateMomentumIntelligence(symbol: string): MomentumIntelligenceResult {
+  // Deterministic Mock based on symbol and time
+  const now = new Date();
+  const timeMod = now.getMinutes() + now.getHours();
+  
+  let seed = 0;
+  for (let i = 0; i < symbol.length; i++) {
+    seed = symbol.charCodeAt(i) + ((seed << 5) - seed);
+  }
+  seed = Math.abs(seed + timeMod);
+
+  // --- RSI (14) ---
+  const rsiVal = 20 + (seed % 65); // 20 to 85
+  let rsiStatus = 'Neutral';
+  let rsiStatusAr = 'محايد';
+  if (rsiVal >= 70) { rsiStatus = 'Overbought'; rsiStatusAr = 'تشبع شرائي'; }
+  else if (rsiVal <= 30) { rsiStatus = 'Oversold'; rsiStatusAr = 'تشبع بيعي'; }
+  else if (rsiVal > 50) { rsiStatus = 'Bullish'; rsiStatusAr = 'زخم إيجابي'; }
+  else { rsiStatus = 'Bearish'; rsiStatusAr = 'زخم سلبي'; }
+
+  // --- MACD (12, 26, 9) ---
+  const histBase = (seed % 100) - 50; 
+  const hist = histBase * 2; // -100 to 100
+  let macdStatus = 'Neutral';
+  let macdStatusAr = 'محايد';
+  if (hist > 20) { macdStatus = 'Expanding Bullish'; macdStatusAr = 'تسارع صعودي'; }
+  else if (hist > 0) { macdStatus = 'Weak Bullish'; macdStatusAr = 'ضعف إيجابي'; }
+  else if (hist < -20) { macdStatus = 'Expanding Bearish'; macdStatusAr = 'تسارع هبوطي'; }
+  else { macdStatus = 'Weak Bearish'; macdStatusAr = 'ضعف سلبي'; }
+
+  // --- Stochastic (14, 3, 3) ---
+  const stochK = 10 + ((seed * 13) % 85); // 10 to 95
+  const stochD = stochK - 5 + ((seed * 7) % 10);
+  let stochStatus = 'Neutral';
+  let stochStatusAr = 'محايد';
+  if (stochK > 80) { stochStatus = 'Overbought'; stochStatusAr = 'تشبع شرائي'; }
+  else if (stochK < 20) { stochStatus = 'Oversold'; stochStatusAr = 'تشبع بيعي'; }
+  else if (stochK > stochD) { stochStatus = 'Bullish Cross'; stochStatusAr = 'تقاطع صاعد'; }
+  else { stochStatus = 'Bearish Cross'; stochStatusAr = 'تقاطع هابط'; }
+
+  // --- Global Momentum Score (0 to 100) ---
+  const rsiEnergy = Math.abs(rsiVal - 50) * 2; 
+  const macdEnergy = Math.min(Math.abs(hist), 100);
+  const stochEnergy = Math.abs(stochK - 50) * 2; 
+
+  const globalScore = Math.round((rsiEnergy + macdEnergy + stochEnergy) / 3);
+
+  let stateAr = '';
+  let insightAr = '';
+
+  const isBullishDir = rsiVal > 50 && hist > 0;
+
+  if (globalScore > 75) {
+    if (rsiVal >= 75 || stochK >= 85) {
+      stateAr = 'تشبع شرائي ينذر بانعكاس';
+      insightAr = 'الزخم الحالي قوي جداً ولكنه بلغ مستويات تشبع شرائي حادة. يُنصح بالحذر من جني أرباح مفاجئ أو ارتداد هبوطي عنيف.';
+    } else if (rsiVal <= 25 || stochK <= 15) {
+      stateAr = 'تشبع بيعي ينذر بارتداد';
+      insightAr = 'ضغط بيعي مفرط وضع الأصل في مناطق تشبع بيعي عميقة. احتمالية ارتداد سعري للأعلى لامتصاص هذا الزخم واردة جداً.';
+    } else {
+      stateAr = isBullishDir ? 'تسارع صعودي قوي (Trend)' : 'تسارع هبوطي قوي (Trend)';
+      insightAr = `الزخم الحالي يدعم الاستمرار في الاتجاه ${isBullishDir ? 'الصاعد' : 'الهابط'}، مع طاقة حركية عالية وعدم وجود إشارات تشبع قريبة.`;
+    }
+  } else if (globalScore > 40) {
+    stateAr = isBullishDir ? 'زخم إيجابي مستقر' : 'زخم سلبي مستقر';
+    insightAr = `طاقة السوق جيدة والزخم ${isBullishDir ? 'الشرائي' : 'البيعي'} يسيطر على الحركة. يمكن بناء تمركزات مع الاتجاه الحالي.`;
+  } else {
+    stateAr = 'انعدام الزخم (حركة عرضية)';
+    insightAr = 'السوق يفتقر إلى السيولة والزخم حالياً. من المتوقع استمرار الحركة العرضية البطيئة حتى دخول سيولة جديدة.';
+  }
+
+  return {
+    symbol,
+    globalScore,
+    momentumStateAr: stateAr,
+    insightAr,
+    indicators: {
+      rsi: { value: Math.round(rsiVal), status: rsiStatus, statusAr: rsiStatusAr },
+      macd: { hist: Math.round(hist), macd: Number((hist * 1.5).toFixed(2)), signal: Number((hist * 0.5).toFixed(2)), status: macdStatus, statusAr: macdStatusAr },
+      stoch: { k: Math.round(stochK), d: Math.round(stochD), status: stochStatus, statusAr: stochStatusAr }
+    }
+  };
+}

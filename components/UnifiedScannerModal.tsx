@@ -101,6 +101,7 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
   { name: 'Gann 144 Star',            tag: 'Gann 144',    category: 'math',     subtitle: 'تربيع الزمن والسعر — عامل ١٤٤',  tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20', requiredInputs: [] },
   { name: 'SQ9 - Square of Nine',     tag: 'Gann SQ9',    category: 'math',     subtitle: 'حاسبة جان للتربيع الزمني والسعري', tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20', requiredInputs: [] },
   // D – Momentum & Signals
+  { name: 'Momentum Intelligence',    tag: 'Kinetic',     category: 'momentum', subtitle: 'ذكاء الزخم — دمج RSI و MACD و Stochastic', tagColor: 'text-rose-400 bg-rose-500/10 border-rose-500/20', requiredInputs: [] },
   { name: 'Divergence Scanner',       tag: 'Momentum',    category: 'momentum', subtitle: 'RSI & MACD hidden/regular div',   tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: ['symbol', 'timeframe', 'period'] },
   { name: 'Trading VIP 1',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: [] },
   { name: 'Trading VIP 2',            tag: 'Momentum',    category: 'momentum', subtitle: 'Multi-indicator consensus engine', tagColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20',   requiredInputs: [] },
