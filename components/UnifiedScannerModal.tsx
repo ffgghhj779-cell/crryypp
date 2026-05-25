@@ -80,6 +80,7 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
   { name: 'Cup & Handle',             tag: 'Pattern',     category: 'pattern',  subtitle: 'Bullish continuation scanner',    tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20', requiredInputs: ['symbol', 'timeframe', 'direction'] },
   { name: 'Head & Shoulders',         tag: 'Pattern',     category: 'pattern',  subtitle: 'Reversal pattern identifier',     tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20', requiredInputs: ['symbol', 'timeframe', 'direction'] },
   { name: 'Triangle Predictor',       tag: 'Pattern',     category: 'pattern',  subtitle: 'Sym / Asc / Desc triangles',      tagColor: 'text-violet-400 bg-violet-500/10 border-violet-500/20', requiredInputs: ['symbol', 'timeframe', 'direction'] },
+  { name: 'Pattern Scanner',          tag: 'Pattern',     category: 'pattern',  subtitle: 'مكتشف النماذج الكلاسيكية الأوتوماتيكي', tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20', requiredInputs: [] },
   { name: 'Harmonic Scanner',         tag: 'Pattern',     category: 'pattern',  subtitle: 'ماسح الهارمونيك — XABCD PRZ',      tagColor: 'text-fuchsia-400 bg-fuchsia-500/10 border-fuchsia-500/20', requiredInputs: [] },
   // B – Smart Money
   { name: 'ZigZag Engine',            tag: 'Structure',   category: 'smc',      subtitle: 'محرك القمم والقيعان (الانحراف الهيكلي)',  tagColor: 'text-blue-400 bg-blue-500/10 border-blue-500/20',      requiredInputs: [] },
