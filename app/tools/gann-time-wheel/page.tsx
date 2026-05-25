@@ -372,12 +372,17 @@ function MonthDrilldown({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    setBars([]);
-    fetchDailyBars(symbol, year, monthIndex).then(data => {
-      setBars(data);
-      setLoading(false);
-    });
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setBars([]);
+      const data = await fetchDailyBars(symbol, year, monthIndex);
+      if (!cancelled) {
+        setBars(data);
+        setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
   }, [symbol, year, monthIndex]);
 
   const days = useMemo(() => buildDayAnalytics(bars, year, monthIndex), [bars, year, monthIndex]);
