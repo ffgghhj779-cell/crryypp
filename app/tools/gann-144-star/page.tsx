@@ -346,9 +346,7 @@ function GannStarGuide() {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Gann144StarPage() {
-  const tool = slugToTool('gann-144-star');
-  if (!tool) return notFound();
-
+  // ── All hooks MUST be declared unconditionally at the top ──────────────────
   const [symbol,      setSymbol]      = useState('BTCUSDT');
   const [anchorType,  setAnchorType]  = useState<AnchorType>('bottom');
   const [anchorDate,  setAnchorDate]  = useState('');
@@ -357,6 +355,10 @@ export default function Gann144StarPage() {
   const [animated,    setAnimated]    = useState(false);
   const [error,       setError]       = useState('');
   const [loading,     setLoading]     = useState(false);
+
+  // Guard — after all hooks so React rules are satisfied
+  const tool = slugToTool('gann-144-star');
+  if (!tool) return notFound();
 
   function handleCalculate() {
     setError('');
