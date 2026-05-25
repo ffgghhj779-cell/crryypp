@@ -133,6 +133,11 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
   { name: 'Fib Angle Cluster',        tag: 'Geometry',    category: 'math',     subtitle: 'فيبو + زوايا',                   tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: [] },
   { name: 'Fibonacci Circles',        tag: 'Geometry',    category: 'math',     subtitle: 'دوائر فيبوناتشي',                tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: [] },
   { name: 'Fib Spiral',               tag: 'Geometry',    category: 'math',     subtitle: 'الحلزون الذهبي',                 tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: [] },
+  // I – Predictive & Trend Dashboards
+  { name: 'Trend Probability',        tag: 'Prediction',  category: 'math',     subtitle: 'احتمالية الاتجاه',               tagColor: 'text-fuchsia-400 bg-fuchsia-500/10 border-fuchsia-500/20', requiredInputs: [] },
+  { name: 'Hidden Candle',            tag: 'Prediction',  category: 'math',     subtitle: 'الشمعة المخفية',                 tagColor: 'text-fuchsia-400 bg-fuchsia-500/10 border-fuchsia-500/20', requiredInputs: [] },
+  { name: 'Fractal Detector',         tag: 'Pattern',     category: 'pattern',  subtitle: 'كاشف الفراكتل',                  tagColor: 'text-fuchsia-400 bg-fuchsia-500/10 border-fuchsia-500/20', requiredInputs: [] },
+  { name: 'Multi-Scale Fractal',      tag: 'Pattern',     category: 'pattern',  subtitle: 'فراكتل متعدد الأطر',             tagColor: 'text-fuchsia-400 bg-fuchsia-500/10 border-fuchsia-500/20', requiredInputs: [] },
 ];
 
 // ─── Mock Engine ──────────────────────────────────────────────────────────────
