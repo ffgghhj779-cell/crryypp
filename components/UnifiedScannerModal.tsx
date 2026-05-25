@@ -153,6 +153,11 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
   { name: 'Triple Analysis',          tag: 'Confluence',  category: 'pattern',  subtitle: 'التحليل الثلاثي',                tagColor: 'text-purple-400 bg-purple-500/10 border-purple-500/20', requiredInputs: [] },
   { name: 'Confluence Detector',      tag: 'Confluence',  category: 'pattern',  subtitle: 'كاشف التوافق',                   tagColor: 'text-purple-400 bg-purple-500/10 border-purple-500/20', requiredInputs: [] },
   { name: 'MTFC Scanner',             tag: 'Scanner',     category: 'pattern',  subtitle: 'ماسح التقاء الأطر',                tagColor: 'text-purple-400 bg-purple-500/10 border-purple-500/20', requiredInputs: [] },
+  // M – Advanced Institutional & Gann
+  { name: 'Wyckoff Map',              tag: 'Pattern',     category: 'pattern',  subtitle: 'خريطة وايكوف',                   tagColor: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20', requiredInputs: [] },
+  { name: 'Gann Squaring',            tag: 'Geometry',    category: 'math',     subtitle: 'كاشف تربيع السعر والزمن',         tagColor: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20', requiredInputs: [] },
+  { name: 'Power of 3',               tag: 'Pattern',     category: 'pattern',  subtitle: 'التجميع الثلاثي',                tagColor: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20', requiredInputs: [] },
+  { name: 'LSM Strategy',             tag: 'Pattern',     category: 'pattern',  subtitle: 'كاشف الاختراق',                  tagColor: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20', requiredInputs: [] },
 ];
 
 // ─── Mock Engine ──────────────────────────────────────────────────────────────
