@@ -1,11 +1,11 @@
 'use client';
 
 import { useBinanceTicker } from '@/hooks/useBinanceTicker';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, startTransition } from 'react';
 import { AnimatePresence }  from 'motion/react';
 import { createChart, ColorType, AreaSeries } from 'lightweight-charts';
 import { fetchKlines }        from '@/lib/binance';
-import { ChevronRight }       from 'lucide-react';
+import { ChevronRight, TrendingUp, TrendingDown } from 'lucide-react';
 import Link                   from 'next/link';
 import { ANALYSIS_TOOLS }     from '@/components/UnifiedScannerModal';
 import { toolToSlug }         from '@/lib/tools/registry';
@@ -160,6 +160,9 @@ export function Dashboard() {
         </div>
       </div>
 
+      {/* ── Live Commodities Panel ── */}
+      <CommoditiesPanel />
+
       {/* ── Halving Countdown (tappable → Network Macro modal) ── */}
       <button
         onClick={() => setNetworkOpen(true)}
@@ -245,6 +248,173 @@ export function Dashboard() {
 }
 
 // StatCard removed — replaced by inline stats bar in mobile layout
+
+// ══ COMMODITIES PANEL ═══════════════════════════════════════════════════════════════════════════
+
+interface CommodityItem {
+  price: number;
+  changePct: number;
+  source?: string;
+}
+
+interface CommodityData {
+  gold:         CommodityItem | null;
+  oil:          CommodityItem | null;
+  usdEgp:       CommodityItem | null;
+  egyptianGold: CommodityItem | null;
+}
+
+function CommoditiesPanel() {
+  const [data, setData] = useState<CommodityData>({
+    gold: null, oil: null, usdEgp: null, egyptianGold: null,
+  });
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<string>('');
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch('/api/commodities', { cache: 'no-store' });
+        if (!res.ok) return;
+        const d = await res.json();
+        startTransition(() => {
+          setData({
+            gold:         d.gold         ?? null,
+            oil:          d.oil          ?? null,
+            usdEgp:       d.usdEgp       ?? null,
+            egyptianGold: d.egyptianGold ?? null,
+          });
+          setLoading(false);
+          const now = new Date();
+          setLastUpdated(now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
+        });
+      } catch { setLoading(false); }
+    }
+    load();
+    const t = setInterval(load, 60_000);
+    return () => clearInterval(t);
+  }, []);
+
+  type CardDef = {
+    id: string;
+    icon: string;
+    labelAr: string;
+    labelEn: string;
+    price: string;
+    unit: string;
+    changePct: number;
+    accentCls: string;
+    glowCls: string;
+    loaded: boolean;
+  };
+
+  const cards: CardDef[] = [
+    {
+      id: 'gold',
+      icon: '🥇',
+      labelAr: 'الذهب العالمي',
+      labelEn: 'XAU / USD',
+      price: data.gold
+        ? `$${data.gold.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : '---',
+      unit: 'للأونصة',
+      changePct: data.gold?.changePct ?? 0,
+      accentCls: 'border-amber-500/30 bg-gradient-to-br from-amber-950/40 via-black to-zinc-950',
+      glowCls: 'bg-amber-500/10',
+      loaded: !!data.gold,
+    },
+    {
+      id: 'egygold',
+      icon: '🇪🇬',
+      labelAr: 'الذهب المصري',
+      labelEn: data.egyptianGold?.source === 'scrape' ? 'عيار 21 · سوق' : 'عيار 21 · محسوب',
+      price: data.egyptianGold
+        ? `${Math.round(data.egyptianGold.price).toLocaleString('en-US')} ج`
+        : '---',
+      unit: 'جنيه / جرام',
+      changePct: data.egyptianGold?.changePct ?? 0,
+      accentCls: 'border-emerald-500/30 bg-gradient-to-br from-emerald-950/40 via-black to-zinc-950',
+      glowCls: 'bg-emerald-500/10',
+      loaded: !!data.egyptianGold,
+    },
+    {
+      id: 'oil',
+      icon: '🛢️',
+      labelAr: 'النفط الخام',
+      labelEn: 'WTI Crude · USD/bbl',
+      price: data.oil ? `$${data.oil.price.toFixed(2)}` : '---',
+      unit: 'للبرميل',
+      changePct: data.oil?.changePct ?? 0,
+      accentCls: 'border-slate-500/30 bg-gradient-to-br from-slate-900/60 via-black to-zinc-950',
+      glowCls: 'bg-slate-500/10',
+      loaded: !!data.oil,
+    },
+    {
+      id: 'usdegp',
+      icon: '💵',
+      labelAr: 'سعر الدولار',
+      labelEn: 'USD / EGP',
+      price: data.usdEgp ? `${data.usdEgp.price.toFixed(2)} ج` : '---',
+      unit: 'جنيه مصري',
+      changePct: data.usdEgp?.changePct ?? 0,
+      accentCls: 'border-blue-500/30 bg-gradient-to-br from-blue-950/40 via-black to-zinc-950',
+      glowCls: 'bg-blue-500/10',
+      loaded: !!data.usdEgp,
+    },
+  ];
+
+  return (
+    <div className="space-y-3" dir="rtl">
+      {/* Header */}
+      <div className="flex items-center justify-between px-0.5">
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+          <h3 className="text-sm font-bold text-white/50 uppercase tracking-widest">السلع اللحظية</h3>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {lastUpdated && <span className="text-xs text-white/20 font-mono">{lastUpdated}</span>}
+          <span className="text-xs font-mono text-amber-500/70 border border-amber-500/20 bg-amber-500/5 px-1.5 py-0.5 rounded-full">LIVE</span>
+        </div>
+      </div>
+
+      {/* 2x2 cards grid */}
+      <div className="grid grid-cols-2 gap-3">
+        {cards.map((card) => {
+          const pos = card.changePct >= 0;
+          return (
+            <div key={card.id} className={`relative overflow-hidden rounded-2xl border p-4 ${card.accentCls} shadow-lg`}>
+              <div className={`pointer-events-none absolute -top-6 -right-6 w-24 h-24 ${card.glowCls} blur-2xl rounded-full`} />
+              <div className="flex items-start justify-between mb-3 relative z-10">
+                <div>
+                  <p className="text-white/35 text-xs font-mono tracking-widest leading-none mb-0.5">{card.labelEn}</p>
+                  <p className="text-white/85 text-sm font-bold leading-tight">{card.labelAr}</p>
+                </div>
+                <span className="text-2xl leading-none">{card.icon}</span>
+              </div>
+              <div className="relative z-10">
+                {loading && !card.loaded ? (
+                  <div className="h-7 w-28 rounded-lg bg-white/5 animate-pulse mb-1" />
+                ) : (
+                  <p className="text-white font-black font-mono tabular-nums text-xl leading-none tracking-tight mb-1">{card.price}</p>
+                )}
+                <p className="text-white/25 text-xs font-mono">{card.unit}</p>
+              </div>
+              <div className="flex items-center justify-between mt-3 relative z-10">
+                <span className={`inline-flex items-center gap-1 text-sm font-bold font-mono tabular-nums px-2 py-0.5 rounded-lg border ${
+                  pos ? 'text-emerald-400 border-emerald-500/25 bg-emerald-500/10' : 'text-red-400 border-red-500/25 bg-red-500/10'
+                }`}>
+                  {pos ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  {pos ? '+' : ''}{card.changePct.toFixed(2)}%
+                </span>
+                <span className="text-xs text-white/15 font-mono">24H</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function FearGreedGauge({ value, compact = false }: { value: number; compact?: boolean }) {
   const angle = (value / 100) * 180 - 90;
