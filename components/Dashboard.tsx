@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useBinanceTicker } from '@/hooks/useBinanceTicker';
 import { useEffect, useRef, useState } from 'react';
@@ -18,7 +18,7 @@ import { NetworkMacroModal }  from '@/components/widgets/NetworkMacroModal';
 import { useAppStore }        from '@/store/useAppStore';
 import { saveAnalysis }       from '@/lib/utils/historyStore';
 
-// ── Analysis Arsenal — 24 Halal Spot/TA tools (imported from UnifiedScannerModal) ──
+// â”€â”€ Analysis Arsenal â€” 24 Halal Spot/TA tools (imported from UnifiedScannerModal) â”€â”€
 
 export function Dashboard() {
   const { ticker, connectionStatus } = useBinanceTicker('btcusdt');
@@ -31,13 +31,13 @@ export function Dashboard() {
   useEffect(() => { setWsStatus(connectionStatus); }, [connectionStatus, setWsStatus]);
 
   useEffect(() => {
-    // Use server proxy route — revalidate: 300 only works server-side
+    // Use server proxy route â€” revalidate: 300 only works server-side
     fetch('/api/global')
       .then(r => r.json())
       .then(data => { if (!data.error) setGlobalData(data); })
       .catch(console.error);
 
-    // ── Live halving countdown via block height ────────────────────────────
+    // â”€â”€ Live halving countdown via block height â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     // Fallback to estimated date if API fails
     const FALLBACK_DATE = new Date('2028-04-15T00:00:00Z').getTime();
     const NEXT_HALVING_BLOCK = 1_050_000;
@@ -77,31 +77,31 @@ export function Dashboard() {
 
   return (
     <div className="w-full max-w-2xl pb-28 animate-fade-in">
-      {/* ── Sticky Market Ticker ── */}
+      {/* â”€â”€ Sticky Market Ticker â”€â”€ */}
       <MarketTicker />
 
       <div className="px-3 pt-3 space-y-3">
 
-      {/* ── Ticker Banner ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-gradient-to-br from-zinc-950 via-black to-zinc-900 p-4 shadow-2xl">
+      {/* â”€â”€ Ticker Banner â”€â”€ */}
+      <div className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-gradient-to-br from-zinc-950 via-black to-zinc-900 p-6 shadow-2xl">
         <div className="pointer-events-none absolute -top-12 -right-12 w-48 h-48 bg-orange-500/15 blur-3xl rounded-full" />
         <div className="pointer-events-none absolute -bottom-8 -left-8 w-32 h-32 bg-orange-500/5 blur-2xl rounded-full" />
 
         <div className="relative z-10">
           {/* Top row: symbol + LIVE + connection */}
           <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <span className="text-white/50 font-bold tracking-widest text-xs uppercase">BTC/USDT</span>
-              <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full tabular-nums border ${
+            <div className="flex items-center gap-3">
+              <span className="text-white/50 font-bold tracking-widest text-base uppercase">BTC/USDT</span>
+              <span className={`px-2 py-0.5 text-sm font-bold rounded-full tabular-nums border ${
                 isPositive
                   ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                   : 'bg-red-500/10 text-red-400 border-red-500/20'
               }`}>
-                {isPositive ? '▲' : '▼'} {Math.abs(parseFloat(ticker?.priceChangePercent ?? '0')).toFixed(2)}%
+                {isPositive ? 'â–²' : 'â–¼'} {Math.abs(parseFloat(ticker?.priceChangePercent ?? '0')).toFixed(2)}%
               </span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-black text-orange-400 tracking-widest uppercase border border-orange-500/40 bg-orange-500/10 px-2 py-0.5 rounded-full">LIVE</span>
+              <span className="text-sm font-black text-orange-400 tracking-widest uppercase border border-orange-500/40 bg-orange-500/10 px-2 py-0.5 rounded-full">LIVE</span>
               <span className={`w-1.5 h-1.5 rounded-full ${
                 connectionStatus === 'connected' ? 'bg-emerald-500 animate-pulse' :
                 connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 'bg-red-500'
@@ -113,84 +113,84 @@ export function Dashboard() {
           <div className="flex items-baseline gap-1 mb-0.5">
             <span className="text-white/40 text-lg font-light">$</span>
             <span className="text-white text-[42px] font-mono font-black tracking-tighter tabular-nums leading-none">
-              {ticker ? Number(ticker.price).toLocaleString('en-US', { minimumFractionDigits: 2 }) : '──────'}
+              {ticker ? Number(ticker.price).toLocaleString('en-US', { minimumFractionDigits: 2 }) : 'â”€â”€â”€â”€â”€â”€'}
             </span>
           </div>
 
-          <p className="text-[9px] text-white/25 font-mono tracking-widest uppercase mb-3">HOURLY MACRO TREND (1H)</p>
+          <p className="text-sm text-white/25 font-mono tracking-widest uppercase mb-3">HOURLY MACRO TREND (1H)</p>
 
           {/* 24H High / Low row */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             <div>
-              <p className="text-[9px] text-white/30 font-mono tracking-widest uppercase">24H HIGH</p>
-              <p className="text-sm font-mono font-bold text-white/90 tabular-nums">
-                ${ticker ? Number(ticker.high).toLocaleString('en-US') : '─────'}
+              <p className="text-sm text-white/30 font-mono tracking-widest uppercase">24H HIGH</p>
+              <p className="text-lg font-mono font-bold text-white/90 tabular-nums">
+                ${ticker ? Number(ticker.high).toLocaleString('en-US') : 'â”€â”€â”€â”€â”€'}
               </p>
             </div>
             <div className="w-px h-8 bg-white/10" />
             <div>
-              <p className="text-[9px] text-white/30 font-mono tracking-widest uppercase">24H LOW</p>
-              <p className="text-sm font-mono font-bold text-white/90 tabular-nums">
-                ${ticker ? Number(ticker.low).toLocaleString('en-US') : '─────'}
+              <p className="text-sm text-white/30 font-mono tracking-widest uppercase">24H LOW</p>
+              <p className="text-lg font-mono font-bold text-white/90 tabular-nums">
+                ${ticker ? Number(ticker.low).toLocaleString('en-US') : 'â”€â”€â”€â”€â”€'}
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Area Chart ── */}
+      {/* â”€â”€ Area Chart â”€â”€ */}
       <div className="h-[185px] w-full rounded-xl border border-white/[0.05] bg-black/50 overflow-hidden">
         <LightweightAreaChart symbol="BTCUSDT" livePrice={ticker?.price ? parseFloat(ticker.price) : null} />
       </div>
 
-      {/* ── Inline Stats Bar ── */}
-      <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-white/[0.05] bg-white/[0.02]" dir="rtl">
+      {/* â”€â”€ Inline Stats Bar â”€â”€ */}
+      <div className="flex items-center justify-between px-3 py-4 rounded-xl border border-white/[0.05] bg-white/[0.02]" dir="rtl">
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-white/30 font-mono">استعواذ</span>
-          <span className="text-[11px] font-mono font-bold text-orange-400 tabular-nums">
+          <span className="text-sm text-white/30 font-mono">ط§ط³طھط¹ظˆط§ط°</span>
+          <span className="text-sm font-mono font-bold text-orange-400 tabular-nums">
             BTC {globalData.btcDominance}
           </span>
         </div>
         <div className="w-px h-4 bg-white/10" />
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-white/30 font-mono">القيمة السوقية</span>
-          <span className="text-[11px] font-mono font-bold text-white/80 tabular-nums">
+          <span className="text-sm text-white/30 font-mono">ط§ظ„ظ‚ظٹظ…ط© ط§ظ„ط³ظˆظ‚ظٹط©</span>
+          <span className="text-sm font-mono font-bold text-white/80 tabular-nums">
             ${globalData.totalMarketCap}
           </span>
         </div>
       </div>
 
-      {/* ── Halving Countdown (tappable → Network Macro modal) ── */}
+      {/* â”€â”€ Halving Countdown (tappable â†’ Network Macro modal) â”€â”€ */}
       <button
         onClick={() => setNetworkOpen(true)}
         className="w-full rounded-2xl overflow-hidden border border-white/[0.07] active:scale-[0.98] transition-transform text-left"
-        aria-label="ماكرو الشبكة والتعدين — اضغط للتفاصيل"
+        aria-label="ظ…ط§ظƒط±ظˆ ط§ظ„ط´ط¨ظƒط© ظˆط§ظ„طھط¹ط¯ظٹظ† â€” ط§ط¶ط؛ط· ظ„ظ„طھظپط§طµظٹظ„"
       >
         {/* Orange gradient header */}
         <div
-          className="px-4 py-3 text-center"
+          className="px-5 py-4 text-center"
           style={{ background: 'linear-gradient(135deg, #c2410c, #ea580c, #f97316)' }}
         >
-          <p className="text-white font-black text-sm tracking-wide">العد التنازلي لهالفينج البيتكوين القادم — البلوك</p>
-          <p className="text-white/90 font-mono font-bold text-base mt-0.5 tabular-nums">1,050,000</p>
+          <p className="text-white font-black text-lg tracking-wide">ط§ظ„ط¹ط¯ ط§ظ„طھظ†ط§ط²ظ„ظٹ ظ„ظ‡ط§ظ„ظپظٹظ†ط¬ ط§ظ„ط¨ظٹطھظƒظˆظٹظ† ط§ظ„ظ‚ط§ط¯ظ… â€” ط§ظ„ط¨ظ„ظˆظƒ</p>
+          <p className="text-white/90 font-mono font-bold text-lg mt-0.5 tabular-nums">1,050,000</p>
         </div>
 
         <div className="bg-[#0a0a0a] px-3 py-4">
-          {/* Flip boxes — يوم / ساعة / دقيقة / ثانية */}
-          <div className="grid grid-cols-4 gap-2 mb-3" dir="rtl">
+          {/* Flip boxes â€” ظٹظˆظ… / ط³ط§ط¹ط© / ط¯ظ‚ظٹظ‚ط© / ط«ط§ظ†ظٹط© */}
+          <div className="grid grid-cols-4 gap-3 mb-3" dir="rtl">
             {[
-              { val: halvingCountdown.days,  label: 'يوم' },
-              { val: halvingCountdown.hours, label: 'ساعة' },
-              { val: halvingCountdown.mins,  label: 'دقيقة' },
-              { val: halvingCountdown.secs,  label: 'ثانية' },
+              { val: halvingCountdown.days,  label: 'ظٹظˆظ…' },
+              { val: halvingCountdown.hours, label: 'ط³ط§ط¹ط©' },
+              { val: halvingCountdown.mins,  label: 'ط¯ظ‚ظٹظ‚ط©' },
+              { val: halvingCountdown.secs,  label: 'ط«ط§ظ†ظٹط©' },
             ].map(({ val, label }) => (
               <div key={label} className="flex flex-col items-center">
-                <div className="w-full rounded-xl bg-[#111] border border-white/[0.07] py-3 flex items-center justify-center shadow-inner">
+                <div className="w-full rounded-xl bg-[#111] border border-white/[0.07] py-4 flex items-center justify-center shadow-inner">
                   <span className="text-2xl font-black font-mono tabular-nums text-white">
                     {String(val).padStart(2, '0')}
                   </span>
                 </div>
-                <span className="text-[9px] text-white/40 mt-1.5 font-bold">{label}</span>
+                <span className="text-sm text-white/40 mt-1.5 font-bold">{label}</span>
               </div>
             ))}
           </div>
@@ -207,21 +207,21 @@ export function Dashboard() {
           </div>
 
           {/* Reward info */}
-          <p className="text-[10px] text-white/35 text-center font-mono">
-            المكافأة الحالية: <span className="text-white/60 font-bold">BTC 3.125</span>
-            {' — '}
-            بعد الهالفينج: <span className="text-orange-400 font-bold">BTC 1.5625</span>
+          <p className="text-sm text-white/35 text-center font-mono">
+            ط§ظ„ظ…ظƒط§ظپط£ط© ط§ظ„ط­ط§ظ„ظٹط©: <span className="text-white/60 font-bold">BTC 3.125</span>
+            {' â€” '}
+            ط¨ط¹ط¯ ط§ظ„ظ‡ط§ظ„ظپظٹظ†ط¬: <span className="text-orange-400 font-bold">BTC 1.5625</span>
           </p>
         </div>
       </button>
 
-      {/* ── Fear & Greed  +  Daily Close — live widgets side-by-side ── */}
+      {/* â”€â”€ Fear & Greed  +  Daily Close â€” live widgets side-by-side â”€â”€ */}
       <div className="grid grid-cols-2 gap-3 items-stretch">
         <FearGreedWidget globalData={globalData} />
         <DailyCloseWidget />
       </div>
 
-      {/* ── Network Macro Modal ── */}
+      {/* â”€â”€ Network Macro Modal â”€â”€ */}
       {networkOpen && (
         <NetworkMacroModal
           spotPrice={ticker?.price ? parseFloat(ticker.price) : 0}
@@ -230,13 +230,13 @@ export function Dashboard() {
         />
       )}
 
-      {/* ── Tools Grid ── */}
+      {/* â”€â”€ Tools Grid â”€â”€ */}
       <ToolsGrid />
 
-      {/* ── Learn Hub ── */}
+      {/* â”€â”€ Learn Hub â”€â”€ */}
       <LearnHub />
 
-      {/* ── Footer ── */}
+      {/* â”€â”€ Footer â”€â”€ */}
       <Footer />
 
       </div>{/* end px-3 */}
@@ -244,7 +244,7 @@ export function Dashboard() {
   );
 }
 
-// StatCard removed — replaced by inline stats bar in mobile layout
+// StatCard removed â€” replaced by inline stats bar in mobile layout
 
 function FearGreedGauge({ value, compact = false }: { value: number; compact?: boolean }) {
   const angle = (value / 100) * 180 - 90;
@@ -300,7 +300,7 @@ function FearGreedGauge({ value, compact = false }: { value: number; compact?: b
 
   return (
     <div className="flex flex-col items-center rounded-2xl border border-white/[0.05] bg-white/[0.02] p-5">
-      <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mb-1">Fear &amp; Greed Index</p>
+      <p className="text-sm font-bold text-white/30 uppercase tracking-widest mb-1">Fear &amp; Greed Index</p>
       {gauge}
     </div>
   );
@@ -371,7 +371,7 @@ function LightweightAreaChart({ symbol, livePrice }: { symbol: string; livePrice
     };
   }, [symbol]);
 
-  // Update with live WebSocket price — debounced to 1 update/second max
+  // Update with live WebSocket price â€” debounced to 1 update/second max
   const lastUpdateRef = useRef(0);
   useEffect(() => {
     if (!livePrice || !seriesRef.current) return;
@@ -388,7 +388,7 @@ function LightweightAreaChart({ symbol, livePrice }: { symbol: string; livePrice
   return <div ref={chartContainerRef} className="w-full h-full" />;
 }
 
-// ── Tool categories with Arabic labels and accent colors ─────────────────────
+// â”€â”€ Tool categories with Arabic labels and accent colors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const TOOL_CATEGORIES: {
   key: string;
   labelAr: string;
@@ -397,11 +397,11 @@ const TOOL_CATEGORIES: {
   accent: string;
   dotColor: string;
 }[] = [
-  { key: 'pattern',  labelAr: 'نماذج السعر',       labelEn: 'Pattern Recognition', number: '01', accent: 'text-violet-400', dotColor: 'bg-violet-500' },
-  { key: 'smc',      labelAr: 'المال الذكي',        labelEn: 'Smart Money / ICT',   number: '02', accent: 'text-sky-400',    dotColor: 'bg-sky-500'    },
-  { key: 'math',     labelAr: 'التحليل الكمي',      labelEn: 'Quant / Math',        number: '03', accent: 'text-emerald-400',dotColor: 'bg-emerald-500'},
-  { key: 'momentum', labelAr: 'الزخم والإشارات',    labelEn: 'Momentum & Signals',  number: '04', accent: 'text-amber-400',  dotColor: 'bg-amber-500'  },
-  { key: 'widget',   labelAr: 'أدوات السوق',        labelEn: 'Market Widgets',      number: '05', accent: 'text-rose-400',   dotColor: 'bg-rose-500'   },
+  { key: 'pattern',  labelAr: 'ظ†ظ…ط§ط°ط¬ ط§ظ„ط³ط¹ط±',       labelEn: 'Pattern Recognition', number: '01', accent: 'text-violet-400', dotColor: 'bg-violet-500' },
+  { key: 'smc',      labelAr: 'ط§ظ„ظ…ط§ظ„ ط§ظ„ط°ظƒظٹ',        labelEn: 'Smart Money / ICT',   number: '02', accent: 'text-sky-400',    dotColor: 'bg-sky-500'    },
+  { key: 'math',     labelAr: 'ط§ظ„طھط­ظ„ظٹظ„ ط§ظ„ظƒظ…ظٹ',      labelEn: 'Quant / Math',        number: '03', accent: 'text-emerald-400',dotColor: 'bg-emerald-500'},
+  { key: 'momentum', labelAr: 'ط§ظ„ط²ط®ظ… ظˆط§ظ„ط¥ط´ط§ط±ط§طھ',    labelEn: 'Momentum & Signals',  number: '04', accent: 'text-amber-400',  dotColor: 'bg-amber-500'  },
+  { key: 'widget',   labelAr: 'ط£ط¯ظˆط§طھ ط§ظ„ط³ظˆظ‚',        labelEn: 'Market Widgets',      number: '05', accent: 'text-rose-400',   dotColor: 'bg-rose-500'   },
 ];
 
 function ToolsGrid() {
@@ -422,11 +422,11 @@ function ToolsGrid() {
     <div className="space-y-5">
       {/* Section header */}
       <div className="flex items-center justify-between px-0.5">
-        <div className="flex items-center gap-2">
-          <h3 className="text-[11px] font-bold text-white/50 uppercase tracking-widest">ترسانة التحليل</h3>
+        <div className="flex items-center gap-3">
+          <h3 className="text-sm font-bold text-white/50 uppercase tracking-widest">طھط±ط³ط§ظ†ط© ط§ظ„طھط­ظ„ظٹظ„</h3>
         </div>
-        <span className="text-[10px] text-white/25 tabular-nums font-mono">
-          {ANALYSIS_TOOLS.length} أداة · 5 فئات
+        <span className="text-sm text-white/25 tabular-nums font-mono">
+          {ANALYSIS_TOOLS.length} ط£ط¯ط§ط© آ· 5 ظپط¦ط§طھ
         </span>
       </div>
 
@@ -434,24 +434,24 @@ function ToolsGrid() {
       {grouped.map((cat) => (
         <div key={cat.key}>
           {/* Category header */}
-          <div className="flex items-center gap-2.5 mb-2.5 px-0.5">
-            <span className={`font-mono text-[9px] font-black ${cat.accent} bg-white/[0.04] border border-white/[0.07] px-2 py-0.5 rounded-md tracking-widest`}>
+          <div className="flex items-center gap-3.5 mb-2.5 px-0.5">
+            <span className={`font-mono text-sm font-black ${cat.accent} bg-white/[0.04] border border-white/[0.07] px-2 py-0.5 rounded-md tracking-widest`}>
               {cat.number}
             </span>
             <div className="flex flex-col">
-              <span className={`text-[10px] font-bold ${cat.accent} uppercase tracking-wider leading-none`}>
+              <span className={`text-sm font-bold ${cat.accent} uppercase tracking-wider leading-none`}>
                 {cat.labelAr}
               </span>
-              <span className="text-[8px] text-white/20 font-mono tracking-widest mt-0.5">
+              <span className="text-sm text-white/20 font-mono tracking-widest mt-0.5">
                 {cat.labelEn}
               </span>
             </div>
             <div className="flex-1 h-px" style={{ background: `linear-gradient(90deg, rgba(255,255,255,0.06), transparent)` }} />
-            <span className="text-[9px] text-white/20 font-mono">{cat.tools.length}</span>
+            <span className="text-sm text-white/20 font-mono">{cat.tools.length}</span>
           </div>
 
           {/* Tools grid for this category */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             {cat.tools.map((tool) => {
               const toolNumber = ++globalIndex;
               return (
@@ -467,7 +467,7 @@ function ToolsGrid() {
                   {/* Top row: tag + number + arrow */}
                   <div className="flex items-start justify-between gap-1 mb-2">
                     <div className="flex items-center gap-1">
-                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md border ${tool.tagColor}`}>
+                      <span className={`text-sm font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md border ${tool.tagColor}`}>
                         {tool.tag}
                       </span>
                       <span className="tool-number">{String(toolNumber).padStart(2,'0')}</span>
@@ -476,12 +476,12 @@ function ToolsGrid() {
                   </div>
 
                   {/* Tool name */}
-                  <span className="text-[13px] font-semibold text-white/75 group-hover:text-white transition-colors leading-snug block">
+                  <span className="text-base font-semibold text-white/75 group-hover:text-white transition-colors leading-snug block">
                     {tool.name}
                   </span>
 
                   {/* Subtitle */}
-                  <p className="text-[10px] text-white/25 mt-1 leading-tight line-clamp-1">
+                  <p className="text-sm text-white/25 mt-1 leading-tight line-clamp-1">
                     {tool.subtitle}
                   </p>
                 </Link>

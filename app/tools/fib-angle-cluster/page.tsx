@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMarketData } from '@/context/MarketDataContext';
 import { slugToTool } from '@/lib/tools/registry';
@@ -26,18 +26,18 @@ export default function FibAngleClusterPage() {
 
     // Fibonacci levels
     const fibs = [
-      { ratio: 0.382, price: high - (range * 0.382), name: 'فيبو 0.382' },
-      { ratio: 0.5, price: high - (range * 0.5), name: 'فيبو 0.500' },
-      { ratio: 0.618, price: high - (range * 0.618), name: 'النسبة الذهبية 0.618' },
-      { ratio: 0.786, price: high - (range * 0.786), name: 'فيبو 0.786' },
+      { ratio: 0.382, price: high - (range * 0.382), name: 'ظپظٹط¨ظˆ 0.382' },
+      { ratio: 0.5, price: high - (range * 0.5), name: 'ظپظٹط¨ظˆ 0.500' },
+      { ratio: 0.618, price: high - (range * 0.618), name: 'ط§ظ„ظ†ط³ط¨ط© ط§ظ„ط°ظ‡ط¨ظٹط© 0.618' },
+      { ratio: 0.786, price: high - (range * 0.786), name: 'ظپظٹط¨ظˆ 0.786' },
     ];
 
     // Simulate Angles from the Low (simplified Gann targets)
     const rootLow = Math.sqrt(low);
     const angles = [
-      { deg: 90, price: Math.pow(rootLow + (90 / 180), 2), name: 'زاوية 90°' },
-      { deg: 180, price: Math.pow(rootLow + (180 / 180), 2), name: 'زاوية 180°' },
-      { deg: 270, price: Math.pow(rootLow + (270 / 180), 2), name: 'زاوية 270°' },
+      { deg: 90, price: Math.pow(rootLow + (90 / 180), 2), name: 'ط²ط§ظˆظٹط© 90آ°' },
+      { deg: 180, price: Math.pow(rootLow + (180 / 180), 2), name: 'ط²ط§ظˆظٹط© 180آ°' },
+      { deg: 270, price: Math.pow(rootLow + (270 / 180), 2), name: 'ط²ط§ظˆظٹط© 270آ°' },
     ];
 
     // Find clusters (where a Fib level and an Angle level are close to each other)
@@ -52,7 +52,7 @@ export default function FibAngleClusterPage() {
             price: clusterPrice,
             fibName: f.name,
             angleName: a.name,
-            strength: 'قوي جداً (كلاستر متطابق)'
+            strength: 'ظ‚ظˆظٹ ط¬ط¯ط§ظ‹ (ظƒظ„ط§ط³طھط± ظ…طھط·ط§ط¨ظ‚)'
           });
         }
       }
@@ -66,9 +66,9 @@ export default function FibAngleClusterPage() {
       const avg = (fibs[2].price + angles[1].price) / 2;
       foundClusters.push({
         price: avg,
-        fibName: 'تقارب فيبوناتشي',
-        angleName: 'تقارب هندسي',
-        strength: 'قوي (تقارب نسبي)'
+        fibName: 'طھظ‚ط§ط±ط¨ ظپظٹط¨ظˆظ†ط§طھط´ظٹ',
+        angleName: 'طھظ‚ط§ط±ط¨ ظ‡ظ†ط¯ط³ظٹ',
+        strength: 'ظ‚ظˆظٹ (طھظ‚ط§ط±ط¨ ظ†ط³ط¨ظٹ)'
       });
     }
 
@@ -84,33 +84,33 @@ export default function FibAngleClusterPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-emerald-500/70 tracking-widest uppercase border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-emerald-500/70 tracking-widest uppercase border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <Network className="w-3 h-3" /> Confluence
           </span>
         </div>
-        <h1 className="text-xl font-black text-white tracking-tight mt-1">تطابق الفيبو والزوايا (كلاستر)</h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
-          البحث عن أقوى مناطق الارتداد حيث تتطابق مستويات الفيبوناتشي مع الزوايا الهندسية
+        <h1 className="text-xl font-black text-white tracking-tight mt-1">طھط·ط§ط¨ظ‚ ط§ظ„ظپظٹط¨ظˆ ظˆط§ظ„ط²ظˆط§ظٹط§ (ظƒظ„ط§ط³طھط±)</h1>
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
+          ط§ظ„ط¨ط­ط« ط¹ظ† ط£ظ‚ظˆظ‰ ظ…ظ†ط§ط·ظ‚ ط§ظ„ط§ط±طھط¯ط§ط¯ ط­ظٹط« طھطھط·ط§ط¨ظ‚ ظ…ط³طھظˆظٹط§طھ ط§ظ„ظپظٹط¨ظˆظ†ط§طھط´ظٹ ظ…ط¹ ط§ظ„ط²ظˆط§ظٹط§ ط§ظ„ظ‡ظ†ط¯ط³ظٹط©
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5 mt-4">
+      <div className="px-5 flex flex-col gap-5 mt-4">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-6">
             <RefreshCcw className="w-8 h-8 text-emerald-500 animate-spin" />
-            <p className="text-emerald-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري تحليل الكلاسترات...</p>
+            <p className="text-emerald-500/80 font-bold tracking-widest uppercase text-base animate-pulse">ط¬ط§ط±ظٹ طھط­ظ„ظٹظ„ ط§ظ„ظƒظ„ط§ط³طھط±ط§طھ...</p>
           </div>
         ) : (
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col gap-4"
+            className="flex flex-col gap-6"
           >
-            <div className="flex items-center gap-2 px-1">
+            <div className="flex items-center gap-3 px-1">
               <Target className="w-5 h-5 text-emerald-500" />
-              <h2 className="text-sm font-bold text-white/80">أقوى مناطق الارتداد (Reversal Zones):</h2>
+              <h2 className="text-lg font-bold text-white/80">ط£ظ‚ظˆظ‰ ظ…ظ†ط§ط·ظ‚ ط§ظ„ط§ط±طھط¯ط§ط¯ (Reversal Zones):</h2>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -121,27 +121,27 @@ export default function FibAngleClusterPage() {
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex flex-col gap-1">
                       <span className="text-2xl font-black text-emerald-400 font-mono dir-ltr text-right">${formatPrice(c.price)}</span>
-                      <span className="text-[10px] text-emerald-500/70 font-bold uppercase tracking-widest">{c.strength}</span>
+                      <span className="text-sm text-emerald-500/70 font-bold uppercase tracking-widest">{c.strength}</span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 mt-2 pt-4 border-t border-emerald-500/10">
+                  <div className="grid grid-cols-2 gap-3 mt-2 pt-4 border-t border-emerald-500/10">
                     <div className="flex flex-col gap-1">
-                      <span className="text-[10px] text-white/40">المستوى الذهبي</span>
-                      <span className="text-xs font-bold text-white/90">{c.fibName}</span>
+                      <span className="text-sm text-white/40">ط§ظ„ظ…ط³طھظˆظ‰ ط§ظ„ط°ظ‡ط¨ظٹ</span>
+                      <span className="text-base font-bold text-white/90">{c.fibName}</span>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="text-[10px] text-white/40">الزاوية الهندسية</span>
-                      <span className="text-xs font-bold text-white/90">{c.angleName}</span>
+                      <span className="text-sm text-white/40">ط§ظ„ط²ط§ظˆظٹط© ط§ظ„ظ‡ظ†ط¯ط³ظٹط©</span>
+                      <span className="text-base font-bold text-white/90">{c.angleName}</span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="mt-4 p-4 rounded-xl border border-white/5 bg-white/[0.02]">
-              <p className="text-[11px] text-white/40 leading-relaxed font-bold text-center">
-                عندما يتطابق مستوى فيبوناتشي مع زاوية هندسية في نفس السعر، يتشكل &quot;كلاستر&quot; قوي يعمل كدعم أو مقاومة حديدية تصعب كسرها.
+            <div className="mt-4 p-6 rounded-xl border border-white/5 bg-white/[0.02]">
+              <p className="text-sm text-white/40 leading-relaxed font-bold text-center">
+                ط¹ظ†ط¯ظ…ط§ ظٹطھط·ط§ط¨ظ‚ ظ…ط³طھظˆظ‰ ظپظٹط¨ظˆظ†ط§طھط´ظٹ ظ…ط¹ ط²ط§ظˆظٹط© ظ‡ظ†ط¯ط³ظٹط© ظپظٹ ظ†ظپط³ ط§ظ„ط³ط¹ط±طŒ ظٹطھط´ظƒظ„ &quot;ظƒظ„ط§ط³طھط±&quot; ظ‚ظˆظٹ ظٹط¹ظ…ظ„ ظƒط¯ط¹ظ… ط£ظˆ ظ…ظ‚ط§ظˆظ…ط© ط­ط¯ظٹط¯ظٹط© طھطµط¹ط¨ ظƒط³ط±ظ‡ط§.
               </p>
             </div>
           </motion.div>

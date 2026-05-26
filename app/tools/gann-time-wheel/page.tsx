@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -8,7 +8,7 @@ import { notFound } from 'next/navigation';
 import { computeGann, GannResult, GannPointWithMeta } from '@/lib/algorithms/gann';
 import { ShieldAlert, AlertTriangle, TrendingUp, TrendingDown, Minus, ChevronRight, ArrowRight } from 'lucide-react';
 
-// ─── Types ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 type Asset = 'BTC' | 'GOLD';
 type ViewMode = 'wheel' | 'month_days';
@@ -23,26 +23,26 @@ interface OHLCBar {
 }
 
 interface DayAnalytics {
-  date: string;         // e.g. "25 مايو"
+  date: string;         // e.g. "25 ظ…ط§ظٹظˆ"
   dayIndex: number;     // 0-based index in month
   open: number;
   high: number;
   low: number;
   close: number;
   priceMagnitude: number;  // |High - Low|
-  status: 'قمة' | 'قاع' | 'عادي';
+  status: 'ظ‚ظ…ط©' | 'ظ‚ط§ط¹' | 'ط¹ط§ط¯ظٹ';
   statusColor: string;
 }
 
-// ─── Arabic month names ────────────────────────────────────────────────────────
+// â”€â”€â”€ Arabic month names â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const MONTHS_AR = [
-  'يناير','فبراير','مارس','أبريل','مايو','يونيو',
-  'يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر',
+  'ظٹظ†ط§ظٹط±','ظپط¨ط±ط§ظٹط±','ظ…ط§ط±ط³','ط£ط¨ط±ظٹظ„','ظ…ط§ظٹظˆ','ظٹظˆظ†ظٹظˆ',
+  'ظٹظˆظ„ظٹظˆ','ط£ط؛ط³ط·ط³','ط³ط¨طھظ…ط¨ط±','ط£ظƒطھظˆط¨ط±','ظ†ظˆظپظ…ط¨ط±','ط¯ظٹط³ظ…ط¨ط±',
 ];
 const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-// ─── Binance-compatible fetch ──────────────────────────────────────────────────
+// â”€â”€â”€ Binance-compatible fetch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 async function fetchDailyBars(symbol: string, year: number, month: number): Promise<OHLCBar[]> {
   // Start of month, end of month
@@ -67,23 +67,23 @@ async function fetchDailyBars(symbol: string, year: number, month: number): Prom
   }
 }
 
-// ─── Peak / Trough Detector ────────────────────────────────────────────────────
-// Uses ±1 surrounding bar comparison (simple but effective for daily data)
+// â”€â”€â”€ Peak / Trough Detector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Uses آ±1 surrounding bar comparison (simple but effective for daily data)
 
-function detectPeakTrough(bars: OHLCBar[], idx: number): 'قمة' | 'قاع' | 'عادي' {
-  if (bars.length < 3) return 'عادي';
+function detectPeakTrough(bars: OHLCBar[], idx: number): 'ظ‚ظ…ط©' | 'ظ‚ط§ط¹' | 'ط¹ط§ط¯ظٹ' {
+  if (bars.length < 3) return 'ط¹ط§ط¯ظٹ';
   const prev = bars[idx - 1];
   const curr = bars[idx];
   const next = bars[idx + 1];
-  if (!prev || !next) return 'عادي';
+  if (!prev || !next) return 'ط¹ط§ط¯ظٹ';
 
   const isPeak   = curr.h > prev.h && curr.h > next.h;
   const isTrough = curr.l < prev.l && curr.l < next.l;
 
-  if (isPeak && isTrough) return 'عادي'; // ambiguous
-  if (isPeak)   return 'قمة';
-  if (isTrough) return 'قاع';
-  return 'عادي';
+  if (isPeak && isTrough) return 'ط¹ط§ط¯ظٹ'; // ambiguous
+  if (isPeak)   return 'ظ‚ظ…ط©';
+  if (isTrough) return 'ظ‚ط§ط¹';
+  return 'ط¹ط§ط¯ظٹ';
 }
 
 function buildDayAnalytics(bars: OHLCBar[], year: number, month: number): DayAnalytics[] {
@@ -92,8 +92,8 @@ function buildDayAnalytics(bars: OHLCBar[], year: number, month: number): DayAna
     const dayNum  = date.getDate();
     const status  = detectPeakTrough(bars, i);
     const statusColor =
-      status === 'قمة' ? 'text-emerald-400 border-emerald-500/40 bg-emerald-500/10'
-      : status === 'قاع' ? 'text-red-400 border-red-500/40 bg-red-500/10'
+      status === 'ظ‚ظ…ط©' ? 'text-emerald-400 border-emerald-500/40 bg-emerald-500/10'
+      : status === 'ظ‚ط§ط¹' ? 'text-red-400 border-red-500/40 bg-red-500/10'
       : 'text-white/40 border-white/10 bg-white/5';
 
     return {
@@ -110,7 +110,7 @@ function buildDayAnalytics(bars: OHLCBar[], year: number, month: number): DayAna
   });
 }
 
-// ─── Asset Toggle ─────────────────────────────────────────────────────────────
+// â”€â”€â”€ Asset Toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function AssetToggle({ asset, onChange }: { asset: Asset; onChange: (a: Asset) => void }) {
   return (
@@ -119,7 +119,7 @@ function AssetToggle({ asset, onChange }: { asset: Asset; onChange: (a: Asset) =
         <button
           key={a}
           onClick={() => onChange(a)}
-          className={`flex-1 py-2.5 rounded-xl text-sm font-black tracking-wide transition-all duration-200 ${
+          className={`flex-1 py-4.5 rounded-xl text-lg font-black tracking-wide transition-all duration-200 ${
             asset === a
               ? a === 'BTC'
                 ? 'bg-orange-500 text-white shadow-[0_0_20px_rgba(249,115,22,0.4)]'
@@ -127,14 +127,14 @@ function AssetToggle({ asset, onChange }: { asset: Asset; onChange: (a: Asset) =
               : 'text-white/40 hover:text-white/60'
           }`}
         >
-          {a === 'BTC' ? 'بيتكوين BTC' : 'ذهب Gold'}
+          {a === 'BTC' ? 'ط¨ظٹطھظƒظˆظٹظ† BTC' : 'ط°ظ‡ط¨ Gold'}
         </button>
       ))}
     </div>
   );
 }
 
-// ─── Gann Wheel SVG ───────────────────────────────────────────────────────────
+// â”€â”€â”€ Gann Wheel SVG â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function GannWheelSvg({
   result,
@@ -160,7 +160,7 @@ function GannWheelSvg({
       <circle cx={cx} cy={cy} r={monthR} fill="rgba(255,255,255,0.01)" stroke="rgba(255,255,255,0.05)" strokeWidth="1" strokeDasharray="3 5" />
       <circle cx={cx} cy={cy} r={innerR} fill="#0a0a0a" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
 
-      {/* Month segments — clickable */}
+      {/* Month segments â€” clickable */}
       {MONTHS_SHORT.map((m, i) => {
         const startDeg = (i / 12) * 360;
         const endDeg   = ((i + 1) / 12) * 360;
@@ -195,7 +195,7 @@ function GannWheelSvg({
             onClick={() => onMonthClick(i)}
             className="cursor-pointer"
             role="button"
-            aria-label={`${MONTHS_AR[i]} — انقر للتفاصيل`}
+            aria-label={`${MONTHS_AR[i]} â€” ط§ظ†ظ‚ط± ظ„ظ„طھظپط§طµظٹظ„`}
           >
             <path
               d={`M ${x1} ${y1} A ${r2} ${r2} 0 0 1 ${x2} ${y2} L ${x3} ${y3} A ${r1} ${r1} 0 0 0 ${x4} ${y4} Z`}
@@ -285,7 +285,7 @@ function GannWheelSvg({
 
       {/* Center */}
       <circle cx={cx} cy={cy} r={24} fill="rgba(56,189,248,0.05)" />
-      <text x={cx} y={cy - 5} fill="rgba(255,255,255,0.3)" fontSize="8" fontFamily="monospace" textAnchor="middle">اليوم</text>
+      <text x={cx} y={cy - 5} fill="rgba(255,255,255,0.3)" fontSize="8" fontFamily="monospace" textAnchor="middle">ط§ظ„ظٹظˆظ…</text>
       <text x={cx} y={cy + 7} fill="rgba(255,255,255,0.6)" fontSize="9" fontFamily="monospace" textAnchor="middle" fontWeight="bold">
         {new Date().getDate()}/{new Date().getMonth() + 1}
       </text>
@@ -293,7 +293,7 @@ function GannWheelSvg({
   );
 }
 
-// ─── Day Analytics Card ────────────────────────────────────────────────────────
+// â”€â”€â”€ Day Analytics Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function DayCard({ day, asset }: { day: DayAnalytics; asset: Asset }) {
   const fmt = (n: number) =>
@@ -307,17 +307,17 @@ function DayCard({ day, asset }: { day: DayAnalytics; asset: Asset }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 flex flex-col gap-2"
+      className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 flex flex-col gap-3"
       dir="rtl"
     >
       {/* Header row */}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-white/80">{day.date}</span>
+        <span className="text-base font-bold text-white/80">{day.date}</span>
         <div className="flex items-center gap-1.5">
           {/* Status badge */}
-          {day.status !== 'عادي' && (
-            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${day.statusColor}`}>
-              {day.status === 'قمة' ? '▲ قمة' : '▼ قاع'}
+          {day.status !== 'ط¹ط§ط¯ظٹ' && (
+            <span className={`text-sm font-black px-2 py-0.5 rounded-full border ${day.statusColor}`}>
+              {day.status === 'ظ‚ظ…ط©' ? 'â–² ظ‚ظ…ط©' : 'â–¼ ظ‚ط§ط¹'}
             </span>
           )}
           {/* Direction */}
@@ -329,24 +329,24 @@ function DayCard({ day, asset }: { day: DayAnalytics; asset: Asset }) {
       </div>
 
       {/* Price magnitude */}
-      <div className="bg-white/[0.04] rounded-lg px-3 py-2 text-center">
-        <p className="text-[9px] text-white/40 uppercase tracking-widest mb-0.5">حركة السعر</p>
-        <p className={`text-sm font-black ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
-          {fmt(day.priceMagnitude)} دولار
+      <div className="bg-white/[0.04] rounded-lg px-3 py-4 text-center">
+        <p className="text-sm text-white/40 uppercase tracking-widest mb-0.5">ط­ط±ظƒط© ط§ظ„ط³ط¹ط±</p>
+        <p className={`text-lg font-black ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
+          {fmt(day.priceMagnitude)} ط¯ظˆظ„ط§ط±
         </p>
       </div>
 
       {/* OHLC mini row */}
       <div className="grid grid-cols-4 gap-1 text-center">
         {[
-          { label: 'فتح', value: fmt(day.open), color: 'text-white/60' },
-          { label: 'أعلى', value: fmt(day.high), color: 'text-emerald-400' },
-          { label: 'أدنى', value: fmt(day.low),  color: 'text-red-400' },
-          { label: 'إغلاق', value: fmt(day.close), color: isUp ? 'text-emerald-400' : 'text-red-400' },
+          { label: 'ظپطھط­', value: fmt(day.open), color: 'text-white/60' },
+          { label: 'ط£ط¹ظ„ظ‰', value: fmt(day.high), color: 'text-emerald-400' },
+          { label: 'ط£ط¯ظ†ظ‰', value: fmt(day.low),  color: 'text-red-400' },
+          { label: 'ط¥ط؛ظ„ط§ظ‚', value: fmt(day.close), color: isUp ? 'text-emerald-400' : 'text-red-400' },
         ].map(item => (
           <div key={item.label} className="flex flex-col">
-            <span className="text-[8px] text-white/30 uppercase">{item.label}</span>
-            <span className={`text-[9px] font-bold ${item.color}`}>{item.value}</span>
+            <span className="text-sm text-white/30 uppercase">{item.label}</span>
+            <span className={`text-sm font-bold ${item.color}`}>{item.value}</span>
           </div>
         ))}
       </div>
@@ -354,7 +354,7 @@ function DayCard({ day, asset }: { day: DayAnalytics; asset: Asset }) {
   );
 }
 
-// ─── Month Drilldown View ─────────────────────────────────────────────────────
+// â”€â”€â”€ Month Drilldown View â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function MonthDrilldown({
   monthIndex,
@@ -386,43 +386,43 @@ function MonthDrilldown({
   }, [symbol, year, monthIndex]);
 
   const days = useMemo(() => buildDayAnalytics(bars, year, monthIndex), [bars, year, monthIndex]);
-  const peakCount   = days.filter(d => d.status === 'قمة').length;
-  const troughCount = days.filter(d => d.status === 'قاع').length;
+  const peakCount   = days.filter(d => d.status === 'ظ‚ظ…ط©').length;
+  const troughCount = days.filter(d => d.status === 'ظ‚ط§ط¹').length;
   const avgMove     = days.length ? days.reduce((s, d) => s + d.priceMagnitude, 0) / days.length : 0;
   const fmtAvg = asset === 'BTC'
     ? `$${avgMove.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
     : `$${avgMove.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
-    <div className="flex flex-col gap-4 w-full" dir="rtl">
+    <div className="flex flex-col gap-6 w-full" dir="rtl">
       {/* Header */}
       <div className="flex items-center gap-3">
         <button
           onClick={onBack}
           className="p-2 bg-white/5 border border-white/10 rounded-xl text-white/60 hover:text-white hover:bg-white/10 transition-colors active:scale-95"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-6 h-6" />
         </button>
         <div>
-          <h3 className="text-base font-black text-white">{MONTHS_AR[monthIndex]} {year}</h3>
-          <p className="text-[10px] text-white/40 font-mono">التحليل اليومي — {asset === 'BTC' ? 'بيتكوين' : 'ذهب'}</p>
+          <h3 className="text-lg font-black text-white">{MONTHS_AR[monthIndex]} {year}</h3>
+          <p className="text-sm text-white/40 font-mono">ط§ظ„طھط­ظ„ظٹظ„ ط§ظ„ظٹظˆظ…ظٹ â€” {asset === 'BTC' ? 'ط¨ظٹطھظƒظˆظٹظ†' : 'ط°ظ‡ط¨'}</p>
         </div>
       </div>
 
       {/* Summary stats */}
       {!loading && days.length > 0 && (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-3">
           <div className="bg-emerald-500/[0.08] border border-emerald-500/20 rounded-xl p-3 text-center">
-            <p className="text-xs font-black text-emerald-400">{peakCount}</p>
-            <p className="text-[9px] text-white/40 mt-0.5">قمم</p>
+            <p className="text-base font-black text-emerald-400">{peakCount}</p>
+            <p className="text-sm text-white/40 mt-0.5">ظ‚ظ…ظ…</p>
           </div>
           <div className="bg-red-500/[0.08] border border-red-500/20 rounded-xl p-3 text-center">
-            <p className="text-xs font-black text-red-400">{troughCount}</p>
-            <p className="text-[9px] text-white/40 mt-0.5">قيعان</p>
+            <p className="text-base font-black text-red-400">{troughCount}</p>
+            <p className="text-sm text-white/40 mt-0.5">ظ‚ظٹط¹ط§ظ†</p>
           </div>
           <div className="bg-white/[0.04] border border-white/10 rounded-xl p-3 text-center">
-            <p className="text-[10px] font-black text-white/80 truncate">{fmtAvg}</p>
-            <p className="text-[9px] text-white/40 mt-0.5">متوسط الحركة</p>
+            <p className="text-sm font-black text-white/80 truncate">{fmtAvg}</p>
+            <p className="text-sm text-white/40 mt-0.5">ظ…طھظˆط³ط· ط§ظ„ط­ط±ظƒط©</p>
           </div>
         </div>
       )}
@@ -431,12 +431,12 @@ function MonthDrilldown({
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="w-6 h-6 border-2 border-orange-500/40 border-t-orange-500 rounded-full animate-spin" />
-          <span className="text-white/40 text-xs mr-3">جاري التحميل...</span>
+          <span className="text-white/40 text-base mr-3">ط¬ط§ط±ظٹ ط§ظ„طھط­ظ…ظٹظ„...</span>
         </div>
       ) : days.length === 0 ? (
-        <div className="text-center py-8 text-white/30 text-sm">لا توجد بيانات لهذا الشهر</div>
+        <div className="text-center py-8 text-white/30 text-lg">ظ„ط§ طھظˆط¬ط¯ ط¨ظٹط§ظ†ط§طھ ظ„ظ‡ط°ط§ ط§ظ„ط´ظ‡ط±</div>
       ) : (
-        <div className="flex flex-col gap-2 max-h-[55vh] overflow-y-auto overscroll-contain pb-4 pr-1">
+        <div className="flex flex-col gap-3 max-h-[55vh] overflow-y-auto overscroll-contain pb-4 pr-1">
           {days.map((day, i) => (
             <DayCard key={i} day={day} asset={asset} />
           ))}
@@ -446,7 +446,7 @@ function MonthDrilldown({
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function GannWheelPage() {
   const tool = slugToTool('gann-time-wheel');
@@ -483,7 +483,7 @@ export default function GannWheelPage() {
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-8">
       <ToolPageHeader tool={tool} />
 
-      <div className="flex-1 px-4 pt-4 flex flex-col items-center max-w-lg mx-auto w-full gap-5">
+      <div className="flex-1 px-5 pt-4 flex flex-col items-center max-w-lg mx-auto w-full gap-5">
 
         {/* Asset Toggle */}
         <motion.div
@@ -499,7 +499,7 @@ export default function GannWheelPage() {
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`w-full rounded-2xl border p-4 flex items-center gap-4 shadow-lg ${
+            className={`w-full rounded-2xl border p-6 flex items-center gap-6 shadow-lg ${
               result.status === 'CRITICAL' ? 'bg-red-500/10 border-red-500/30 shadow-red-500/10'
               : result.status === 'WARNING' ? 'bg-amber-500/10 border-amber-500/30 shadow-amber-500/10'
               : 'bg-emerald-500/10 border-emerald-500/30 shadow-emerald-500/10'
@@ -516,26 +516,26 @@ export default function GannWheelPage() {
               : <Minus className="w-5 h-5" />}
             </div>
             <div className="flex flex-col">
-              <p className="text-[9px] font-mono text-white/40 uppercase tracking-widest">حالة الدورة الحالية</p>
+              <p className="text-sm font-mono text-white/40 uppercase tracking-widest">ط­ط§ظ„ط© ط§ظ„ط¯ظˆط±ط© ط§ظ„ط­ط§ظ„ظٹط©</p>
               <h2 className={`text-lg font-black ${
                 result.status === 'CRITICAL' ? 'text-red-400'
                 : result.status === 'WARNING' ? 'text-amber-400'
                 : 'text-emerald-400'
               }`}>
-                {result.status === 'CRITICAL' ? 'تحذير حرج'
-                : result.status === 'WARNING'  ? 'تنبيه'
-                : 'مستقر'}
+                {result.status === 'CRITICAL' ? 'طھط­ط°ظٹط± ط­ط±ط¬'
+                : result.status === 'WARNING'  ? 'طھظ†ط¨ظٹظ‡'
+                : 'ظ…ط³طھظ‚ط±'}
               </h2>
-              <p className="text-[10px] text-white/50 mt-0.5">{result.advisoryAr.slice(0, 80)}...</p>
+              <p className="text-sm text-white/50 mt-0.5">{result.advisoryAr.slice(0, 80)}...</p>
             </div>
           </motion.div>
         )}
 
         {/* Instruction hint for wheel */}
         {viewMode === 'wheel' && result && (
-          <p className="text-[9px] text-white/30 text-center font-mono flex items-center gap-1">
+          <p className="text-sm text-white/30 text-center font-mono flex items-center gap-1">
             <ArrowRight className="w-3 h-3 inline" />
-            انقر على أي شهر في العجلة لعرض التحليل اليومي
+            ط§ظ†ظ‚ط± ط¹ظ„ظ‰ ط£ظٹ ط´ظ‡ط± ظپظٹ ط§ظ„ط¹ط¬ظ„ط© ظ„ط¹ط±ط¶ ط§ظ„طھط­ظ„ظٹظ„ ط§ظ„ظٹظˆظ…ظٹ
           </p>
         )}
 
@@ -580,34 +580,34 @@ export default function GannWheelPage() {
           )}
         </AnimatePresence>
 
-        {/* Next Gann Point Countdown — only in wheel view */}
+        {/* Next Gann Point Countdown â€” only in wheel view */}
         {viewMode === 'wheel' && result && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="w-full rounded-2xl bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20 p-4"
+            className="w-full rounded-2xl bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20 p-6"
             dir="rtl"
           >
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-[9px] font-mono text-orange-400/80 uppercase tracking-widest">النقطة الدورية القادمة</p>
-                <p className="text-xs font-bold text-white/80 mt-0.5">{result.nextPoint.eventAr}</p>
+                <p className="text-sm font-mono text-orange-400/80 uppercase tracking-widest">ط§ظ„ظ†ظ‚ط·ط© ط§ظ„ط¯ظˆط±ظٹط© ط§ظ„ظ‚ط§ط¯ظ…ط©</p>
+                <p className="text-base font-bold text-white/80 mt-0.5">{result.nextPoint.eventAr}</p>
               </div>
-              <span className="text-xs text-white/60 font-mono">{result.nextPointDate}</span>
+              <span className="text-base text-white/60 font-mono">{result.nextPointDate}</span>
             </div>
-            <div className="flex items-baseline gap-2 justify-center py-1">
+            <div className="flex items-baseline gap-3 justify-center py-1">
               <span className="text-4xl font-black font-mono text-white tracking-tighter">
                 {result.daysToNext}
               </span>
-              <span className="text-white/40 font-mono text-sm">يوم</span>
+              <span className="text-white/40 font-mono text-lg">ظٹظˆظ…</span>
             </div>
           </motion.div>
         )}
 
         {/* Disclaimer */}
-        <p className="text-[9px] text-white/20 text-center font-mono leading-relaxed max-w-xs mx-auto">
-          هذه الأداة مبنية على دورات رياضية وتاريخية. للأغراض التعليمية فقط.
+        <p className="text-sm text-white/20 text-center font-mono leading-relaxed max-w-xs mx-auto">
+          ظ‡ط°ظ‡ ط§ظ„ط£ط¯ط§ط© ظ…ط¨ظ†ظٹط© ط¹ظ„ظ‰ ط¯ظˆط±ط§طھ ط±ظٹط§ط¶ظٹط© ظˆطھط§ط±ظٹط®ظٹط©. ظ„ظ„ط£ط؛ط±ط§ط¶ ط§ظ„طھط¹ظ„ظٹظ…ظٹط© ظپظ‚ط·.
         </p>
       </div>
     </div>

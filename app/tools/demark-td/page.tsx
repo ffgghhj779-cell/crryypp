@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMarketData } from '@/context/MarketDataContext';
 import { slugToTool } from '@/lib/tools/registry';
@@ -56,23 +56,23 @@ export default function DemarkTdPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-cyan-500/70 tracking-widest uppercase border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-cyan-500/70 tracking-widest uppercase border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <Layers className="w-3 h-3" /> Pattern
           </span>
         </div>
-        <h1 className="text-xl font-black text-white tracking-tight mt-1">نموذج الإرهاق (TD)</h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
-          يحسب الشموع المتتالية لتوقع لحظة إرهاق البائعين أو المشترين
+        <h1 className="text-xl font-black text-white tracking-tight mt-1">ظ†ظ…ظˆط°ط¬ ط§ظ„ط¥ط±ظ‡ط§ظ‚ (TD)</h1>
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
+          ظٹط­ط³ط¨ ط§ظ„ط´ظ…ظˆط¹ ط§ظ„ظ…طھطھط§ظ„ظٹط© ظ„طھظˆظ‚ط¹ ظ„ط­ط¸ط© ط¥ط±ظ‡ط§ظ‚ ط§ظ„ط¨ط§ط¦ط¹ظٹظ† ط£ظˆ ط§ظ„ظ…ط´طھط±ظٹظ†
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5 mt-4">
+      <div className="px-5 flex flex-col gap-5 mt-4">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-6">
             <RefreshCcw className="w-8 h-8 text-cyan-500 animate-spin" />
-            <p className="text-cyan-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري حساب الشموع...</p>
+            <p className="text-cyan-500/80 font-bold tracking-widest uppercase text-base animate-pulse">ط¬ط§ط±ظٹ ط­ط³ط§ط¨ ط§ظ„ط´ظ…ظˆط¹...</p>
           </div>
         ) : (
           <motion.div 
@@ -82,8 +82,8 @@ export default function DemarkTdPage() {
           >
             <div className="rounded-3xl border border-white/[0.05] bg-[#0d0d0d] p-6 pt-8 shadow-xl relative overflow-hidden">
               <div className="text-center mb-6">
-                <span className="text-sm font-bold text-white/60">
-                  السياق الحالي: {tdData.isBullishSetup ? 'هبوط متتالي' : 'صعود متتالي'}
+                <span className="text-lg font-bold text-white/60">
+                  ط§ظ„ط³ظٹط§ظ‚ ط§ظ„ط­ط§ظ„ظٹ: {tdData.isBullishSetup ? 'ظ‡ط¨ظˆط· ظ…طھطھط§ظ„ظٹ' : 'طµط¹ظˆط¯ ظ…طھطھط§ظ„ظٹ'}
                 </span>
               </div>
 
@@ -119,7 +119,7 @@ export default function DemarkTdPage() {
                       className={`w-8 h-12 flex items-center justify-center rounded-md border ${bgColor} ${isCurrent ? 'shadow-lg' : ''} transition-colors`}
                       style={{ boxShadow: (num === 9 && isActive) ? `0 0 20px ${tdData.isBullishSetup ? '#ef4444' : '#10b981'}` : 'none' }}
                     >
-                      <span className={`text-sm font-mono ${textColor}`}>{num}</span>
+                      <span className={`text-lg font-mono ${textColor}`}>{num}</span>
                     </motion.div>
                   );
                 })}
@@ -130,23 +130,23 @@ export default function DemarkTdPage() {
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`mt-8 p-4 rounded-xl border flex items-center gap-3 ${tdData.isBullishSetup ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-red-500/10 border-red-500/30'}`}
+                  className={`mt-8 p-6 rounded-xl border flex items-center gap-3 ${tdData.isBullishSetup ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-red-500/10 border-red-500/30'}`}
                 >
                   <AlertTriangle className={`w-6 h-6 animate-pulse ${tdData.isBullishSetup ? 'text-emerald-400' : 'text-red-400'}`} />
                   <div className="flex flex-col gap-1">
-                    <span className={`text-sm font-black ${tdData.isBullishSetup ? 'text-emerald-400' : 'text-red-400'}`}>
-                      احتمال انعكاس السعر قريباً!
+                    <span className={`text-lg font-black ${tdData.isBullishSetup ? 'text-emerald-400' : 'text-red-400'}`}>
+                      ط§ط­طھظ…ط§ظ„ ط§ظ†ط¹ظƒط§ط³ ط§ظ„ط³ط¹ط± ظ‚ط±ظٹط¨ط§ظ‹!
                     </span>
-                    <span className="text-[10px] text-white/50 font-bold">
-                      {tdData.isBullishSetup ? 'تم إرهاق البائعين بالكامل. قد يبدأ الصعود الآن.' : 'تم إرهاق المشترين بالكامل. قد يبدأ الهبوط الآن.'}
+                    <span className="text-sm text-white/50 font-bold">
+                      {tdData.isBullishSetup ? 'طھظ… ط¥ط±ظ‡ط§ظ‚ ط§ظ„ط¨ط§ط¦ط¹ظٹظ† ط¨ط§ظ„ظƒط§ظ…ظ„. ظ‚ط¯ ظٹط¨ط¯ط£ ط§ظ„طµط¹ظˆط¯ ط§ظ„ط¢ظ†.' : 'طھظ… ط¥ط±ظ‡ط§ظ‚ ط§ظ„ظ…ط´طھط±ظٹظ† ط¨ط§ظ„ظƒط§ظ…ظ„. ظ‚ط¯ ظٹط¨ط¯ط£ ط§ظ„ظ‡ط¨ظˆط· ط§ظ„ط¢ظ†.'}
                     </span>
                   </div>
                 </motion.div>
               )}
 
               {!isExhausted && (
-                <div className="mt-8 text-center text-[11px] text-white/40 font-bold border-t border-white/5 pt-4">
-                  ننتظر وصول العداد إلى الرقم 9 لتأكيد التعب وانعكاس الاتجاه.
+                <div className="mt-8 text-center text-sm text-white/40 font-bold border-t border-white/5 pt-4">
+                  ظ†ظ†طھط¸ط± ظˆطµظˆظ„ ط§ظ„ط¹ط¯ط§ط¯ ط¥ظ„ظ‰ ط§ظ„ط±ظ‚ظ… 9 ظ„طھط£ظƒظٹط¯ ط§ظ„طھط¹ط¨ ظˆط§ظ†ط¹ظƒط§ط³ ط§ظ„ط§طھط¬ط§ظ‡.
                 </div>
               )}
             </div>

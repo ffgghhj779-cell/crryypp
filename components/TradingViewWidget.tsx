@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, memo, useState } from 'react';
 
-// ─── TradingView study IDs ────────────────────────────────────────────────────
+// â”€â”€â”€ TradingView study IDs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Maps each tool name to its TradingView study identifier(s).
 // Empty array = clean chart (used for tools that are drawing-based or custom).
 export const TOOL_STUDIES: Record<string, string[]> = {
@@ -20,7 +20,7 @@ export const TOOL_STUDIES: Record<string, string[]> = {
   'BTC Correlation':       [],                                    // Clean chart
 };
 
-// ─── Default TradingView intervals per tool ───────────────────────────────────
+// â”€â”€â”€ Default TradingView intervals per tool â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const TOOL_DEFAULT_INTERVAL: Record<string, string> = {
   'SMC Order Blocks':      '60',
   'Fair Value Gaps':       '60',
@@ -36,14 +36,14 @@ export const TOOL_DEFAULT_INTERVAL: Record<string, string> = {
   'BTC Correlation':       'D',
 };
 
-// ─── Tool descriptions ────────────────────────────────────────────────────────
+// â”€â”€â”€ Tool descriptions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const TOOL_DESCRIPTIONS: Record<string, string> = {
   'SMC Order Blocks':      'Identify institutional supply/demand zones where large players entered or exited positions.',
   'Fair Value Gaps':       'Spot price imbalances (FVGs) that price frequently returns to fill before continuing its trend.',
   'Market Structure':      'Track Break of Structure (BOS) and Change of Character (ChoCH) to define trend direction.',
   'Fibonacci Retracement': 'Map key retracement levels (0.382, 0.5, 0.618, 0.786) to find high-probability reversal zones.',
   'Volume Profile':        'Visualize traded volume at each price level to identify high-volume nodes and value areas.',
-  'VWAP Bands':            'Volume-Weighted Average Price with standard deviation bands — intraday institutional benchmark.',
+  'VWAP Bands':            'Volume-Weighted Average Price with standard deviation bands â€” intraday institutional benchmark.',
   'Stochastic RSI':        'Combines RSI and Stochastic Oscillator for early overbought/oversold momentum signals.',
   'MACD Divergence':       'Detect bullish/bearish divergences between price action and MACD histogram momentum.',
   'Bollinger Bands':       'Measure volatility via standard deviation bands. Squeezes signal breakout potential.',
@@ -52,7 +52,7 @@ export const TOOL_DESCRIPTIONS: Record<string, string> = {
   'BTC Correlation':       'BTC/USDT spot chart for correlation analysis against altcoins or macro assets.',
 };
 
-// ─── Interval options ─────────────────────────────────────────────────────────
+// â”€â”€â”€ Interval options â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const INTERVALS = [
   { label: '15m', value: '15' },
   { label: '1H',  value: '60' },
@@ -67,7 +67,7 @@ declare global {
   }
 }
 
-// ─── Main Widget Component ────────────────────────────────────────────────────
+// â”€â”€â”€ Main Widget Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface TradingViewWidgetProps {
   toolName: string;
   symbol?: string;
@@ -167,14 +167,14 @@ const TradingViewWidget = memo(function TradingViewWidget({
 
   return (
     <div className="flex flex-col h-full">
-      {/* ── Interval Selector ── */}
-      <div className="flex items-center gap-1.5 px-4 pt-3 pb-2 shrink-0">
-        <span className="text-[10px] text-white/30 uppercase tracking-widest mr-1">Interval</span>
+      {/* â”€â”€ Interval Selector â”€â”€ */}
+      <div className="flex items-center gap-1.5 px-5 pt-3 pb-2 shrink-0">
+        <span className="text-sm text-white/30 uppercase tracking-widest mr-1">Interval</span>
         {INTERVALS.map(iv => (
           <button
             key={iv.value}
             onClick={() => setInterval(iv.value)}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all active:scale-95 ${
+            className={`px-3 py-1 rounded-lg text-base font-bold transition-all active:scale-95 ${
               interval === iv.value
                 ? 'bg-orange-500 text-white shadow-[0_0_12px_rgba(249,115,22,0.4)]'
                 : 'bg-white/[0.05] text-white/40 hover:text-white hover:bg-white/10'
@@ -185,7 +185,7 @@ const TradingViewWidget = memo(function TradingViewWidget({
         ))}
       </div>
 
-      {/* ── Chart Container ── */}
+      {/* â”€â”€ Chart Container â”€â”€ */}
       <div
         ref={containerRef}
         className="flex-1 w-full overflow-hidden"

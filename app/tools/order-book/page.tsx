@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMarketData } from '@/context/MarketDataContext';
 import { slugToTool } from '@/lib/tools/registry';
@@ -65,23 +65,23 @@ export default function OrderBookPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-indigo-500/70 tracking-widest uppercase border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-indigo-500/70 tracking-widest uppercase border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <Layers className="w-3 h-3" /> Depth
           </span>
         </div>
-        <h1 className="text-xl font-black text-white tracking-tight mt-1">تحليل دفتر الأوامر</h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
-          نظرة حية على عمق السوق وطلبات الشراء وعروض البيع
+        <h1 className="text-xl font-black text-white tracking-tight mt-1">طھط­ظ„ظٹظ„ ط¯ظپطھط± ط§ظ„ط£ظˆط§ظ…ط±</h1>
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
+          ظ†ط¸ط±ط© ط­ظٹط© ط¹ظ„ظ‰ ط¹ظ…ظ‚ ط§ظ„ط³ظˆظ‚ ظˆط·ظ„ط¨ط§طھ ط§ظ„ط´ط±ط§ط، ظˆط¹ط±ظˆط¶ ط§ظ„ط¨ظٹط¹
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5 mt-4">
+      <div className="px-5 flex flex-col gap-5 mt-4">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-6">
             <RefreshCcw className="w-8 h-8 text-indigo-500 animate-spin" />
-            <p className="text-indigo-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري جلب دفتر الأوامر...</p>
+            <p className="text-indigo-500/80 font-bold tracking-widest uppercase text-base animate-pulse">ط¬ط§ط±ظٹ ط¬ظ„ط¨ ط¯ظپطھط± ط§ظ„ط£ظˆط§ظ…ط±...</p>
           </div>
         ) : (
           <motion.div 
@@ -90,16 +90,16 @@ export default function OrderBookPage() {
             className="flex flex-col gap-1 rounded-2xl border border-white/[0.05] bg-[#0d0d0d] p-3 shadow-xl"
           >
             {/* Table Header */}
-            <div className="grid grid-cols-3 text-[10px] text-white/30 font-bold uppercase tracking-widest pb-2 border-b border-white/[0.05] mb-2 px-2">
-              <div className="text-right">الإجمالي</div>
-              <div className="text-center">الكمية</div>
-              <div className="text-left">السعر</div>
+            <div className="grid grid-cols-3 text-sm text-white/30 font-bold uppercase tracking-widest pb-2 border-b border-white/[0.05] mb-2 px-2">
+              <div className="text-right">ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ</div>
+              <div className="text-center">ط§ظ„ظƒظ…ظٹط©</div>
+              <div className="text-left">ط§ظ„ط³ط¹ط±</div>
             </div>
 
             {/* Asks (Red) */}
             <div className="flex flex-col gap-[2px]">
               {asks.map((ask, i) => (
-                <div key={i} className="relative grid grid-cols-3 text-xs font-mono py-1 px-2 items-center z-10 overflow-hidden rounded group">
+                <div key={i} className="relative grid grid-cols-3 text-base font-mono py-1 px-2 items-center z-10 overflow-hidden rounded group">
                   <div className="absolute right-0 top-0 bottom-0 bg-red-500/10 -z-10 transition-all group-hover:bg-red-500/20" style={{ width: `${(ask.total / maxTotal) * 100}%` }} />
                   <div className="text-right text-white/40">{formatSize(ask.total)}</div>
                   <div className="text-center text-white/60">{formatSize(ask.size)}</div>
@@ -109,7 +109,7 @@ export default function OrderBookPage() {
             </div>
 
             {/* Current Price Divider */}
-            <div className="flex items-center justify-center py-3 my-1 border-y border-white/[0.05] bg-white/[0.02]">
+            <div className="flex items-center justify-center py-4 my-1 border-y border-white/[0.05] bg-white/[0.02]">
               <span className="text-xl font-black text-white tracking-widest font-mono">
                 {formatPrice(currentPrice ?? 0)}
               </span>
@@ -118,7 +118,7 @@ export default function OrderBookPage() {
             {/* Bids (Green) */}
             <div className="flex flex-col gap-[2px]">
               {bids.map((bid, i) => (
-                <div key={i} className="relative grid grid-cols-3 text-xs font-mono py-1 px-2 items-center z-10 overflow-hidden rounded group">
+                <div key={i} className="relative grid grid-cols-3 text-base font-mono py-1 px-2 items-center z-10 overflow-hidden rounded group">
                   <div className="absolute right-0 top-0 bottom-0 bg-emerald-500/10 -z-10 transition-all group-hover:bg-emerald-500/20" style={{ width: `${(bid.total / maxTotal) * 100}%` }} />
                   <div className="text-right text-white/40">{formatSize(bid.total)}</div>
                   <div className="text-center text-white/60">{formatSize(bid.size)}</div>

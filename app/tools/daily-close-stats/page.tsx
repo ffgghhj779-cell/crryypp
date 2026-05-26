@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useMarketData } from '@/context/MarketDataContext';
@@ -50,67 +50,67 @@ export default function DailyCloseStatsPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-emerald-500/70 tracking-widest uppercase border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-emerald-500/70 tracking-widest uppercase border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <BarChart2 className="w-3 h-3" /> Statistics
           </span>
         </div>
-        <h1 className="text-xl font-black text-white tracking-tight mt-1">إحصاءات الإغلاق اليومي</h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
-          قياس المسافة من الافتتاح اليومي والوقت المتبقي لإغلاق الشمعة
+        <h1 className="text-xl font-black text-white tracking-tight mt-1">ط¥ط­طµط§ط،ط§طھ ط§ظ„ط¥ط؛ظ„ط§ظ‚ ط§ظ„ظٹظˆظ…ظٹ</h1>
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
+          ظ‚ظٹط§ط³ ط§ظ„ظ…ط³ط§ظپط© ظ…ظ† ط§ظ„ط§ظپطھطھط§ط­ ط§ظ„ظٹظˆظ…ظٹ ظˆط§ظ„ظˆظ‚طھ ط§ظ„ظ…طھط¨ظ‚ظٹ ظ„ط¥ط؛ظ„ط§ظ‚ ط§ظ„ط´ظ…ط¹ط©
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5 mt-4">
+      <div className="px-5 flex flex-col gap-5 mt-4">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-6">
             <RefreshCcw className="w-8 h-8 text-emerald-500 animate-spin" />
-            <p className="text-emerald-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري حساب الإحصاءات...</p>
+            <p className="text-emerald-500/80 font-bold tracking-widest uppercase text-base animate-pulse">ط¬ط§ط±ظٹ ط­ط³ط§ط¨ ط§ظ„ط¥ط­طµط§ط،ط§طھ...</p>
           </div>
         ) : (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col gap-4"
+            className="flex flex-col gap-6"
           >
             {/* Countdown Card */}
-            <div className="rounded-3xl border border-white/[0.08] bg-[#111] p-6 flex flex-col items-center gap-4 relative overflow-hidden">
+            <div className="rounded-3xl border border-white/[0.08] bg-[#111] p-6 flex flex-col items-center gap-6 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-[50px] rounded-full pointer-events-none" />
               
-              <div className="flex items-center gap-2 text-white/50">
-                <Clock className="w-4 h-4" />
-                <span className="text-xs font-bold tracking-widest uppercase">متبقي للإغلاق (UTC 00:00)</span>
+              <div className="flex items-center gap-3 text-white/50">
+                <Clock className="w-6 h-6" />
+                <span className="text-base font-bold tracking-widest uppercase">ظ…طھط¨ظ‚ظٹ ظ„ظ„ط¥ط؛ظ„ط§ظ‚ (UTC 00:00)</span>
               </div>
 
-              <div className="flex items-center justify-center gap-4 w-full" dir="ltr">
+              <div className="flex items-center justify-center gap-6 w-full" dir="ltr">
                 <div className="flex flex-col items-center">
                   <span className="text-4xl font-black text-white font-mono">{timeLeft.hours.toString().padStart(2, '0')}</span>
-                  <span className="text-[9px] text-white/40 uppercase tracking-widest mt-1">Hours</span>
+                  <span className="text-sm text-white/40 uppercase tracking-widest mt-1">Hours</span>
                 </div>
                 <span className="text-2xl text-white/20 font-bold mb-4">:</span>
                 <div className="flex flex-col items-center">
                   <span className="text-4xl font-black text-white font-mono">{timeLeft.minutes.toString().padStart(2, '0')}</span>
-                  <span className="text-[9px] text-white/40 uppercase tracking-widest mt-1">Mins</span>
+                  <span className="text-sm text-white/40 uppercase tracking-widest mt-1">Mins</span>
                 </div>
                 <span className="text-2xl text-white/20 font-bold mb-4">:</span>
                 <div className="flex flex-col items-center">
                   <span className="text-4xl font-black text-white font-mono">{timeLeft.seconds.toString().padStart(2, '0')}</span>
-                  <span className="text-[9px] text-white/40 uppercase tracking-widest mt-1">Secs</span>
+                  <span className="text-sm text-white/40 uppercase tracking-widest mt-1">Secs</span>
                 </div>
               </div>
             </div>
 
             {/* Price Distance Card */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-2xl border border-white/[0.05] bg-[#0d0d0d] p-5 flex flex-col gap-2">
-                <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">الافتتاح (Open)</span>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="rounded-2xl border border-white/[0.05] bg-[#0d0d0d] p-5 flex flex-col gap-3">
+                <span className="text-sm text-white/40 font-bold uppercase tracking-widest">ط§ظ„ط§ظپطھطھط§ط­ (Open)</span>
                 <span className="text-xl font-black text-white/90 font-mono">
                   ${dailyOpen.toLocaleString(undefined, { minimumFractionDigits: dailyOpen > 1000 ? 1 : 4 })}
                 </span>
               </div>
-              <div className="rounded-2xl border border-white/[0.05] bg-[#0d0d0d] p-5 flex flex-col gap-2">
-                <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">السعر الحالي (Now)</span>
+              <div className="rounded-2xl border border-white/[0.05] bg-[#0d0d0d] p-5 flex flex-col gap-3">
+                <span className="text-sm text-white/40 font-bold uppercase tracking-widest">ط§ظ„ط³ط¹ط± ط§ظ„ط­ط§ظ„ظٹ (Now)</span>
                 <span className="text-xl font-black text-white/90 font-mono">
                   ${currentPrice != null
                     ? currentPrice.toLocaleString(undefined, { minimumFractionDigits: currentPrice > 1000 ? 1 : 4 })
@@ -121,8 +121,8 @@ export default function DailyCloseStatsPage() {
 
             {/* Verdict Card */}
             <div className={`rounded-2xl border p-5 flex flex-col items-center justify-center gap-3 ${isPositive ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
-              <span className={`text-[10px] font-bold uppercase tracking-widest ${isPositive ? 'text-emerald-500/80' : 'text-red-500/80'}`}>
-                مسافة السعر من الافتتاح
+              <span className={`text-sm font-bold uppercase tracking-widest ${isPositive ? 'text-emerald-500/80' : 'text-red-500/80'}`}>
+                ظ…ط³ط§ظپط© ط§ظ„ط³ط¹ط± ظ…ظ† ط§ظ„ط§ظپطھطھط§ط­
               </span>
               <div className="flex items-center gap-3">
                 {isPositive ? <TrendingUp className="w-8 h-8 text-emerald-400" /> : <TrendingDown className="w-8 h-8 text-red-400" />}
@@ -130,7 +130,7 @@ export default function DailyCloseStatsPage() {
                   <span className={`text-3xl font-black font-mono leading-none ${isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
                     {isPositive ? '+' : ''}{distancePct.toFixed(2)}%
                   </span>
-                  <span className={`text-xs font-mono font-bold mt-1 ${isPositive ? 'text-emerald-500/60' : 'text-red-500/60'}`}>
+                  <span className={`text-base font-mono font-bold mt-1 ${isPositive ? 'text-emerald-500/60' : 'text-red-500/60'}`}>
                     {isPositive ? '+' : ''}{distanceToOpen.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 4 })} $
                   </span>
                 </div>

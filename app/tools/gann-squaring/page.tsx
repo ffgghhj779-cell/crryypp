@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMarketData } from '@/context/MarketDataContext';
 import { slugToTool } from '@/lib/tools/registry';
@@ -23,8 +23,8 @@ export default function GannSquaringPage() {
 
     return {
       isSquared,
-      status: isSquared ? 'السعر والزمن في حالة توازن' : 'غير متوازن',
-      action: isSquared ? 'احتمالية انعكاس السعر عالية جداً' : 'الاتجاه مستمر ولا يوجد انعكاس حالياً'
+      status: isSquared ? 'ط§ظ„ط³ط¹ط± ظˆط§ظ„ط²ظ…ظ† ظپظٹ ط­ط§ظ„ط© طھظˆط§ط²ظ†' : 'ط؛ظٹط± ظ…طھظˆط§ط²ظ†',
+      action: isSquared ? 'ط§ط­طھظ…ط§ظ„ظٹط© ط§ظ†ط¹ظƒط§ط³ ط§ظ„ط³ط¹ط± ط¹ط§ظ„ظٹط© ط¬ط¯ط§ظ‹' : 'ط§ظ„ط§طھط¬ط§ظ‡ ظ…ط³طھظ…ط± ظˆظ„ط§ ظٹظˆط¬ط¯ ط§ظ†ط¹ظƒط§ط³ ط­ط§ظ„ظٹط§ظ‹'
     };
   }, [currentPrice]);
 
@@ -35,23 +35,23 @@ export default function GannSquaringPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-yellow-500/70 tracking-widest uppercase border border-yellow-500/20 bg-yellow-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-yellow-500/70 tracking-widest uppercase border border-yellow-500/20 bg-yellow-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <Scale className="w-3 h-3" /> Geometry
           </span>
         </div>
-        <h1 className="text-xl font-black text-white tracking-tight mt-1">كاشف تربيع السعر والزمن</h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
-          يطبق نظرية جان (Gann) لمعرفة ما إذا كان الوقت والسعر قد تطابقا
+        <h1 className="text-xl font-black text-white tracking-tight mt-1">ظƒط§ط´ظپ طھط±ط¨ظٹط¹ ط§ظ„ط³ط¹ط± ظˆط§ظ„ط²ظ…ظ†</h1>
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
+          ظٹط·ط¨ظ‚ ظ†ط¸ط±ظٹط© ط¬ط§ظ† (Gann) ظ„ظ…ط¹ط±ظپط© ظ…ط§ ط¥ط°ط§ ظƒط§ظ† ط§ظ„ظˆظ‚طھ ظˆط§ظ„ط³ط¹ط± ظ‚ط¯ طھط·ط§ط¨ظ‚ط§
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5 mt-4">
+      <div className="px-5 flex flex-col gap-5 mt-4">
         {isLoading || !squaring ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-6">
             <RefreshCcw className="w-8 h-8 text-yellow-500 animate-spin" />
-            <p className="text-yellow-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري قياس التوازن...</p>
+            <p className="text-yellow-500/80 font-bold tracking-widest uppercase text-base animate-pulse">ط¬ط§ط±ظٹ ظ‚ظٹط§ط³ ط§ظ„طھظˆط§ط²ظ†...</p>
           </div>
         ) : (
           <motion.div 
@@ -60,7 +60,7 @@ export default function GannSquaringPage() {
             className="flex flex-col gap-6"
           >
             {/* Core Graphic */}
-            <div className={`rounded-3xl border p-8 flex flex-col items-center justify-center shadow-xl relative overflow-hidden h-72 transition-colors ${squaring.isSquared ? 'bg-emerald-500/10 border-emerald-500/40 shadow-[0_0_40px_rgba(16,185,129,0.2)]' : 'bg-[#0d0d0d] border-white/10'}`}>
+            <div className={`rounded-3xl border p-8 flex flex-col items-center justify-center shadow-xl relative overflow-hidden h-[420px] transition-colors ${squaring.isSquared ? 'bg-emerald-500/10 border-emerald-500/40 shadow-[0_0_40px_rgba(16,185,129,0.2)]' : 'bg-[#0d0d0d] border-white/10'}`}>
               
               {/* Glowing Background */}
               {squaring.isSquared && (
@@ -93,14 +93,14 @@ export default function GannSquaringPage() {
               <h2 className={`text-2xl font-black z-10 text-center ${squaring.isSquared ? 'text-emerald-400' : 'text-white/40'}`}>
                 {squaring.status}
               </h2>
-              <p className={`text-xs font-bold mt-2 z-10 text-center ${squaring.isSquared ? 'text-white/90' : 'text-white/30'}`}>
+              <p className={`text-base font-bold mt-2 z-10 text-center ${squaring.isSquared ? 'text-white/90' : 'text-white/30'}`}>
                 {squaring.action}
               </p>
             </div>
 
-            <div className="text-center px-4 bg-yellow-500/5 border border-yellow-500/10 rounded-xl p-4">
-              <p className="text-[11px] text-white/50 leading-relaxed font-bold">
-                💡 عندما يكتمل نمط &quot;التربيع&quot;، يعني ذلك أن السوق استغرق الوقت الكافي للوصول إلى هذا السعر الدقيق، مما يجعله نقطة انعكاس شبه مؤكدة.
+            <div className="text-center px-5 bg-yellow-500/5 border border-yellow-500/10 rounded-xl p-6">
+              <p className="text-sm text-white/50 leading-relaxed font-bold">
+                ًں’، ط¹ظ†ط¯ظ…ط§ ظٹظƒطھظ…ظ„ ظ†ظ…ط· &quot;ط§ظ„طھط±ط¨ظٹط¹&quot;طŒ ظٹط¹ظ†ظٹ ط°ظ„ظƒ ط£ظ† ط§ظ„ط³ظˆظ‚ ط§ط³طھط؛ط±ظ‚ ط§ظ„ظˆظ‚طھ ط§ظ„ظƒط§ظپظٹ ظ„ظ„ظˆطµظˆظ„ ط¥ظ„ظ‰ ظ‡ط°ط§ ط§ظ„ط³ط¹ط± ط§ظ„ط¯ظ‚ظٹظ‚طŒ ظ…ظ…ط§ ظٹط¬ط¹ظ„ظ‡ ظ†ظ‚ط·ط© ط§ظ†ط¹ظƒط§ط³ ط´ط¨ظ‡ ظ…ط¤ظƒط¯ط©.
               </p>
             </div>
           </motion.div>

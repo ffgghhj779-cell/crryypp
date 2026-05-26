@@ -1,7 +1,7 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 /* ============================================
-   TELEGRAM MINI APP — CRITICAL VIEWPORT FIX
+   TELEGRAM MINI APP â€” CRITICAL VIEWPORT FIX
    ============================================ */
 html {
   /* --app-stable-height is set by AppLayout JS via WebApp.viewportStableHeight.
@@ -20,7 +20,7 @@ body {
   overflow: hidden;
   overscroll-behavior: none;
   /* PHASE 2 UI UPSCALING: Increase base font from default 14px to 16px */
-  font-size: 16px;
+  font-size: 18px;
   /* Prevent text size inflation on mobile */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -46,18 +46,18 @@ main {
   overscroll-behavior-y: contain;
   isolation: isolate;
   contain: layout;
-  /* NO -webkit-overflow-scrolling:touch — see html comment above */
+  /* NO -webkit-overflow-scrolling:touch â€” see html comment above */
 }
 
 /* ============================================
-   120 FPS NATIVE FEEL — GLOBAL TOUCH & GPU
+   120 FPS NATIVE FEEL â€” GLOBAL TOUCH & GPU
    ============================================ */
 
 /*
   touch-action: manipulation
-  → Eliminates the 300ms tap delay on Android Chrome/WebView.
+  â†’ Eliminates the 300ms tap delay on Android Chrome/WebView.
     Without this, every button press feels sluggish.
-  → Also disables double-tap-to-zoom which causes unintended layout jumps.
+  â†’ Also disables double-tap-to-zoom which causes unintended layout jumps.
 */
 *, *::before, *::after {
   touch-action: manipulation;
@@ -67,7 +67,7 @@ main {
 
 /*
   -webkit-tap-highlight-color: transparent
-  → Removes the blue/grey flash that appears on tap in Android WebView.
+  â†’ Removes the blue/grey flash that appears on tap in Android WebView.
     Framer Motion's whileTap provides our own visual feedback instead.
 */
 a, button, [role="button"], input, select, textarea,
@@ -91,7 +91,7 @@ a, button, [role="button"], input, select, textarea,
   the GPU to discard the reverse-face paint, preventing the horizontal
   line glitches clients reported.
 
-  PATCH: will-change is scoped ONLY to sheet/modal — NOT motion-card,
+  PATCH: will-change is scoped ONLY to sheet/modal â€” NOT motion-card,
   which was causing GPU memory exhaustion on devices with many cards
   visible simultaneously (a common cause of rendering breakages).
 */
@@ -148,7 +148,7 @@ svg circle {
 }
 
 /*
-  content-visibility: auto — paint-skips off-screen sections.
+  content-visibility: auto â€” paint-skips off-screen sections.
   This is massive for performance on long dashboard scrolls.
 */
 .cv-auto {
@@ -160,7 +160,7 @@ svg circle {
    PREMIUM TYPOGRAPHY
    ============================================ */
 
-/* Tabular numbers — prevents price digits from causing layout jitter on every tick */
+/* Tabular numbers â€” prevents price digits from causing layout jitter on every tick */
 .font-mono,
 [class*="font-mono"] {
   font-variant-numeric: tabular-nums;
@@ -193,7 +193,7 @@ svg circle {
 }
 
 /* ============================================
-   SAFE AREA — iOS HOME BAR PADDING
+   SAFE AREA â€” iOS HOME BAR PADDING
    ============================================ */
 .pb-safe-area {
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -216,7 +216,7 @@ svg circle {
   to   { opacity: 1; }
 }
 
-/* Infinite horizontal ticker scroll — uses translate3d for GPU compositing.
+/* Infinite horizontal ticker scroll â€” uses translate3d for GPU compositing.
    PATCH: translate3d instead of translateX prevents the horizontal
    line artifacts on Chromium-based Android WebViews. */
 @keyframes ticker-scroll {
@@ -247,7 +247,7 @@ svg circle {
 }
 
 /* ============================================
-   SCROLLBAR — PREMIUM DARK STYLE
+   SCROLLBAR â€” PREMIUM DARK STYLE
    ============================================ */
 ::-webkit-scrollbar {
   width: 3px;
@@ -274,7 +274,7 @@ input[type="range"] {
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  /* PHASE 2: bumped from 18×18 to 22×22 for better touch target */
+  /* PHASE 2: bumped from 18أ—18 to 22أ—22 for better touch target */
   width: 22px;
   height: 22px;
   border-radius: 50%;
@@ -317,14 +317,14 @@ input[type="range"]::-moz-range-thumb {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* PHASE 2: bumped from 16×16 to 20×20 */
+  /* PHASE 2: bumped from 16أ—16 to 20أ—20 */
   width: 20px;
   height: 20px;
   border-radius: 5px;
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.08);
   /* PHASE 2: bumped from 8px to 10px */
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   color: rgba(255,255,255,0.3);
   font-family: monospace;
@@ -348,4 +348,66 @@ select {
 iframe {
   border: 0;
   contain: layout style;
+}
+
+
+/* ============================================
+   PHASE 3 — MASSIVE GLOBAL UPSCALING
+   Client requested: everything bigger, bolder
+   ============================================ */
+
+/* Force larger min font for all Arabic text elements */
+[dir="rtl"], [lang="ar"] {
+  font-size-adjust: 1.1;
+  letter-spacing: 0.02em;
+}
+
+/* Tool page header titles — premium large */
+.tool-page-title {
+  font-size: 1.5rem !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.02em;
+}
+
+/* Upscale all card padding globally */
+.glass, .glass-card, .glass-dark {
+  padding: 1.25rem;
+}
+
+/* Upscale section labels */
+.section-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+/* Tool number badge — bigger */
+.tool-number {
+  width: 26px !important;
+  height: 26px !important;
+  font-size: 11px !important;
+  border-radius: 7px !important;
+}
+
+/* Scrollbar wider for easier grab */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+/* Signal badges — always bold and visible */
+[class*="signal-"], [class*="badge-"] {
+  font-weight: 800 !important;
+  font-size: 0.8rem !important;
+}
+
+/* All buttons: minimum touch target + bigger text */
+button, [role="button"] {
+  min-height: 40px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Chart containers — min height */
+.chart-container, [class*="recharts"] {
+  min-height: 300px;
 }

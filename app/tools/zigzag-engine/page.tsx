@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 /**
  * app/tools/zigzag-engine/page.tsx
  *
- * ZigZag Pivot Engine (محرك القمم والقيعان)
+ * ZigZag Pivot Engine (ظ…ط­ط±ظƒ ط§ظ„ظ‚ظ…ظ… ظˆط§ظ„ظ‚ظٹط¹ط§ظ†)
  * Visualizes the ZigZag algorithm on deterministic mock data with an adjustable deviation slider.
  */
 
@@ -39,27 +39,27 @@ export default function ZigZagPage() {
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
       <ToolPageHeader tool={tool} />
 
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-blue-500/70 tracking-widest uppercase border border-blue-500/20 bg-blue-500/10 px-2.5 py-1 rounded-full flex items-center gap-1">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-blue-500/70 tracking-widest uppercase border border-blue-500/20 bg-blue-500/10 px-2.5 py-1 rounded-full flex items-center gap-1">
             <Activity className="w-3 h-3" /> Core Infrastructure
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">
-          محرك القمم والقيعان (ZigZag)
+          ظ…ط­ط±ظƒ ط§ظ„ظ‚ظ…ظ… ظˆط§ظ„ظ‚ظٹط¹ط§ظ† (ZigZag)
         </h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
-          نواة هيكل السوق لحساب الانحرافات وتحديد الـ HH/HL تلقائياً
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
+          ظ†ظˆط§ط© ظ‡ظٹظƒظ„ ط§ظ„ط³ظˆظ‚ ظ„ط­ط³ط§ط¨ ط§ظ„ط§ظ†ط­ط±ط§ظپط§طھ ظˆطھط­ط¯ظٹط¯ ط§ظ„ظ€ HH/HL طھظ„ظ‚ط§ط¦ظٹط§ظ‹
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5">
+      <div className="px-5 flex flex-col gap-5">
         
         {/* Control Panel */}
-        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-4 shadow-xl shadow-black/50">
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-6 shadow-xl shadow-black/50">
           <div className="flex justify-between items-end mb-1">
-            <label className="text-[11px] font-bold text-white/70 flex items-center gap-2">
-              <SlidersHorizontal className="w-4 h-4 text-blue-400" /> عمق الانحراف (Deviation Depth)
+            <label className="text-sm font-bold text-white/70 flex items-center gap-3">
+              <SlidersHorizontal className="w-6 h-6 text-blue-400" /> ط¹ظ…ظ‚ ط§ظ„ط§ظ†ط­ط±ط§ظپ (Deviation Depth)
             </label>
             <span className="text-lg font-black text-blue-400 font-mono">{deviationPct}%</span>
           </div>
@@ -74,7 +74,7 @@ export default function ZigZagPage() {
             className="w-full accent-blue-500 h-2 bg-black/40 rounded-lg appearance-none cursor-pointer border border-white/[0.05]"
           />
           
-          <div className="flex justify-between text-[9px] font-mono text-white/30 uppercase mt-1 px-1">
+          <div className="flex justify-between text-sm font-mono text-white/30 uppercase mt-1 px-1">
             <span>High Sensitivity (1%)</span>
             <span>Macro Trend (10%)</span>
           </div>
@@ -82,12 +82,12 @@ export default function ZigZagPage() {
 
         {/* Visual Wave Chart (Core Output) */}
         {result && (
-          <div className="rounded-2xl border border-blue-500/20 bg-[#111] p-4 flex flex-col items-center shadow-[0_0_30px_rgba(59,130,246,0.1)] relative overflow-hidden">
-            <p className="text-[10px] font-bold text-blue-400/50 uppercase tracking-widest mb-4 flex items-center gap-1 w-full justify-start">
+          <div className="rounded-2xl border border-blue-500/20 bg-[#111] p-6 flex flex-col items-center shadow-[0_0_30px_rgba(59,130,246,0.1)] relative overflow-hidden">
+            <p className="text-sm font-bold text-blue-400/50 uppercase tracking-widest mb-4 flex items-center gap-1 w-full justify-start">
               <Settings2 className="w-3 h-3" /> ZigZag Mapping Engine
             </p>
 
-            <div className="w-full h-64 relative">
+            <div className="w-full h-96 relative">
               <ZigZagChart rawData={result.rawData} pivots={result.pivots} />
             </div>
           </div>
@@ -102,12 +102,12 @@ export default function ZigZagPage() {
             className="rounded-xl border border-white/[0.05] bg-black/40 p-5 flex flex-col gap-3 relative overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-1 h-full bg-blue-500/50" />
-            <div className="flex items-center gap-2">
-              <Info className="w-4 h-4 text-blue-400" />
-              <span className="text-[11px] font-bold text-blue-400 uppercase tracking-widest">الخلاصة الهيكلية</span>
+            <div className="flex items-center gap-3">
+              <Info className="w-6 h-6 text-blue-400" />
+              <span className="text-sm font-bold text-blue-400 uppercase tracking-widest">ط§ظ„ط®ظ„ط§طµط© ط§ظ„ظ‡ظٹظƒظ„ظٹط©</span>
             </div>
-            <p className="text-[13px] text-white/80 font-medium leading-relaxed pr-2">
-              الحالة الهيكلية الحالية: <strong className="text-blue-300 drop-shadow-[0_0_5px_rgba(59,130,246,0.5)]">{result.currentStructure}</strong> مبني على انحراف {result.deviationPct}%.
+            <p className="text-base text-white/80 font-medium leading-relaxed pr-2">
+              ط§ظ„ط­ط§ظ„ط© ط§ظ„ظ‡ظٹظƒظ„ظٹط© ط§ظ„ط­ط§ظ„ظٹط©: <strong className="text-blue-300 drop-shadow-[0_0_5px_rgba(59,130,246,0.5)]">{result.currentStructure}</strong> ظ…ط¨ظ†ظٹ ط¹ظ„ظ‰ ط§ظ†ط­ط±ط§ظپ {result.deviationPct}%.
             </p>
           </motion.div>
         )}
@@ -117,7 +117,7 @@ export default function ZigZagPage() {
   );
 }
 
-// ─── SVG Chart Component ────────────────────────────────────────────────────────
+// â”€â”€â”€ SVG Chart Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function ZigZagChart({ rawData, pivots }: { rawData: DataPoint[], pivots: PivotPoint[] }) {
   if (rawData.length === 0) return null;

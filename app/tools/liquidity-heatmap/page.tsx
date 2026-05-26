@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMarketData } from '@/context/MarketDataContext';
 import { slugToTool } from '@/lib/tools/registry';
@@ -63,37 +63,37 @@ export default function LiquidityHeatmapPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-yellow-500/70 tracking-widest uppercase border border-yellow-500/20 bg-yellow-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-yellow-500/70 tracking-widest uppercase border border-yellow-500/20 bg-yellow-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <Flame className="w-3 h-3" /> Liquidity
           </span>
         </div>
-        <h1 className="text-xl font-black text-white tracking-tight mt-1">خريطة السيولة (Heatmap)</h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
-          تحديد مناطق تركز الأوامر والسيولة العالية المتوقعة (Stops)
+        <h1 className="text-xl font-black text-white tracking-tight mt-1">ط®ط±ظٹط·ط© ط§ظ„ط³ظٹظˆظ„ط© (Heatmap)</h1>
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
+          طھط­ط¯ظٹط¯ ظ…ظ†ط§ط·ظ‚ طھط±ظƒط² ط§ظ„ط£ظˆط§ظ…ط± ظˆط§ظ„ط³ظٹظˆظ„ط© ط§ظ„ط¹ط§ظ„ظٹط© ط§ظ„ظ…طھظˆظ‚ط¹ط© (Stops)
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5 mt-4">
+      <div className="px-5 flex flex-col gap-5 mt-4">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-6">
             <RefreshCcw className="w-8 h-8 text-yellow-500 animate-spin" />
-            <p className="text-yellow-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري فحص السيولة...</p>
+            <p className="text-yellow-500/80 font-bold tracking-widest uppercase text-base animate-pulse">ط¬ط§ط±ظٹ ظپط­طµ ط§ظ„ط³ظٹظˆظ„ط©...</p>
           </div>
         ) : (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col gap-2 rounded-2xl border border-white/[0.05] bg-[#0d0d0d] p-5 shadow-xl relative overflow-hidden"
+            className="flex flex-col gap-3 rounded-2xl border border-white/[0.05] bg-[#0d0d0d] p-5 shadow-xl relative overflow-hidden"
           >
             {/* Legend */}
-            <div className="flex justify-between text-[10px] text-white/40 font-bold tracking-widest uppercase pb-2 border-b border-white/[0.05] mb-2 px-1">
-              <span>السعر</span>
-              <span>كثافة السيولة</span>
+            <div className="flex justify-between text-sm text-white/40 font-bold tracking-widest uppercase pb-2 border-b border-white/[0.05] mb-2 px-1">
+              <span>ط§ظ„ط³ط¹ط±</span>
+              <span>ظƒط«ط§ظپط© ط§ظ„ط³ظٹظˆظ„ط©</span>
             </div>
 
-            <div className="flex flex-col relative w-full border-r-2 border-white/10 pr-4 gap-3 py-2">
+            <div className="flex flex-col relative w-full border-r-2 border-white/10 pr-4 gap-3 py-4">
               {heatmapData.map((d, i) => {
                 const isCurrent = d.intensity === 0;
                 
@@ -112,28 +112,28 @@ export default function LiquidityHeatmapPage() {
                   <div key={i} className="flex items-center justify-between w-full relative">
                     {/* Node on the timeline */}
                     <div 
-                      className={`absolute -right-[23px] w-4 h-4 rounded-full border-[3px] border-[#0d0d0d] z-10 ${isCurrent ? 'bg-blue-500' : color}`}
+                      className={`absolute -right-[23px] w-6 h-6 rounded-full border-[3px] border-[#0d0d0d] z-10 ${isCurrent ? 'bg-blue-500' : color}`}
                       style={{ boxShadow: shadow }}
                     />
                     
                     {isCurrent ? (
-                      <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 px-3 py-1.5 rounded-lg w-full">
-                        <Crosshair className="w-4 h-4 text-blue-400 animate-pulse" />
-                        <span className="text-sm font-black font-mono text-blue-400">{formatPrice(d.price)}</span>
-                        <span className="text-[10px] text-blue-400/80 font-bold ml-auto">السعر الحالي</span>
+                      <div className="flex items-center gap-3 bg-blue-500/10 border border-blue-500/30 px-3 py-1.5 rounded-lg w-full">
+                        <Crosshair className="w-6 h-6 text-blue-400 animate-pulse" />
+                        <span className="text-lg font-black font-mono text-blue-400">{formatPrice(d.price)}</span>
+                        <span className="text-sm text-blue-400/80 font-bold ml-auto">ط§ظ„ط³ط¹ط± ط§ظ„ط­ط§ظ„ظٹ</span>
                       </div>
                     ) : (
                       <>
                         <div className="flex flex-col">
-                          <span className={`text-sm font-black font-mono ${textColor}`}>{formatPrice(d.price)}</span>
-                          <span className="text-[9px] text-white/30 uppercase tracking-widest">{d.type}</span>
+                          <span className={`text-lg font-black font-mono ${textColor}`}>{formatPrice(d.price)}</span>
+                          <span className="text-sm text-white/30 uppercase tracking-widest">{d.type}</span>
                         </div>
                         
-                        <div className="flex items-center gap-2 w-1/2 justify-end">
+                        <div className="flex items-center gap-3 w-1/2 justify-end">
                           <div className="flex-1 h-1.5 bg-black rounded-full overflow-hidden flex justify-end relative">
                             <div className={`absolute right-0 h-full rounded-full ${color}`} style={{ width: `${d.intensity}%`, boxShadow: shadow }} />
                           </div>
-                          <span className={`text-[10px] font-mono font-bold w-6 text-left ${textColor}`}>{Math.round(d.intensity)}</span>
+                          <span className={`text-sm font-mono font-bold w-6 text-left ${textColor}`}>{Math.round(d.intensity)}</span>
                         </div>
                       </>
                     )}
@@ -142,8 +142,8 @@ export default function LiquidityHeatmapPage() {
               })}
             </div>
 
-            <div className="mt-4 pt-3 border-t border-white/[0.05] text-[10px] text-white/30 font-bold text-center leading-relaxed px-4">
-              مناطق سيولة عالية (Stops) غالباً ما تجذب السعر لاختبارها قبل الانعكاس أو استمرار الاتجاه.
+            <div className="mt-4 pt-3 border-t border-white/[0.05] text-sm text-white/30 font-bold text-center leading-relaxed px-5">
+              ظ…ظ†ط§ط·ظ‚ ط³ظٹظˆظ„ط© ط¹ط§ظ„ظٹط© (Stops) ط؛ط§ظ„ط¨ط§ظ‹ ظ…ط§ طھط¬ط°ط¨ ط§ظ„ط³ط¹ط± ظ„ط§ط®طھط¨ط§ط±ظ‡ط§ ظ‚ط¨ظ„ ط§ظ„ط§ظ†ط¹ظƒط§ط³ ط£ظˆ ط§ط³طھظ…ط±ط§ط± ط§ظ„ط§طھط¬ط§ظ‡.
             </div>
           </motion.div>
         )}

@@ -1,15 +1,15 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { X, TrendingUp } from 'lucide-react';
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 interface FngEntry { value: string; value_classification: string; timestamp: string; }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const AR_MAP: Record<string, string> = {
-  'Extreme Fear': 'خوف شديد', 'Fear': 'خوف',
-  'Neutral': 'محايد', 'Greed': 'طمع', 'Extreme Greed': 'طمع شديد',
+  'Extreme Fear': 'ط®ظˆظپ ط´ط¯ظٹط¯', 'Fear': 'ط®ظˆظپ',
+  'Neutral': 'ظ…ط­ط§ظٹط¯', 'Greed': 'ط·ظ…ط¹', 'Extreme Greed': 'ط·ظ…ط¹ ط´ط¯ظٹط¯',
 };
 function arLabel(c: string) { return AR_MAP[c] ?? c; }
 
@@ -21,10 +21,10 @@ function gaugeColor(v: number) {
   return '#16a34a';
 }
 
-// ── SVG Gauge — TOP semicircle, correct math ────────────────────────────────
-// Angles go from -180° (left/9 o'clock) → -90° (top/12 o'clock) → 0° (right/3 o'clock)
+// â”€â”€ SVG Gauge â€” TOP semicircle, correct math â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Angles go from -180آ° (left/9 o'clock) â†’ -90آ° (top/12 o'clock) â†’ 0آ° (right/3 o'clock)
 // needle formula:  angleRad = ((value/100) - 1) * Math.PI
-// zone points:     screenAngle = (-180 + zoneIndex*36) degrees  (−180 → −144 → … → 0)
+// zone points:     screenAngle = (-180 + zoneIndex*36) degrees  (âˆ’180 â†’ âˆ’144 â†’ â€¦ â†’ 0)
 // arc direction:   sweep-flag = 1 (clockwise in SVG = through the TOP)
 function Gauge({ value, label, size = 'compact' }: {
   value: number; label: string; size?: 'compact' | 'full';
@@ -39,23 +39,23 @@ function Gauge({ value, label, size = 'compact' }: {
   const valFS = size === 'full' ? 24 : 14;
   const labFS = size === 'full' ?  8 :  5;
 
-  // Correct angle: -π (left) → 0 (right), -π/2 = top
+  // Correct angle: -د€ (left) â†’ 0 (right), -د€/2 = top
   const angleRad = ((value / 100) - 1) * Math.PI;
   const nx = cx + r * Math.cos(angleRad);
   const ny = cy + r * Math.sin(angleRad);
 
-  // 5 zone segments, each 36° wide, from -180° to 0°
+  // 5 zone segments, each 36آ° wide, from -180آ° to 0آ°
   const ZONE_COLORS = ['#ef4444','#f97316','#eab308','#22c55e','#16a34a'];
   const toRad = (deg: number) => deg * Math.PI / 180;
 
   const zonePaths = ZONE_COLORS.map((c, i) => {
-    const a1 = -180 + i * 36;       // start deg  (e.g. -180, -144, …)
+    const a1 = -180 + i * 36;       // start deg  (e.g. -180, -144, â€¦)
     const a2 = a1 + 36;             // end deg
     const x1 = cx + r * Math.cos(toRad(a1));
     const y1 = cy + r * Math.sin(toRad(a1));
     const x2 = cx + r * Math.cos(toRad(a2));
     const y2 = cy + r * Math.sin(toRad(a2));
-    // small clockwise arc (sweep=1) → traces through TOP
+    // small clockwise arc (sweep=1) â†’ traces through TOP
     return <path key={i} d={`M ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2}`}
       fill="none" stroke={c} strokeWidth={sw} strokeLinecap="butt" opacity="0.38" />;
   });
@@ -94,8 +94,8 @@ function Gauge({ value, label, size = 'compact' }: {
   );
 }
 
-// ── Modal ─────────────────────────────────────────────────────────────────────
-const PERIOD_AR = ['اليوم', 'أمس', 'الأسبوع الماضي'];
+// â”€â”€ Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const PERIOD_AR = ['ط§ظ„ظٹظˆظ…', 'ط£ظ…ط³', 'ط§ظ„ط£ط³ط¨ظˆط¹ ط§ظ„ظ…ط§ط¶ظٹ'];
 
 function FearGreedModal({ value, classification, history, globalData, onClose }: {
   value: number; classification: string; history: FngEntry[];
@@ -113,47 +113,47 @@ function FearGreedModal({ value, classification, history, globalData, onClose }:
           {/* Header */}
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-xl font-black text-orange-400">نبض السوق والمشاعر</h2>
-              <p className="text-[11px] text-white/40 mt-0.5 leading-relaxed">تحليل شامل يربط بين سيكولوجية المتداولين والمعطيات الفنية</p>
+              <h2 className="text-xl font-black text-orange-400">ظ†ط¨ط¶ ط§ظ„ط³ظˆظ‚ ظˆط§ظ„ظ…ط´ط§ط¹ط±</h2>
+              <p className="text-sm text-white/40 mt-0.5 leading-relaxed">طھط­ظ„ظٹظ„ ط´ط§ظ…ظ„ ظٹط±ط¨ط· ط¨ظٹظ† ط³ظٹظƒظˆظ„ظˆط¬ظٹط© ط§ظ„ظ…طھط¯ط§ظˆظ„ظٹظ† ظˆط§ظ„ظ…ط¹ط·ظٹط§طھ ط§ظ„ظپظ†ظٹط©</p>
             </div>
-            <button onClick={onClose} className="p-1.5 rounded-full bg-white/[0.06] text-white/40 hover:text-white shrink-0"><X className="w-4 h-4" /></button>
+            <button onClick={onClose} className="p-1.5 rounded-full bg-white/[0.06] text-white/40 hover:text-white shrink-0"><X className="w-6 h-6" /></button>
           </div>
           {/* Full gauge */}
-          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 flex flex-col items-center">
-            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">مؤشر الخوف والطمع الحالي</p>
+          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 flex flex-col items-center">
+            <p className="text-sm font-bold text-white/40 uppercase tracking-widest mb-3">ظ…ط¤ط´ط± ط§ظ„ط®ظˆظپ ظˆط§ظ„ط·ظ…ط¹ ط§ظ„ط­ط§ظ„ظٹ</p>
             <div className="w-52"><Gauge value={value} label={classification} size="full" /></div>
-            <p className="text-sm font-black mt-2" style={{ color }}>{arLabel(classification)}</p>
+            <p className="text-lg font-black mt-2" style={{ color }}>{arLabel(classification)}</p>
           </div>
           {/* Market stats */}
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-              <p className="text-[9px] text-white/30 font-mono mb-1">حجم التداول (24h)</p>
-              <p className="text-base font-mono font-black tabular-nums text-white">${globalData.totalMarketCap}</p>
-              <p className="text-[9px] text-white/25 mt-1">إجمالي تداولات السوق</p>
+              <p className="text-sm text-white/30 font-mono mb-1">ط­ط¬ظ… ط§ظ„طھط¯ط§ظˆظ„ (24h)</p>
+              <p className="text-lg font-mono font-black tabular-nums text-white">${globalData.totalMarketCap}</p>
+              <p className="text-sm text-white/25 mt-1">ط¥ط¬ظ…ط§ظ„ظٹ طھط¯ط§ظˆظ„ط§طھ ط§ظ„ط³ظˆظ‚</p>
             </div>
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-              <p className="text-[9px] text-white/30 font-mono mb-1">القيمة السوقية الكلية</p>
-              <p className="text-base font-mono font-black tabular-nums text-orange-400">{globalData.btcDominance}</p>
+              <p className="text-sm text-white/30 font-mono mb-1">ط§ظ„ظ‚ظٹظ…ط© ط§ظ„ط³ظˆظ‚ظٹط© ط§ظ„ظƒظ„ظٹط©</p>
+              <p className="text-lg font-mono font-black tabular-nums text-orange-400">{globalData.btcDominance}</p>
             </div>
           </div>
           {/* Historical table */}
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]">
-              <TrendingUp className="w-4 h-4 text-orange-500" />
-              <p className="text-[11px] font-bold text-orange-400">السجل التاريخي للمشاعر</p>
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.06]">
+              <TrendingUp className="w-6 h-6 text-orange-500" />
+              <p className="text-sm font-bold text-orange-400">ط§ظ„ط³ط¬ظ„ ط§ظ„طھط§ط±ظٹط®ظٹ ظ„ظ„ظ…ط´ط§ط¹ط±</p>
             </div>
-            <div className="grid grid-cols-3 px-4 py-2 border-b border-white/[0.04]">
-              {['الفترة','القراءة','الحالة'].map(h => (
-                <p key={h} className="text-[9px] font-bold text-white/30 text-center">{h}</p>
+            <div className="grid grid-cols-3 px-5 py-4 border-b border-white/[0.04]">
+              {['ط§ظ„ظپطھط±ط©','ط§ظ„ظ‚ط±ط§ط،ط©','ط§ظ„ط­ط§ظ„ط©'].map(h => (
+                <p key={h} className="text-sm font-bold text-white/30 text-center">{h}</p>
               ))}
             </div>
             {history.slice(0,3).map((e,i) => {
               const v = parseInt(e.value,10);
               return (
-                <div key={i} className={`grid grid-cols-3 px-4 py-3 ${i<2?'border-b border-white/[0.04]':''}`}>
-                  <p className="text-[11px] text-white/70 text-center">{PERIOD_AR[i]}</p>
-                  <p className="text-[11px] font-mono font-black tabular-nums text-center" style={{color:gaugeColor(v)}}>{v}</p>
-                  <p className="text-[10px] text-white/60 text-center">{e.value_classification}</p>
+                <div key={i} className={`grid grid-cols-3 px-5 py-4 ${i<2?'border-b border-white/[0.04]':''}`}>
+                  <p className="text-sm text-white/70 text-center">{PERIOD_AR[i]}</p>
+                  <p className="text-sm font-mono font-black tabular-nums text-center" style={{color:gaugeColor(v)}}>{v}</p>
+                  <p className="text-sm text-white/60 text-center">{e.value_classification}</p>
                 </div>
               );
             })}
@@ -164,7 +164,7 @@ function FearGreedModal({ value, classification, history, globalData, onClose }:
   );
 }
 
-// ── Public Widget ─────────────────────────────────────────────────────────────
+// â”€â”€ Public Widget â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function FearGreedWidget({ globalData = { totalMarketCap:'---', btcDominance:'---' } }:
   { globalData?: { totalMarketCap: string; btcDominance: string } }) {
   const [value,          setValue]          = useState<number>(50);
@@ -198,15 +198,15 @@ export function FearGreedWidget({ globalData = { totalMarketCap:'---', btcDomina
         className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-3 flex flex-col items-center w-full active:scale-[0.97] transition-transform hover:border-orange-500/20 h-[148px]"
         dir="rtl"
       >
-        <p className="text-[10px] font-bold text-orange-400 mb-1 self-end">الخوف والطمع</p>
+        <p className="text-sm font-bold text-orange-400 mb-1 self-end">ط§ظ„ط®ظˆظپ ظˆط§ظ„ط·ظ…ط¹</p>
         {loading ? (
           <div className="flex-1 flex items-center justify-center">
-            <span className="w-4 h-4 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
+            <span className="w-6 h-6 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
           </div>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center w-full">
             <Gauge value={value} label={classification} size="compact" />
-            <p className="text-[11px] font-black mt-0.5" style={{ color }}>{arLabel(classification)}</p>
+            <p className="text-sm font-black mt-0.5" style={{ color }}>{arLabel(classification)}</p>
           </div>
         )}
       </button>

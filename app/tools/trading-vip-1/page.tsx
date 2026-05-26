@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 /**
  * app/tools/trading-vip-1/page.tsx
  *
- * Trading VIP 1 - Consensus Engine (محرك الإجماع الفائق)
+ * Trading VIP 1 - Consensus Engine (ظ…ط­ط±ظƒ ط§ظ„ط¥ط¬ظ…ط§ط¹ ط§ظ„ظپط§ط¦ظ‚)
  * Combines 5 sub-algorithms. Blocks trades if consensus < 65%.
  */
 
@@ -29,21 +29,21 @@ export default function Vip1Page() {
 
   const handleCalculate = async () => {
     setError('');
-    if (!symbol.trim()) return setError('أدخل اسم الأصل.');
+    if (!symbol.trim()) return setError('ط£ط¯ط®ظ„ ط§ط³ظ… ط§ظ„ط£طµظ„.');
     
     setLoading(true);
     setAnimated(false);
     
     try {
       const klines = await fetchKlines(symbol.toUpperCase().trim(), '1d', 100);
-      if (klines.length === 0) throw new Error('لا توجد بيانات متاحة لهذا الأصل.');
+      if (klines.length === 0) throw new Error('ظ„ط§ طھظˆط¬ط¯ ط¨ظٹط§ظ†ط§طھ ظ…طھط§ط­ط© ظ„ظ‡ط°ط§ ط§ظ„ط£طµظ„.');
       
       const res = generateVIP1Setup(symbol.toUpperCase().trim(), klines);
       setResult(res);
       setTimeout(() => setAnimated(true), 100);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'حدث خطأ أثناء جلب البيانات أو المعالجة.');
+      setError(err.message || 'ط­ط¯ط« ط®ط·ط£ ط£ط«ظ†ط§ط، ط¬ظ„ط¨ ط§ظ„ط¨ظٹط§ظ†ط§طھ ط£ظˆ ط§ظ„ظ…ط¹ط§ظ„ط¬ط©.');
     } finally {
       setLoading(false);
     }
@@ -53,31 +53,31 @@ export default function Vip1Page() {
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
       <ToolPageHeader tool={tool} />
 
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-orange-500/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-orange-500/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full">
             VIP Consensus
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">
-          TRADING VIP 1 (محرك الإجماع الفائق)
+          TRADING VIP 1 (ظ…ط­ط±ظƒ ط§ظ„ط¥ط¬ظ…ط§ط¹ ط§ظ„ظپط§ط¦ظ‚)
         </h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
-          نظام مؤسسي مدمج بـ 5 خوارزميات لفلترة الصفقات الآمنة
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
+          ظ†ط¸ط§ظ… ظ…ط¤ط³ط³ظٹ ظ…ط¯ظ…ط¬ ط¨ظ€ 5 ط®ظˆط§ط±ط²ظ…ظٹط§طھ ظ„ظپظ„طھط±ط© ط§ظ„طµظپظ‚ط§طھ ط§ظ„ط¢ظ…ظ†ط©
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5">
+      <div className="px-5 flex flex-col gap-5">
         {/* Input */}
-        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-4 shadow-xl shadow-black/50">
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-6 shadow-xl shadow-black/50">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">رمز الأصل المالي</label>
+            <label className="text-sm font-bold text-white/50 uppercase tracking-widest">ط±ظ…ط² ط§ظ„ط£طµظ„ ط§ظ„ظ…ط§ظ„ظٹ</label>
             <input
               type="text"
               value={symbol}
               onChange={e => setSymbol(e.target.value)}
               placeholder="BTCUSDT"
-              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-colors"
+              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-lg px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-colors"
               dir="ltr"
             />
           </div>
@@ -85,9 +85,9 @@ export default function Vip1Page() {
           <AnimatePresence>
             {error && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-2.5 mt-2">
-                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                  <p className="text-xs text-red-300">{error}</p>
+                <div className="flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-4.5 mt-2">
+                  <AlertCircle className="w-6 h-6 text-red-400 shrink-0" />
+                  <p className="text-base text-red-300">{error}</p>
                 </div>
               </motion.div>
             )}
@@ -96,14 +96,14 @@ export default function Vip1Page() {
           <button
             onClick={handleCalculate}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2.5 rounded-xl py-4 font-black text-sm tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
+            className="w-full flex items-center justify-center gap-3.5 rounded-xl py-4 font-black text-lg tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
             style={{
               background: loading ? 'linear-gradient(135deg, #7c2d12, #431407)' : 'linear-gradient(135deg, #ea580c, #9a3412)',
               boxShadow: !loading ? '0 0 20px rgba(234, 88, 12, 0.25)' : 'none'
             }}
           >
-            {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-4 h-4" />}
-            {loading ? 'جاري التحليل...' : 'تشغيل محرك الإجماع'}
+            {loading ? <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-6 h-6" />}
+            {loading ? 'ط¬ط§ط±ظٹ ط§ظ„طھط­ظ„ظٹظ„...' : 'طھط´ط؛ظٹظ„ ظ…ط­ط±ظƒ ط§ظ„ط¥ط¬ظ…ط§ط¹'}
           </button>
         </div>
 
@@ -116,7 +116,7 @@ export default function Vip1Page() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ type: 'spring', stiffness: 100, damping: 18 }}
-              className="flex flex-col gap-4"
+              className="flex flex-col gap-6"
             >
               {result.setups.map((setup, idx) => (
                 <Vip1TradeCard key={setup.timeframe} setup={setup} delay={0.1 * idx} animated={animated} />
@@ -139,12 +139,12 @@ function Vip1TradeCard({ setup, delay, animated }: { setup: Vip1TradeSetup, dela
       transition={{ delay, duration: 0.4 }}
       className={`rounded-xl border ${isBlocked ? 'border-gray-500/20 bg-[#0d0d0d]/80' : 'border-orange-500/20 bg-[#111]'} overflow-hidden shadow-lg`}
     >
-      <div className="p-4 border-b border-white/[0.04] flex justify-between items-center bg-white/[0.01]">
+      <div className="p-6 border-b border-white/[0.04] flex justify-between items-center bg-white/[0.01]">
         <div className="flex flex-col">
-          <span className="text-[12px] font-black text-white/80">{setup.tfLabelAr}</span>
+          <span className="text-sm font-black text-white/80">{setup.tfLabelAr}</span>
           {!isBlocked && (
-            <span className={`text-[10px] font-bold ${setup.bias === 'BULL' ? 'text-emerald-400' : 'text-red-400'}`}>
-              {setup.bias === 'BULL' ? 'شراء (BUY)' : 'بيع (SELL)'}
+            <span className={`text-sm font-bold ${setup.bias === 'BULL' ? 'text-emerald-400' : 'text-red-400'}`}>
+              {setup.bias === 'BULL' ? 'ط´ط±ط§ط، (BUY)' : 'ط¨ظٹط¹ (SELL)'}
             </span>
           )}
         </div>
@@ -163,18 +163,18 @@ function Vip1TradeCard({ setup, delay, animated }: { setup: Vip1TradeSetup, dela
               strokeLinecap="round"
             />
           </svg>
-          <span className={`absolute text-[10px] font-black font-mono ${isBlocked ? 'text-gray-400' : 'text-orange-400'}`}>
+          <span className={`absolute text-sm font-black font-mono ${isBlocked ? 'text-gray-400' : 'text-orange-400'}`}>
             {setup.consensusScorePct}%
           </span>
         </div>
       </div>
 
-      <div className="p-4 flex flex-col gap-4">
+      <div className="p-6 flex flex-col gap-6">
         {/* Sub-Algorithms Breakdown */}
         <div className="flex justify-between gap-1 items-end h-16 bg-black/40 p-2 rounded-lg border border-white/[0.03]">
           {setup.subAlgorithms.map((sub, i) => (
             <div key={sub.id} className="flex-1 flex flex-col items-center justify-end gap-1">
-              <span className="text-[8px] font-mono text-white/40">{sub.weightContribPct}%</span>
+              <span className="text-sm font-mono text-white/40">{sub.weightContribPct}%</span>
               <motion.div 
                 className={`w-full rounded-sm ${isBlocked ? 'bg-gray-600/50' : 'bg-orange-500/70'}`}
                 initial={{ height: 0 }}
@@ -188,9 +188,9 @@ function Vip1TradeCard({ setup, delay, animated }: { setup: Vip1TradeSetup, dela
         </div>
 
         {isBlocked ? (
-          <div className="flex flex-col items-center justify-center py-4 px-2 gap-2 text-center border border-dashed border-gray-600/50 rounded-lg bg-gray-500/5">
+          <div className="flex flex-col items-center justify-center py-4 px-2 gap-3 text-center border border-dashed border-gray-600/50 rounded-lg bg-gray-500/5">
             <ShieldBan className="w-8 h-8 text-gray-500" />
-            <p className="text-[11px] font-bold text-gray-400 leading-relaxed">
+            <p className="text-sm font-bold text-gray-400 leading-relaxed">
               {setup.blockedReasonAr}
             </p>
           </div>
@@ -199,32 +199,32 @@ function Vip1TradeCard({ setup, delay, animated }: { setup: Vip1TradeSetup, dela
             {/* Entry & SL */}
             <div className="flex justify-between items-center p-3 rounded-lg bg-orange-500/5 border border-orange-500/10">
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] font-mono text-orange-500/50 uppercase tracking-widest flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Entry</span>
+                <span className="text-sm font-mono text-orange-500/50 uppercase tracking-widest flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Entry</span>
                 <span className="text-lg font-black text-white font-mono">{setup.entryPrice}</span>
               </div>
               <div className="h-8 w-px bg-orange-500/20" />
               <div className="flex flex-col gap-1 items-end">
-                <span className="text-[10px] font-mono text-red-500/70 uppercase tracking-widest flex items-center gap-1">Stop Loss <ShieldAlert className="w-3 h-3" /></span>
+                <span className="text-sm font-mono text-red-500/70 uppercase tracking-widest flex items-center gap-1">Stop Loss <ShieldAlert className="w-3 h-3" /></span>
                 <span className="text-lg font-black text-red-400 font-mono">{setup.stopLoss}</span>
               </div>
             </div>
 
             {/* TPs */}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-3">
               <div className="flex flex-col items-center p-2 rounded-lg bg-white/[0.02] border border-white/[0.05]">
-                <span className="text-[9px] text-white/40 font-mono mb-1">TP 1</span>
-                <span className="text-[11px] font-bold text-emerald-400 font-mono">{setup.tp1}</span>
-                <span className="text-[9px] text-emerald-500/60 font-mono mt-0.5">+{setup.profitPct1}</span>
+                <span className="text-sm text-white/40 font-mono mb-1">TP 1</span>
+                <span className="text-sm font-bold text-emerald-400 font-mono">{setup.tp1}</span>
+                <span className="text-sm text-emerald-500/60 font-mono mt-0.5">+{setup.profitPct1}</span>
               </div>
               <div className="flex flex-col items-center p-2 rounded-lg bg-white/[0.02] border border-white/[0.05]">
-                <span className="text-[9px] text-white/40 font-mono mb-1">TP 2</span>
-                <span className="text-[11px] font-bold text-emerald-400 font-mono">{setup.tp2}</span>
-                <span className="text-[9px] text-emerald-500/60 font-mono mt-0.5">+{setup.profitPct2}</span>
+                <span className="text-sm text-white/40 font-mono mb-1">TP 2</span>
+                <span className="text-sm font-bold text-emerald-400 font-mono">{setup.tp2}</span>
+                <span className="text-sm text-emerald-500/60 font-mono mt-0.5">+{setup.profitPct2}</span>
               </div>
               <div className="flex flex-col items-center p-2 rounded-lg bg-white/[0.02] border border-white/[0.05]">
-                <span className="text-[9px] text-white/40 font-mono mb-1">TP 3</span>
-                <span className="text-[11px] font-bold text-emerald-400 font-mono">{setup.tp3}</span>
-                <span className="text-[9px] text-emerald-500/60 font-mono mt-0.5">+{setup.profitPct3}</span>
+                <span className="text-sm text-white/40 font-mono mb-1">TP 3</span>
+                <span className="text-sm font-bold text-emerald-400 font-mono">{setup.tp3}</span>
+                <span className="text-sm text-emerald-500/60 font-mono mt-0.5">+{setup.profitPct3}</span>
               </div>
             </div>
           </div>

@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 /**
  * app/tools/atr-volatility/page.tsx
  *
- * ATR Volatility Engine (محرك التقلبات)
+ * ATR Volatility Engine (ظ…ط­ط±ظƒ ط§ظ„طھظ‚ظ„ط¨ط§طھ)
  * Visualizes the current market volatility using ATR vs SMA(ATR).
  */
 
@@ -30,21 +30,21 @@ export default function AtrVolatilityPage() {
 
   const handleCalculate = async () => {
     setError('');
-    if (!symbol.trim()) return setError('أدخل اسم الأصل.');
+    if (!symbol.trim()) return setError('ط£ط¯ط®ظ„ ط§ط³ظ… ط§ظ„ط£طµظ„.');
     
     setLoading(true);
     setAnimated(false);
     
     try {
       const klines = await fetchKlines(symbol.toUpperCase().trim(), timeframe.toLowerCase(), 200); // Need more klines for SMA(ATR, 20) of ATR(14)
-      if (klines.length === 0) throw new Error('لا توجد بيانات متاحة لهذا الأصل.');
+      if (klines.length === 0) throw new Error('ظ„ط§ طھظˆط¬ط¯ ط¨ظٹط§ظ†ط§طھ ظ…طھط§ط­ط© ظ„ظ‡ط°ط§ ط§ظ„ط£طµظ„.');
       
       const res = calculateVolatility(symbol.toUpperCase().trim(), klines);
       setResult(res);
       setTimeout(() => setAnimated(true), 100);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'حدث خطأ أثناء جلب البيانات أو المعالجة.');
+      setError(err.message || 'ط­ط¯ط« ط®ط·ط£ ط£ط«ظ†ط§ط، ط¬ظ„ط¨ ط§ظ„ط¨ظٹط§ظ†ط§طھ ط£ظˆ ط§ظ„ظ…ط¹ط§ظ„ط¬ط©.');
     } finally {
       setLoading(false);
     }
@@ -60,42 +60,42 @@ export default function AtrVolatilityPage() {
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
       <ToolPageHeader tool={tool} />
 
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-amber-500/70 tracking-widest uppercase border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 rounded-full flex items-center gap-1">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-amber-500/70 tracking-widest uppercase border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 rounded-full flex items-center gap-1">
             <Activity className="w-3 h-3" /> Volatility Engine
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">
-          محرك التقلبات (ATR)
+          ظ…ط­ط±ظƒ ط§ظ„طھظ‚ظ„ط¨ط§طھ (ATR)
         </h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
-          قياس السيولة وسرعة الحركة لحساب الإيقاف الآمن
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
+          ظ‚ظٹط§ط³ ط§ظ„ط³ظٹظˆظ„ط© ظˆط³ط±ط¹ط© ط§ظ„ط­ط±ظƒط© ظ„ط­ط³ط§ط¨ ط§ظ„ط¥ظٹظ‚ط§ظپ ط§ظ„ط¢ظ…ظ†
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5">
+      <div className="px-5 flex flex-col gap-5">
         {/* Input Form */}
-        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-4 shadow-xl shadow-black/50">
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-6 shadow-xl shadow-black/50">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">رمز الأصل المالي</label>
+              <label className="text-sm font-bold text-white/50 uppercase tracking-widest">ط±ظ…ط² ط§ظ„ط£طµظ„ ط§ظ„ظ…ط§ظ„ظٹ</label>
               <input
                 type="text"
                 value={symbol}
                 onChange={e => setSymbol(e.target.value)}
                 placeholder="BTCUSDT"
-                className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 placeholder:text-white/20 focus:outline-none focus:border-amber-500/40 transition-colors"
+                className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-lg px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-amber-500/40 transition-colors"
                 dir="ltr"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">الإطار الزمني</label>
+              <label className="text-sm font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">ط§ظ„ط¥ط·ط§ط± ط§ظ„ط²ظ…ظ†ظٹ</label>
               <div className="relative">
                 <select
                   value={timeframe}
                   onChange={e => setTimeframe(e.target.value)}
-                  className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 appearance-none focus:outline-none focus:border-amber-500/40 transition-colors cursor-pointer"
+                  className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-lg px-5 py-4 appearance-none focus:outline-none focus:border-amber-500/40 transition-colors cursor-pointer"
                   dir="ltr"
                 >
                   <option value="1h">1H</option>
@@ -104,7 +104,7 @@ export default function AtrVolatilityPage() {
                   <option value="1w">1W</option>
                 </select>
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <ChevronDown className="w-4 h-4 text-white/40" />
+                  <ChevronDown className="w-6 h-6 text-white/40" />
                 </div>
               </div>
             </div>
@@ -113,9 +113,9 @@ export default function AtrVolatilityPage() {
           <AnimatePresence>
             {error && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-2.5 mt-2">
-                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                  <p className="text-xs text-red-300">{error}</p>
+                <div className="flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-4.5 mt-2">
+                  <AlertCircle className="w-6 h-6 text-red-400 shrink-0" />
+                  <p className="text-base text-red-300">{error}</p>
                 </div>
               </motion.div>
             )}
@@ -124,14 +124,14 @@ export default function AtrVolatilityPage() {
           <button
             onClick={handleCalculate}
             disabled={loading}
-            className="w-full mt-2 flex items-center justify-center gap-2.5 rounded-xl py-4 font-black text-sm tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
+            className="w-full mt-2 flex items-center justify-center gap-3.5 rounded-xl py-4 font-black text-lg tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
             style={{
               background: loading ? 'linear-gradient(135deg, #78350f, #451a03)' : 'linear-gradient(135deg, #f59e0b, #b45309)',
               boxShadow: !loading ? '0 0 20px rgba(245, 158, 11, 0.25)' : 'none'
             }}
           >
-            {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-4 h-4" />}
-            {loading ? 'جاري القياس...' : 'تشغيل محرك التقلبات'}
+            {loading ? <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-6 h-6" />}
+            {loading ? 'ط¬ط§ط±ظٹ ط§ظ„ظ‚ظٹط§ط³...' : 'طھط´ط؛ظٹظ„ ظ…ط­ط±ظƒ ط§ظ„طھظ‚ظ„ط¨ط§طھ'}
           </button>
         </div>
 
@@ -144,11 +144,11 @@ export default function AtrVolatilityPage() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ type: 'spring', stiffness: 100, damping: 18 }}
-              className="flex flex-col gap-4"
+              className="flex flex-col gap-6"
             >
               {/* Visual Speedometer/Gauge Chart */}
               <div className="rounded-2xl border border-white/[0.08] bg-[#111] p-6 flex flex-col items-center shadow-[0_0_30px_rgba(245,158,11,0.05)] relative overflow-hidden">
-                <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-6">مؤشر سرعة السوق (Speedometer)</p>
+                <p className="text-sm font-bold text-white/50 uppercase tracking-widest mb-6">ظ…ط¤ط´ط± ط³ط±ط¹ط© ط§ظ„ط³ظˆظ‚ (Speedometer)</p>
                 
                 <div className="relative w-64 h-32 overflow-hidden flex justify-center mb-2">
                   {/* Gauge Background SVG */}
@@ -194,7 +194,7 @@ export default function AtrVolatilityPage() {
                   </div>
                 </div>
 
-                <div className="w-full flex justify-between text-[9px] font-bold text-white/40 uppercase tracking-widest mt-2 px-4">
+                <div className="w-full flex justify-between text-sm font-bold text-white/40 uppercase tracking-widest mt-2 px-5">
                   <span className="text-emerald-500/70">Low</span>
                   <span className="text-amber-500/70">Normal</span>
                   <span className="text-red-500/70">Extreme</span>
@@ -206,12 +206,12 @@ export default function AtrVolatilityPage() {
                 {/* 1. Volatility State */}
                 <motion.div 
                   initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-                  className={`flex flex-col p-4 rounded-xl border border-white/[0.05] ${
+                  className={`flex flex-col p-6 rounded-xl border border-white/[0.05] ${
                     result.state === 'Expanding' ? 'bg-amber-500/10 shadow-[inset_0_0_20px_rgba(245,158,11,0.1)]' : 'bg-emerald-500/10 shadow-[inset_0_0_20px_rgba(16,185,129,0.1)]'
                   }`}
                 >
-                  <span className="text-[10px] font-bold text-white/50 mb-2 flex items-center gap-1.5">
-                    <Activity className="w-3 h-3" /> حالة السوق
+                  <span className="text-sm font-bold text-white/50 mb-2 flex items-center gap-1.5">
+                    <Activity className="w-3 h-3" /> ط­ط§ظ„ط© ط§ظ„ط³ظˆظ‚
                   </span>
                   <span className={`text-lg font-black tracking-widest ${
                     result.state === 'Expanding' ? 'text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]' : 'text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]'
@@ -223,30 +223,30 @@ export default function AtrVolatilityPage() {
                 {/* 2. ATR Value */}
                 <motion.div 
                   initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-                  className="flex flex-col p-4 rounded-xl border border-white/[0.05] bg-black/40"
+                  className="flex flex-col p-6 rounded-xl border border-white/[0.05] bg-black/40"
                 >
-                  <span className="text-[10px] font-bold text-white/50 mb-2 flex items-center gap-1.5">
-                    <Zap className="w-3 h-3" /> قيمة التقلب اليومي (ATR)
+                  <span className="text-sm font-bold text-white/50 mb-2 flex items-center gap-1.5">
+                    <Zap className="w-3 h-3" /> ظ‚ظٹظ…ط© ط§ظ„طھظ‚ظ„ط¨ ط§ظ„ظٹظˆظ…ظٹ (ATR)
                   </span>
                   <span className="text-xl font-black text-white font-mono tracking-tighter">
                     ${priceStr(result.atrValue)}
                   </span>
-                  <span className="text-[9px] text-white/40 mt-1">متوسط حركة الشمعة</span>
+                  <span className="text-sm text-white/40 mt-1">ظ…طھظˆط³ط· ط­ط±ظƒط© ط§ظ„ط´ظ…ط¹ط©</span>
                 </motion.div>
 
                 {/* 3. Safe Stop Loss */}
                 <motion.div 
                   initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-                  className="flex flex-col p-4 rounded-xl border border-rose-500/20 bg-rose-500/5 relative overflow-hidden"
+                  className="flex flex-col p-6 rounded-xl border border-rose-500/20 bg-rose-500/5 relative overflow-hidden"
                 >
                   <div className="absolute top-0 right-0 w-8 h-8 bg-rose-500/20 blur-xl rounded-full" />
-                  <span className="text-[10px] font-bold text-rose-500/80 mb-2 flex items-center gap-1.5">
-                    <ShieldAlert className="w-3 h-3" /> نطاق الوقف الآمن (SL)
+                  <span className="text-sm font-bold text-rose-500/80 mb-2 flex items-center gap-1.5">
+                    <ShieldAlert className="w-3 h-3" /> ظ†ط·ط§ظ‚ ط§ظ„ظˆظ‚ظپ ط§ظ„ط¢ظ…ظ† (SL)
                   </span>
-                  <span className="text-[13px] font-black text-rose-300 leading-snug">
-                    أبعد وقفك بمقدار <span className="font-mono bg-rose-500/20 px-1 rounded border border-rose-500/30">${priceStr(result.safeStopLossDist)}</span> عن نقطة الدخول
+                  <span className="text-base font-black text-rose-300 leading-snug">
+                    ط£ط¨ط¹ط¯ ظˆظ‚ظپظƒ ط¨ظ…ظ‚ط¯ط§ط± <span className="font-mono bg-rose-500/20 px-1 rounded border border-rose-500/30">${priceStr(result.safeStopLossDist)}</span> ط¹ظ† ظ†ظ‚ط·ط© ط§ظ„ط¯ط®ظˆظ„
                   </span>
-                  <span className="text-[9px] text-rose-500/60 mt-2 font-bold tracking-widest">معدل الحماية: 1.5x ATR</span>
+                  <span className="text-sm text-rose-500/60 mt-2 font-bold tracking-widest">ظ…ط¹ط¯ظ„ ط§ظ„ط­ظ…ط§ظٹط©: 1.5x ATR</span>
                 </motion.div>
               </div>
 

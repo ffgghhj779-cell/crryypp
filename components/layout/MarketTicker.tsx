@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, useState } from 'react';
 
@@ -92,24 +92,24 @@ export function MarketTicker() {
         {hasData ? items.map((t, i) => (
           <span
             key={i}
-            className="inline-flex items-center gap-1.5 px-4 border-r border-white/[0.04]"
+            className="inline-flex items-center gap-1.5 px-5 border-r border-white/[0.04]"
             style={{ height: 30 }}
           >
-            <span className="text-[9px] font-bold text-white/40 tracking-widest uppercase">
+            <span className="text-sm font-bold text-white/40 tracking-widest uppercase">
               {t.symbol}
             </span>
-            <span className="text-[10px] font-mono font-bold text-white/90 tabular-nums">
+            <span className="text-sm font-mono font-bold text-white/90 tabular-nums">
               ${t.price}
             </span>
-            <span className={`text-[9px] font-mono font-bold tabular-nums ${t.pos ? 'text-emerald-400' : 'text-red-400'}`}>
+            <span className={`text-sm font-mono font-bold tabular-nums ${t.pos ? 'text-emerald-400' : 'text-red-400'}`}>
               {t.change}
             </span>
           </span>
         )) : (
-          /* Loading state — static, not inside the animated div to avoid drift */
-          <span className="inline-flex items-center gap-2 px-4 text-[9px] text-white/25 font-mono tracking-widest">
+          /* Loading state â€” static, not inside the animated div to avoid drift */
+          <span className="inline-flex items-center gap-3 px-5 text-sm text-white/25 font-mono tracking-widest">
             <span className="w-1.5 h-1.5 rounded-full bg-orange-500/70 animate-pulse shrink-0" />
-            جارٍ تحميل بيانات السوق...
+            ط¬ط§ط±ظچ طھط­ظ…ظٹظ„ ط¨ظٹط§ظ†ط§طھ ط§ظ„ط³ظˆظ‚...
           </span>
         )}
       </div>

@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { X, BarChart2 } from 'lucide-react';
 
-// ── UTC countdown helpers ─────────────────────────────────────────────────────
+// â”€â”€ UTC countdown helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function secsUntilMidnightUTC(): number {
   const now = Date.now();
   const midnight = new Date(now);
@@ -18,8 +18,8 @@ function fmt(totalSecs: number): string {
   return [h, m, s].map(n => String(n).padStart(2, '0')).join(':');
 }
 
-// ── Arabic day name ───────────────────────────────────────────────────────────
-const AR_DAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+// â”€â”€ Arabic day name â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const AR_DAYS = ['ط§ظ„ط£ط­ط¯', 'ط§ظ„ط§ط«ظ†ظٹظ†', 'ط§ظ„ط«ظ„ط§ط«ط§ط،', 'ط§ظ„ط£ط±ط¨ط¹ط§ط،', 'ط§ظ„ط®ظ…ظٹط³', 'ط§ظ„ط¬ظ…ط¹ط©', 'ط§ظ„ط³ط¨طھ'];
 
 function dayLabel(unixMs: number): string {
   const d = new Date(unixMs);
@@ -29,7 +29,7 @@ function dayLabel(unixMs: number): string {
   return `${day} (${dd}/${mm})`;
 }
 
-// ── Daily close modal ─────────────────────────────────────────────────────────
+// â”€â”€ Daily close modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function DailyCloseModal({ onClose }: { onClose: () => void }) {
   const [rows,    setRows]    = useState<{ label: string; price: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +40,7 @@ function DailyCloseModal({ onClose }: { onClose: () => void }) {
       .then(r => r.json())
       .then((data: unknown[][]) => {
         if (!cancelled) {
-          // data[i] = [openTime, open, high, low, close, ...] — skip the LAST bar (current open candle)
+          // data[i] = [openTime, open, high, low, close, ...] â€” skip the LAST bar (current open candle)
           const closed = data.slice(0, -1).reverse();
           setRows(closed.map(k => ({
             label: dayLabel(Number(k[0])),
@@ -72,28 +72,28 @@ function DailyCloseModal({ onClose }: { onClose: () => void }) {
           <div className="w-10 h-1 bg-white/20 rounded-full" />
         </div>
 
-        {/* PATCH: WebkitOverflowScrolling:touch removed — causes GPU layer
+        {/* PATCH: WebkitOverflowScrolling:touch removed â€” causes GPU layer
             stacking context conflict with modal z-index painting. */}
         <div className="overflow-y-auto px-5 pt-4 pb-8 space-y-4 overscroll-contain">
           {/* Header */}
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-xl font-black text-white">إحصاءات الإغلاق اليومي</h2>
-              <p className="text-[11px] text-white/40 mt-0.5">
-                سجل الإغلاقات التاريخية لآخر 7 أيام (توقيت UTC)
+              <h2 className="text-xl font-black text-white">ط¥ط­طµط§ط،ط§طھ ط§ظ„ط¥ط؛ظ„ط§ظ‚ ط§ظ„ظٹظˆظ…ظٹ</h2>
+              <p className="text-sm text-white/40 mt-0.5">
+                ط³ط¬ظ„ ط§ظ„ط¥ط؛ظ„ط§ظ‚ط§طھ ط§ظ„طھط§ط±ظٹط®ظٹط© ظ„ط¢ط®ط± 7 ط£ظٹط§ظ… (طھظˆظ‚ظٹطھ UTC)
               </p>
             </div>
             <button onClick={onClose} className="p-1.5 rounded-full bg-white/[0.06] text-white/40 hover:text-white active:scale-95">
-              <X className="w-4 h-4" />
+              <X className="w-6 h-6" />
             </button>
           </div>
 
           {/* Table */}
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
             {/* Table header */}
-            <div className="grid grid-cols-2 px-4 py-2.5 border-b border-white/[0.06] bg-white/[0.02]">
-              <p className="text-[10px] font-bold text-white/40 tracking-wider text-right">اليوم والتاريخ</p>
-              <p className="text-[10px] font-bold text-white/40 tracking-wider text-left">سعر الإغلاق</p>
+            <div className="grid grid-cols-2 px-5 py-4.5 border-b border-white/[0.06] bg-white/[0.02]">
+              <p className="text-sm font-bold text-white/40 tracking-wider text-right">ط§ظ„ظٹظˆظ… ظˆط§ظ„طھط§ط±ظٹط®</p>
+              <p className="text-sm font-bold text-white/40 tracking-wider text-left">ط³ط¹ط± ط§ظ„ط¥ط؛ظ„ط§ظ‚</p>
             </div>
 
             {loading ? (
@@ -104,19 +104,19 @@ function DailyCloseModal({ onClose }: { onClose: () => void }) {
               rows.map((row, i) => (
                 <div
                   key={i}
-                  className={`grid grid-cols-2 px-4 py-3.5 ${i < rows.length - 1 ? 'border-b border-white/[0.04]' : ''}`}
+                  className={`grid grid-cols-2 px-5 py-4.5 ${i < rows.length - 1 ? 'border-b border-white/[0.04]' : ''}`}
                 >
-                  <p className="text-[13px] font-semibold text-white/70 text-right">{row.label}</p>
-                  <p className="text-[13px] font-mono font-black tabular-nums text-white text-left">{row.price}</p>
+                  <p className="text-base font-semibold text-white/70 text-right">{row.label}</p>
+                  <p className="text-base font-mono font-black tabular-nums text-white text-left">{row.price}</p>
                 </div>
               ))
             )}
           </div>
 
           {/* Footer note */}
-          <div className="flex items-center gap-2 px-1">
+          <div className="flex items-center gap-3 px-1">
             <BarChart2 className="w-3.5 h-3.5 text-white/20" />
-            <p className="text-[9px] text-white/25 font-mono">بيانات من Binance · BTCUSDT · Daily (1D)</p>
+            <p className="text-sm text-white/25 font-mono">ط¨ظٹط§ظ†ط§طھ ظ…ظ† Binance آ· BTCUSDT آ· Daily (1D)</p>
           </div>
         </div>
       </div>
@@ -124,7 +124,7 @@ function DailyCloseModal({ onClose }: { onClose: () => void }) {
   );
 }
 
-// ── Public Widget ─────────────────────────────────────────────────────────────
+// â”€â”€ Public Widget â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function DailyCloseWidget() {
   const [secs,      setSecs]      = useState<number>(secsUntilMidnightUTC);
   const [modalOpen, setModalOpen] = useState(false);
@@ -152,9 +152,9 @@ export function DailyCloseWidget() {
         onClick={() => setModalOpen(true)}
         className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-3 flex flex-col w-full text-right active:scale-[0.97] transition-transform hover:border-orange-500/20 h-[148px]"
         dir="rtl"
-        aria-label="الإغلاق اليومي للبيتكوين — اضغط للتفاصيل"
+        aria-label="ط§ظ„ط¥ط؛ظ„ط§ظ‚ ط§ظ„ظٹظˆظ…ظٹ ظ„ظ„ط¨ظٹطھظƒظˆظٹظ† â€” ط§ط¶ط؛ط· ظ„ظ„طھظپط§طµظٹظ„"
       >
-        <p className="text-[10px] font-bold text-orange-400 mb-2">الإغلاق اليومي للبيتكوين</p>
+        <p className="text-sm font-bold text-orange-400 mb-2">ط§ظ„ط¥ط؛ظ„ط§ظ‚ ط§ظ„ظٹظˆظ…ظٹ ظ„ظ„ط¨ظٹطھظƒظˆظٹظ†</p>
 
         <div className="flex-1 flex items-center justify-center py-1">
           <span className="font-mono font-black tabular-nums text-white tracking-tight"
@@ -168,7 +168,7 @@ export function DailyCloseWidget() {
           </span>
         </div>
 
-        <p className="text-[9px] text-white/30 mt-2">متبقي على إغلاق شمعة اليوم</p>
+        <p className="text-sm text-white/30 mt-2">ظ…طھط¨ظ‚ظٹ ط¹ظ„ظ‰ ط¥ط؛ظ„ط§ظ‚ ط´ظ…ط¹ط© ط§ظ„ظٹظˆظ…</p>
       </button>
 
       {/* Modal */}
