@@ -53,7 +53,9 @@ const securityHeaders = [
         " https://api.coingecko.com https://pro-api.coingecko.com" +
         " https://*.supabase.co wss://*.supabase.co" +
         " https://blockchain.info" +
-        " wss://data.tradingview.com wss://widgetdata.tradingview.com",
+        " wss://data.tradingview.com wss://widgetdata.tradingview.com" +
+        " https://api.gold-api.com" +
+        " https://open.er-api.com",
 
       // Coin images from CoinGecko served via our proxy, plus self
       "img-src 'self' data: blob: https://assets.coingecko.com https://coin-images.coingecko.com",
