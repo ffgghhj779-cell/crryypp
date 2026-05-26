@@ -15,6 +15,7 @@ import { slugToTool } from '@/lib/tools/registry';
 import { calculateMomentumIntelligence, MomentumIntelligenceResult } from '@/lib/algorithms/momentum';
 import { fetchKlines } from '@/lib/binance/fetcher';
 import { notFound } from 'next/navigation';
+import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
 
 export default function MomentumIntelligencePage() {
   const [symbol, setSymbol] = useState('BTCUSDT');
@@ -71,14 +72,7 @@ export default function MomentumIntelligencePage() {
         <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-6 shadow-xl shadow-black/50">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-bold text-white/50 uppercase tracking-widest">رمز الأصل المالي</label>
-            <input
-              type="text"
-              value={symbol}
-              onChange={e => setSymbol(e.target.value)}
-              placeholder="BTCUSDT"
-              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-base px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-rose-500/40 transition-colors"
-              dir="ltr"
-            />
+            <SymbolDropdown value={symbol} onChange={setSymbol} />
           </div>
 
           <AnimatePresence>

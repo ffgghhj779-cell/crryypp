@@ -15,6 +15,7 @@ import { slugToTool } from '@/lib/tools/registry';
 import { calculateUnifiedDecision, UnifiedDecisionResult } from '@/lib/algorithms/unifiedDecision';
 import { fetchKlines } from '@/lib/binance/fetcher';
 import { notFound } from 'next/navigation';
+import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
 
 export default function UnifiedDecisionPage() {
   const [symbol, setSymbol] = useState('BTCUSDT');
@@ -77,14 +78,7 @@ export default function UnifiedDecisionPage() {
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">رمز الأصل</label>
-              <input
-                type="text"
-                value={symbol}
-                onChange={e => setSymbol(e.target.value)}
-                placeholder="BTCUSDT"
-                className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-base px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-amber-500/40 transition-colors"
-                dir="ltr"
-              />
+              <SymbolDropdown value={symbol} onChange={setSymbol} />
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">الإطار الزمني</label>
