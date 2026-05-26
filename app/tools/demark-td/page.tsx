@@ -7,6 +7,7 @@ import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
 import { Layers, RefreshCcw, AlertTriangle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useMemo } from 'react';
+import { ContextAssetBar } from '@/components/tools/ContextAssetBar';
 
 export default function DemarkTdPage() {
   const { candles, isLoading } = useMarketData();
@@ -54,6 +55,9 @@ export default function DemarkTdPage() {
   return (
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
       <ToolPageHeader tool={tool} />
+
+      {/* Asset selector — inside tool content */}
+      <ContextAssetBar />
 
       {/* Header */}
       <div className="px-5 pt-5 pb-4 flex flex-col gap-1">

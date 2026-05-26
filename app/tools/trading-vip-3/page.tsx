@@ -15,6 +15,7 @@ import { slugToTool } from '@/lib/tools/registry';
 import { generateVIP3Setup, Vip3Result, Vip3TradeSetup, ToolGrade } from '@/lib/algorithms/vip3';
 import { useMarketData } from '@/context/MarketDataContext';
 import { notFound } from 'next/navigation';
+import { ContextAssetBar } from '@/components/tools/ContextAssetBar';
 
 export default function Vip3Page() {
   const { symbol, setSymbol, candles, isLoading } = useMarketData();
@@ -70,6 +71,9 @@ export default function Vip3Page() {
     return (
       <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
         <ToolPageHeader tool={tool} />
+
+      {/* Asset selector — inside tool content */}
+      <ContextAssetBar />
         <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] gap-6">
           <div className="relative flex items-center justify-center">
             <motion.div 
@@ -90,6 +94,9 @@ export default function Vip3Page() {
   return (
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
       <ToolPageHeader tool={tool} />
+
+      {/* Asset selector — inside tool content */}
+      <ContextAssetBar />
 
       {/* Header */}
       <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
