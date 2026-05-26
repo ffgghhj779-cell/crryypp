@@ -1,81 +1,115 @@
 /**
  * lib/api/binance.ts
  *
- * Central utility for fetching live market data from Binance API.
- * Replaces mock data across the platform trading engines.
+ * Central utility for fetching live market data.
+ * - Crypto symbols → Binance API
+ * - Commodity symbols (XAUUSD, WTIUSD, USDEGP, EGYXAU) → /api/klines proxy
  */
 
 export interface BinanceKline {
-  time: number;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
+  time:   number;
+  open:   number;
+  high:   number;
+  low:    number;
+  close:  number;
   volume: number;
 }
 
+/** Commodity symbols routed to /api/klines proxy */
+const COMMODITY_SYMBOLS = new Set(['XAUUSD', 'WTIUSD', 'USDEGP', 'EGYXAU', 'BRENTUSD']);
+
 /**
- * Fetches live candlestick data from Binance API.
- * 
- * @param symbol Trading pair symbol (e.g., "BTCUSDT")
- * @param timeframe Interval (e.g., "15m", "1h", "4h", "1d")
- * @param limit Number of candles to fetch (default: 100)
- * @returns Array of parsed Kline objects
+ * Fetches live candlestick data.
+ * Automatically routes commodities to /api/klines proxy.
  */
-export async function fetchLiveCandles(symbol: string, timeframe: string, limit: number = 100): Promise<BinanceKline[]> {
+export async function fetchLiveCandles(
+  symbol:    string,
+  timeframe: string,
+  limit:     number = 100,
+): Promise<BinanceKline[]> {
+  const upperSymbol = symbol.toUpperCase().trim();
+
+  // ── Commodity: use proxy ─────────────────────────────────────────────────
+  if (COMMODITY_SYMBOLS.has(upperSymbol)) {
+    try {
+      const params = new URLSearchParams({
+        symbol:   upperSymbol,
+        interval: timeframe,
+        limit:    String(Math.min(Math.max(1, limit), 1000)),
+      });
+      const res = await fetch(`/api/klines?${params}`);
+      if (!res.ok) {
+        console.error(`[Commodities API] Error fetching candles for ${upperSymbol}: ${res.status}`);
+        return [];
+      }
+      const bars: BinanceKline[] = await res.json();
+      return Array.isArray(bars) ? bars : [];
+    } catch (err) {
+      console.error(`[Commodities API] Exception in fetchLiveCandles for ${upperSymbol}:`, err);
+      return [];
+    }
+  }
+
+  // ── Crypto: original Binance path ────────────────────────────────────────
   try {
-    const url = `https://api.binance.com/api/v3/klines?symbol=${symbol.toUpperCase()}&interval=${timeframe}&limit=${limit}`;
+    const url = `https://api.binance.com/api/v3/klines?symbol=${upperSymbol}&interval=${timeframe}&limit=${limit}`;
     const response = await fetch(url);
-    
+
     if (!response.ok) {
-      console.error(`[Binance API] Error fetching klines for ${symbol}: ${response.statusText}`);
+      console.error(`[Binance API] Error fetching klines for ${upperSymbol}: ${response.statusText}`);
       return [];
     }
 
     const data: any[][] = await response.json();
-    
-    // Map the raw array format to our strict object format
-    const parsedData: BinanceKline[] = data.map(candle => ({
-      time: Number(candle[0]),     // Open time
-      open: Number(candle[1]),     // Open
-      high: Number(candle[2]),     // High
-      low: Number(candle[3]),      // Low
-      close: Number(candle[4]),    // Close
-      volume: Number(candle[5]),   // Volume
-    }));
 
-    return parsedData;
+    return data.map(candle => ({
+      time:   Number(candle[0]),
+      open:   Number(candle[1]),
+      high:   Number(candle[2]),
+      low:    Number(candle[3]),
+      close:  Number(candle[4]),
+      volume: Number(candle[5]),
+    }));
   } catch (error) {
-    console.error(`[Binance API] Exception in fetchLiveCandles for ${symbol}:`, error);
+    console.error(`[Binance API] Exception in fetchLiveCandles for ${upperSymbol}:`, error);
     return [];
   }
 }
 
 /**
- * Fetches the current live ticker price from Binance API.
- * 
- * @param symbol Trading pair symbol (e.g., "BTCUSDT")
- * @returns Current price as a float, or null if it fails
+ * Fetches the current live price.
+ * For commodities, fetches the latest kline close from /api/klines.
  */
 export async function fetchCurrentPrice(symbol: string): Promise<number | null> {
+  const upperSymbol = symbol.toUpperCase().trim();
+
+  // ── Commodity: get latest close price ───────────────────────────────────
+  if (COMMODITY_SYMBOLS.has(upperSymbol)) {
+    try {
+      const params = new URLSearchParams({ symbol: upperSymbol, interval: '1h', limit: '1' });
+      const res = await fetch(`/api/klines?${params}`);
+      if (!res.ok) return null;
+      const bars: BinanceKline[] = await res.json();
+      return Array.isArray(bars) && bars.length > 0 ? bars[bars.length - 1].close : null;
+    } catch {
+      return null;
+    }
+  }
+
+  // ── Crypto: original Binance ticker ──────────────────────────────────────
   try {
-    const url = `https://api.binance.com/api/v3/ticker/price?symbol=${symbol.toUpperCase()}`;
+    const url = `https://api.binance.com/api/v3/ticker/price?symbol=${upperSymbol}`;
     const response = await fetch(url);
-    
+
     if (!response.ok) {
-      console.error(`[Binance API] Error fetching price for ${symbol}: ${response.statusText}`);
+      console.error(`[Binance API] Error fetching price for ${upperSymbol}: ${response.statusText}`);
       return null;
     }
 
     const data = await response.json();
-    
-    if (data && data.price) {
-      return Number(data.price);
-    }
-    
-    return null;
+    return data?.price ? Number(data.price) : null;
   } catch (error) {
-    console.error(`[Binance API] Exception in fetchCurrentPrice for ${symbol}:`, error);
+    console.error(`[Binance API] Exception in fetchCurrentPrice for ${upperSymbol}:`, error);
     return null;
   }
 }

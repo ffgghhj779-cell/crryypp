@@ -1,17 +1,36 @@
 import { sanitizeSymbol, sanitizeInterval } from '@/lib/sanitize';
 
+/** Symbols that are commodities — routed via /api/klines proxy */
+const COMMODITY_SYMBOLS = new Set(['XAUUSD', 'WTIUSD', 'USDEGP', 'EGYXAU', 'BRENTUSD']);
+
 export async function fetchKlines(
   symbol   = 'BTCUSDT',
   interval = '1h',
   limit    = 100,
   signal?: AbortSignal,
 ) {
+  const upperSymbol = symbol.toUpperCase().trim();
+
+  // ── Commodity: route through our unified proxy ──────────────────────────
+  if (COMMODITY_SYMBOLS.has(upperSymbol)) {
+    const params = new URLSearchParams({
+      symbol:   upperSymbol,
+      interval: interval,
+      limit:    String(Math.min(Math.max(1, Math.floor(limit)), 1000)),
+    });
+    const url = `/api/klines?${params}`;
+    const res = await fetch(url, signal ? { signal } : undefined);
+    if (!res.ok) throw new Error(`Commodity klines fetch failed: ${res.status}`);
+    const bars: any[] = await res.json();
+    return bars.map(b => ({ ...b, value: b.close }));
+  }
+
+  // ── Crypto: original Binance path ───────────────────────────────────────
   // VULN-08: Strict input validation before touching the network
-  const safeSymbol   = sanitizeSymbol(symbol);
+  const safeSymbol   = sanitizeSymbol(upperSymbol);
   const safeInterval = sanitizeInterval(interval);
   const safeLimit    = Math.min(Math.max(1, Math.floor(limit)), 1000);
 
-  // Use URLSearchParams — auto-encodes values, prevents parameter injection
   const params = new URLSearchParams({
     symbol:   safeSymbol,
     interval: safeInterval,

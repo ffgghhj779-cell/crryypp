@@ -1,6 +1,7 @@
 // ─── Binance Public Klines Fetcher ────────────────────────────────────────────
 // Thick-client engine: runs entirely in the browser, zero server latency.
 // Endpoint: GET https://api.binance.com/api/v3/klines
+// Commodities: routed via /api/klines proxy (Yahoo Finance)
 
 export interface Kline {
   time:   number; // Unix seconds (open time)
@@ -27,39 +28,58 @@ type RawKline = [
   string,  // 11 ignore
 ];
 
+/** Commodity symbols — routed to /api/klines proxy instead of Binance */
+const COMMODITY_SYMBOLS = new Set(['XAUUSD', 'WTIUSD', 'USDEGP', 'EGYXAU', 'BRENTUSD']);
+
 /**
  * Normalises a UI timeframe label (e.g. "1H", "4H", "1D") to the Binance
  * interval string (e.g. "1h", "4h", "1d").
- * Binance is case-sensitive — all interval strings must be lowercase except 'M'.
  */
 function normaliseInterval(interval: string): string {
-  // Already valid Binance format (e.g. "1h", "4h", "1d", "15m")
   if (/^\d+[mhdwM]$/.test(interval)) return interval;
-  // UI format: "1H" → "1h", "4H" → "4h", "1D" → "1d", "15m" stays
   return interval.toLowerCase();
 }
 
 /**
- * Fetches OHLCV kline data from the public Binance REST API.
- *
- * @param symbol   - Trading pair in UPPERCASE, e.g. "BTCUSDT"
- * @param interval - Binance interval string or UI label, e.g. "1h" | "1H" | "4H" | "1D" | "15m"
- * @param limit    - Number of candles to fetch (max 1000, Binance default 500)
- * @returns        - Strictly typed array of {@link Kline} objects
- * @throws         - `Error` with a user-friendly message on network or API failure
+ * Fetches OHLCV kline data.
+ * - Crypto symbols → Binance REST API (direct browser fetch)
+ * - Commodity symbols (XAUUSD, WTIUSD, USDEGP, EGYXAU) → /api/klines proxy
  */
 export async function fetchKlines(
   symbol:   string,
   interval: string,
   limit:    number = 100,
 ): Promise<Kline[]> {
-  const normalisedInterval = normaliseInterval(interval);
-  const clampedLimit       = Math.min(Math.max(1, limit), 1000);
+  const upperSymbol  = symbol.toUpperCase().trim();
+  const clampedLimit = Math.min(Math.max(1, limit), 1000);
+  const normInterval = normaliseInterval(interval);
 
+  // ── Commodity path ─────────────────────────────────────────────────────
+  if (COMMODITY_SYMBOLS.has(upperSymbol)) {
+    const params = new URLSearchParams({
+      symbol:   upperSymbol,
+      interval: normInterval,
+      limit:    String(clampedLimit),
+    });
+    let res: Response;
+    try {
+      res = await fetch(`/api/klines?${params}`, { cache: 'no-store' });
+    } catch {
+      throw new Error('Network error — check your connection and try again.');
+    }
+    if (!res.ok) throw new Error(`Commodity klines error: HTTP ${res.status}`);
+    const bars: Kline[] = await res.json();
+    if (!Array.isArray(bars) || bars.length === 0) {
+      throw new Error(`No commodity data for "${upperSymbol}".`);
+    }
+    return bars;
+  }
+
+  // ── Crypto path (original Binance logic) ───────────────────────────────
   const url = [
     'https://api.binance.com/api/v3/klines',
-    `?symbol=${encodeURIComponent(symbol.toUpperCase())}`,
-    `&interval=${encodeURIComponent(normalisedInterval)}`,
+    `?symbol=${encodeURIComponent(upperSymbol)}`,
+    `&interval=${encodeURIComponent(normInterval)}`,
     `&limit=${clampedLimit}`,
   ].join('');
 
@@ -71,12 +91,11 @@ export async function fetchKlines(
   }
 
   if (!res.ok) {
-    // Binance returns JSON error bodies like: { "code": -1121, "msg": "Invalid symbol." }
     let detail = `HTTP ${res.status}`;
     try {
       const body = await res.json() as { msg?: string };
       if (body?.msg) detail = body.msg;
-    } catch { /* ignore parse errors */ }
+    } catch { /* ignore */ }
     throw new Error(`Binance API error: ${detail}`);
   }
 
@@ -87,7 +106,7 @@ export async function fetchKlines(
   }
 
   return raw.map((k): Kline => ({
-    time:   Math.floor(k[0] / 1000), // ms → s
+    time:   Math.floor(k[0] / 1000),
     open:   parseFloat(k[1]),
     high:   parseFloat(k[2]),
     low:    parseFloat(k[3]),
