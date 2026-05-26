@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useMarketData } from '@/context/MarketDataContext';
 import { slugToTool } from '@/lib/tools/registry';
@@ -43,23 +43,23 @@ export default function VolumeDeltaPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-black text-indigo-500/70 tracking-widest uppercase border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <span className="text-[9px] font-black text-indigo-500/70 tracking-widest uppercase border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <BarChart3 className="w-3 h-3" /> Volume
           </span>
         </div>
-        <h1 className="text-xl font-black text-white tracking-tight mt-1">ظ…ط­ظ„ظ„ ط¯ظ„طھط§ ط§ظ„ط­ط¬ظ…</h1>
-        <p className="text-sm text-white/40 font-mono leading-relaxed">
-          ط­ط³ط§ط¨ طµط§ظپظٹ ط£ط­ط¬ط§ظ… ط§ظ„طھط¯ط§ظˆظ„ (ط§ظ„ظپط±ظ‚ ط¨ظٹظ† ط§ظ„ط´ط±ط§ط، ظˆط§ظ„ط¨ظٹط¹) ظ„ظ„ط´ظ…ظˆط¹ ط§ظ„ط£ط®ظٹط±ط©
+        <h1 className="text-xl font-black text-white tracking-tight mt-1">محلل دلتا الحجم</h1>
+        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+          حساب صافي أحجام التداول (الفرق بين الشراء والبيع) للشموع الأخيرة
         </p>
       </div>
 
-      <div className="px-5 flex flex-col gap-5 mt-4">
+      <div className="px-4 flex flex-col gap-5 mt-4">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-6">
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
             <RefreshCcw className="w-8 h-8 text-indigo-500 animate-spin" />
-            <p className="text-indigo-500/80 font-bold tracking-widest uppercase text-base animate-pulse">ط¬ط§ط±ظٹ ط­ط³ط§ط¨ ط£ط­ط¬ط§ظ… ط§ظ„طھط¯ط§ظˆظ„...</p>
+            <p className="text-indigo-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري حساب أحجام التداول...</p>
           </div>
         ) : (
           <motion.div 
@@ -71,21 +71,21 @@ export default function VolumeDeltaPage() {
             <div className={`rounded-2xl border p-6 flex flex-col items-center justify-center gap-3 relative overflow-hidden ${isNetBull ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
               <div className={`absolute top-0 right-0 w-32 h-32 blur-[60px] rounded-full pointer-events-none ${isNetBull ? 'bg-emerald-500/20' : 'bg-red-500/20'}`} />
               
-              <span className={`text-sm font-bold uppercase tracking-widest ${isNetBull ? 'text-emerald-500/80' : 'text-red-500/80'}`}>
-                ط§ظ„ط²ط®ظ… ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ ط§ظ„ط­ط§ظ„ظٹ (طµط§ظپظٹ ط§ظ„ط¯ظ„طھط§)
+              <span className={`text-[10px] font-bold uppercase tracking-widest ${isNetBull ? 'text-emerald-500/80' : 'text-red-500/80'}`}>
+                الزخم الإجمالي الحالي (صافي الدلتا)
               </span>
               <div className="flex flex-col items-center gap-1 z-10">
                 <span className={`text-4xl font-black ${isNetBull ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {isNetBull ? 'ط¶ط؛ط· ط´ط±ط§ط¦ظٹ' : 'ط¶ط؛ط· ط¨ظٹط¹ظٹ'}
+                  {isNetBull ? 'ضغط شرائي' : 'ضغط بيعي'}
                 </span>
-                <span className="text-lg font-mono font-bold text-white/60 dir-ltr">
+                <span className="text-sm font-mono font-bold text-white/60 dir-ltr">
                   {isNetBull ? '+' : ''}{totalDelta.toLocaleString(undefined, { maximumFractionDigits: 2 })} {symbol.replace('USDT', '')}
                 </span>
               </div>
             </div>
 
             {/* Histogram Chart */}
-            <div className="rounded-2xl border border-white/[0.05] bg-[#0d0d0d] p-5 pt-8 h-96 flex items-end justify-center gap-[2px] relative overflow-hidden">
+            <div className="rounded-2xl border border-white/[0.05] bg-[#0d0d0d] p-5 pt-8 h-64 flex items-end justify-center gap-[2px] relative overflow-hidden">
               {/* Zero Line */}
               <div className="absolute top-1/2 left-0 right-0 border-t border-white/[0.05] border-dashed" />
               

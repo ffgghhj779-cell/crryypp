@@ -1,19 +1,19 @@
-﻿'use client';
+'use client';
 
 /**
  * app/tools/gann-144-star/page.tsx
  *
- * Gann 144 Star â€” ظ†ط¬ظ…ط© ط¬ط§ظ† ظ،ظ¤ظ¤
+ * Gann 144 Star — نجمة جان ١٤٤
  * Master Time & Price Squaring Calculator
  *
  * Architecture:
  *   ToolsLayout (spring animation shell)
  *     ToolPageHeader (back nav)
  *       GannStarPage
- *         <GannStarForm />      â€” Glassmorphism input form
- *         <GannStarVisual />    â€” Animated 8-point star SVG
- *         <GannStarResults />   â€” Squaring node cards
- *         <GannStarGuide />     â€” Accordion educational panel
+ *         <GannStarForm />      — Glassmorphism input form
+ *         <GannStarVisual />    — Animated 8-point star SVG
+ *         <GannStarResults />   — Squaring node cards
+ *         <GannStarGuide />     — Accordion educational panel
  */
 
 import { useState } from 'react';
@@ -34,19 +34,19 @@ import type {
 } from '@/lib/algorithms/gann144';
 import { notFound } from 'next/navigation';
 
-// â”€â”€â”€ Polar helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Polar helpers ─────────────────────────────────────────────────────────────
 function polar(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = ((angleDeg - 90) * Math.PI) / 180;
   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
 }
 
-// â”€â”€â”€ 8-Pointed Gann Star SVG â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── 8-Pointed Gann Star SVG ──────────────────────────────────────────────────
 function GannStarSvg({ result, animated }: { result: Gann144Result; animated: boolean }) {
   const cx = 160, cy = 160;
   const outerR = 128, innerR = 52;
   const nodeR  = 7;
 
-  // Build octagram path: alternating outer/inner points at every 45آ°
+  // Build octagram path: alternating outer/inner points at every 45°
   const starPoints: string[] = [];
   for (let i = 0; i < 8; i++) {
     const outerP = polar(cx, cy, outerR, i * 45);
@@ -55,7 +55,7 @@ function GannStarSvg({ result, animated }: { result: Gann144Result; animated: bo
     starPoints.push(`${innerP.x.toFixed(2)},${innerP.y.toFixed(2)}`);
   }
 
-  // Primary node positions (8 أ— 45آ° on outer ring)
+  // Primary node positions (8 × 45° on outer ring)
   const primaryNodes = Array.from({ length: 8 }, (_, i) => {
     const p = polar(cx, cy, outerR, i * 45);
     const node = result.nodes.find(n => n.id === `primary-${i + 1}`);
@@ -192,7 +192,7 @@ function GannStarSvg({ result, animated }: { result: Gann144Result; animated: bo
   );
 }
 
-// â”€â”€â”€ Node Result Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Node Result Card ──────────────────────────────────────────────────────────
 function NodeCard({ node, index, isBottom }: { node: Gann144Node; index: number; isBottom: boolean }) {
   const isPast    = node.targetDate < new Date();
   const isMaster  = node.strength === 'master';
@@ -203,7 +203,7 @@ function NodeCard({ node, index, isBottom }: { node: Gann144Node; index: number;
       initial={{ opacity: 0, x: 30 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.05, type: 'spring', stiffness: 180, damping: 22 }}
-      className={`relative rounded-xl border p-6 overflow-hidden ${
+      className={`relative rounded-xl border p-4 overflow-hidden ${
         isMaster
           ? 'bg-orange-500/10 border-orange-500/30'
           : isQuarter
@@ -219,34 +219,34 @@ function NodeCard({ node, index, isBottom }: { node: Gann144Node; index: number;
       <div className="relative flex items-start justify-between gap-3">
         {/* Left: date + cycle label */}
         <div className="flex flex-col gap-1 min-w-0" dir="rtl">
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
             {isMaster && (
-              <span className="inline-flex items-center gap-1 text-sm font-black text-orange-400 bg-orange-500/15 border border-orange-500/30 px-2 py-0.5 rounded-full uppercase tracking-widest">
+              <span className="inline-flex items-center gap-1 text-[9px] font-black text-orange-400 bg-orange-500/15 border border-orange-500/30 px-2 py-0.5 rounded-full uppercase tracking-widest">
                 <Star className="w-2.5 h-2.5" />
-                ط§ظ„ظ†ظ‚ط·ط© ط§ظ„ط±ط¦ظٹط³ظٹط©
+                النقطة الرئيسية
               </span>
             )}
             {node.isSquaringNode && !isMaster && (
-              <span className="text-sm font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full tracking-wide">
-                طھظˆط§ظپظ‚ ط¹ط§ظ„ظٹ ط§ظ„ط§ط­طھظ…ط§ظ„
+              <span className="text-[9px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full tracking-wide">
+                توافق عالي الاحتمال
               </span>
             )}
             {isPast && (
-              <span className="text-sm text-white/30 font-mono border border-white/10 px-2 py-0.5 rounded-full">ظ…ظƒطھظ…ظ„ط©</span>
+              <span className="text-[9px] text-white/30 font-mono border border-white/10 px-2 py-0.5 rounded-full">مكتملة</span>
             )}
           </div>
 
-          <h4 className="text-lg font-bold text-white/90 mt-1">{node.cycleLabel}</h4>
-          <p className="text-sm text-white/40 font-mono">{node.label}</p>
+          <h4 className="text-sm font-bold text-white/90 mt-1">{node.cycleLabel}</h4>
+          <p className="text-[10px] text-white/40 font-mono">{node.label}</p>
 
-          <div className="flex items-center gap-3 mt-2">
+          <div className="flex items-center gap-2 mt-2">
             <CalendarDays className="w-3.5 h-3.5 text-orange-400/60" />
-            <span className="text-base font-mono text-orange-300/80">
+            <span className="text-xs font-mono text-orange-300/80">
               {formatGannDate(node.targetDate)}
             </span>
           </div>
-          <p className="text-sm text-white/30 font-mono">
-            +{node.daysFromAnchor} ظٹظˆظ… ظ…ظ† ظ†ظ‚ط·ط© ط§ظ„ط§ط±طھظƒط§ط²
+          <p className="text-[10px] text-white/30 font-mono">
+            +{node.daysFromAnchor} يوم من نقطة الارتكاز
           </p>
         </div>
 
@@ -257,7 +257,7 @@ function NodeCard({ node, index, isBottom }: { node: Gann144Node; index: number;
               ? <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
               : <TrendingDown className="w-3.5 h-3.5 text-red-400" />
             }
-            <span className={`text-sm font-bold ${isBottom ? 'text-emerald-400' : 'text-red-400'}`}>
+            <span className={`text-[10px] font-bold ${isBottom ? 'text-emerald-400' : 'text-red-400'}`}>
               {isBottom ? '+' : '-'}{node.priceChangePct}%
             </span>
           </div>
@@ -269,8 +269,8 @@ function NodeCard({ node, index, isBottom }: { node: Gann144Node; index: number;
               maximumFractionDigits: node.targetPrice < 10 ? 4 : node.targetPrice < 1000 ? 2 : 0,
             })}
           </span>
-          <span className="text-sm text-white/30 font-mono">
-            {node.angleOnWheel}آ° ط¹ظ„ظ‰ ط§ظ„ط¹ط¬ظ„ط©
+          <span className="text-[9px] text-white/30 font-mono">
+            {node.angleOnWheel}° على العجلة
           </span>
         </div>
       </div>
@@ -278,30 +278,30 @@ function NodeCard({ node, index, isBottom }: { node: Gann144Node; index: number;
   );
 }
 
-// â”€â”€â”€ Guide Accordion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Guide Accordion ───────────────────────────────────────────────────────────
 function GannStarGuide() {
   const [open, setOpen] = useState(false);
 
   const sections = [
     {
-      title: 'ظ…ط§ ظ‡ظٹ ظ†ط¬ظ…ط© ط¬ط§ظ† ظ،ظ¤ظ¤طں',
-      content: 'ظ†ط¬ظ…ط© ط¬ط§ظ† ظ،ظ¤ظ¤ ظ‡ظٹ ط¥ط­ط¯ظ‰ ط£ظƒط«ط± ط£ط¯ظˆط§طھ ط؛ط§ظ† ط§ظ„ظ…ط§ظ„ظٹط© ط¯ظ‚ط©ظ‹. ط§ظ„ط±ظ‚ظ… ظ،ظ¤ظ¤ ظ‡ظˆ ط­ط§طµظ„ ط¶ط±ط¨ ظ،ظ¢ أ— ظ،ظ¢طŒ ظˆظ‡ظˆ ظ…ط§ ط£ط³ظ…ط§ظ‡ ط؛ط§ظ† "ط¹ط§ظ…ظ„ ط§ظ„ط²ظ…ظ† ط§ظ„ط±ط¦ظٹط³ظٹ" (Master Time Factor). ظ‡ط°ط§ ط§ظ„ط±ظ‚ظ… ظٹط±ط¨ط· ط¨ظٹظ† ط¯ظˆط±ط§طھ ط§ظ„ط²ظ…ظ† ظˆط¯ظˆط±ط§طھ ط§ظ„ط³ط¹ط± ظپظٹ ظ†ط¸ط§ظ… ظ‡ظ†ط¯ط³ظٹ ظ…ظˆط­ظ‘ط¯.',
+      title: 'ما هي نجمة جان ١٤٤؟',
+      content: 'نجمة جان ١٤٤ هي إحدى أكثر أدوات غان المالية دقةً. الرقم ١٤٤ هو حاصل ضرب ١٢ × ١٢، وهو ما أسماه غان "عامل الزمن الرئيسي" (Master Time Factor). هذا الرقم يربط بين دورات الزمن ودورات السعر في نظام هندسي موحّد.',
     },
     {
-      title: 'ظ…ط¨ط¯ط£ ط§ظ„طھط±ط¨ظٹط¹ (Squaring)',
-      content: 'ظٹط­ط¯ط« "طھط±ط¨ظٹط¹ ط§ظ„ط²ظ…ظ† ظˆط§ظ„ط³ط¹ط±" ط¹ظ†ط¯ظ…ط§ طھطھط³ط§ظˆظ‰ ظˆط­ط¯ط© ط§ظ„ط²ظ…ظ† (ط¨ط§ظ„ط£ظٹط§ظ…) ظ…ط¹ ظˆط­ط¯ط© طھط­ط±ظƒ ط§ظ„ط³ط¹ط± (ط¨ط§ظ„ظ†ط³ط¨ط© ط§ظ„ظ…ط¦ظˆظٹط© ط§ظ„ظ‡ظ†ط¯ط³ظٹط©). ط¹ظ†ط¯ ظƒظ„ ظ…ط¶ط§ط¹ظپ ظ…ظ† ظ،ظ¤ظ¤ ظٹظˆظ…طŒ ظٹطھظˆظ‚ط¹ ط؛ط§ظ† ط§ط­طھظ…ط§ظ„ظٹط© ط¹ط§ظ„ظٹط© ط¬ط¯ط§ظ‹ ظ„ط­ط¯ظˆط« ط§ظ†ط¹ظƒط§ط³ ط£ظˆ طھط³ط§ط±ط¹ ظپظٹ ط§ظ„ط§طھط¬ط§ظ‡.',
+      title: 'مبدأ التربيع (Squaring)',
+      content: 'يحدث "تربيع الزمن والسعر" عندما تتساوى وحدة الزمن (بالأيام) مع وحدة تحرك السعر (بالنسبة المئوية الهندسية). عند كل مضاعف من ١٤٤ يوم، يتوقع غان احتمالية عالية جداً لحدوث انعكاس أو تسارع في الاتجاه.',
     },
     {
-      title: 'ظƒظٹظپ طھط¹ظ…ظ„ ط§ظ„ط­ط³ط§ط¨ط§طھطں',
-      content: 'ظٹط¶ظٹظپ ط§ظ„ظ…ط­ط±ظƒ ظ…ط¶ط§ط¹ظپط§طھ ظ،ظ¤ظ¤ ظٹظˆظ… ط¥ظ„ظ‰ طھط§ط±ظٹط® ط§ظ„ط§ط±طھظƒط§ط² (ظ،ظ¤ظ¤طŒ ظ¢ظ¨ظ¨طŒ ظ¤ظ£ظ¢...) ظ…ط¹ ط§ط­طھط³ط§ط¨ ط£ظ‡ط¯ط§ظپ ط³ط¹ط±ظٹط© ظ‡ظ†ط¯ط³ظٹط© ط¨ط²ظٹط§ط¯ط© ظ،ظ¤.ظ¤ظھ ظ„ظƒظ„ ط¯ظˆط±ط©. ظ†ظ‚ط·ط© ط§ظ„طھظˆط§ظپظ‚ ظ‡ظٹ ط¹ظ†ط¯ظ…ط§ ظٹظ„طھظ‚ظٹ ظ‡ط¯ظپ ط§ظ„ط²ظ…ظ† ظ…ط¹ ظ‡ط¯ظپ ط§ظ„ط³ط¹ط± ظپظٹ ظ†ظپط³ ط§ظ„ظ„ط­ط¸ط© ط§ظ„ظ‡ظ†ط¯ط³ظٹط©.',
+      title: 'كيف تعمل الحسابات؟',
+      content: 'يضيف المحرك مضاعفات ١٤٤ يوم إلى تاريخ الارتكاز (١٤٤، ٢٨٨، ٤٣٢...) مع احتساب أهداف سعرية هندسية بزيادة ١٤.٤٪ لكل دورة. نقطة التوافق هي عندما يلتقي هدف الزمن مع هدف السعر في نفس اللحظة الهندسية.',
     },
     {
-      title: 'ط§ظ„ظ†ظ‚ط§ط· ط§ظ„ظپط±ط¹ظٹط© (ط§ظ„ط£ط±ط¨ط§ط¹)',
-      content: 'ظƒظ„ ط¯ظˆط±ط© ظ،ظ¤ظ¤ طھظ†ظ‚ط³ظ… ط¥ظ„ظ‰ ط£ط±ط¨ط§ط¹: ظ£ظ¦ ظٹظˆظ…ط§ظ‹طŒ ظ§ظ¢ ظٹظˆظ…ط§ظ‹طŒ ظ،ظ ظ¨ ط£ظٹط§ظ…. ظ‡ط°ظ‡ ط§ظ„ظ†ظ‚ط§ط· ط§ظ„ظپط±ط¹ظٹط© طھظ…ط«ظ„ طھظˆظ‚ظپط§طھ ط²ط®ظ… ظ…ط¤ظ‚طھط© ط¯ط§ط®ظ„ ط§ظ„ط¯ظˆط±ط© ط§ظ„ظƒط§ظ…ظ„ط©. طھظڈط³طھط®ط¯ظ… ظ„ظ„ط¯ط®ظˆظ„ ظپظٹ ط§ظ„طµظپظ‚ط§طھ ط¨ط§طھط¬ط§ظ‡ ط§ظ„ط¯ظˆط±ط© ط§ظ„ط±ط¦ظٹط³ظٹط©.',
+      title: 'النقاط الفرعية (الأرباع)',
+      content: 'كل دورة ١٤٤ تنقسم إلى أرباع: ٣٦ يوماً، ٧٢ يوماً، ١٠٨ أيام. هذه النقاط الفرعية تمثل توقفات زخم مؤقتة داخل الدورة الكاملة. تُستخدم للدخول في الصفقات باتجاه الدورة الرئيسية.',
     },
     {
-      title: 'ظ‡ط°ظ‡ ط§ظ„ط£ط¯ط§ط© طھط±ط¨ط· ط¨ظٹظ† ط£ظٹظ† ظˆظ…طھظ‰',
-      content: 'ظƒظ…ط§ ظ‚ط§ظ„ ط؛ط§ظ†: "ط§ظ„ظˆظ‚طھ ظ‡ظˆ ط§ظ„ط¹ط§ظ…ظ„ ط§ظ„ط£ظƒط«ط± ط£ظ‡ظ…ظٹط©". ظ‡ط°ظ‡ ط§ظ„ط£ط¯ط§ط© طھط®ط¨ط±ظƒ ط¨ط§ظ„ظٹظˆظ… ط§ظ„ط°ظٹ ط³ظٹطµظ„ ظپظٹظ‡ ط§ظ„ط³ط¹ط± ط¥ظ„ظ‰ ظ‡ط¯ظپظ‡ ط§ظ„ظ‡ظ†ط¯ط³ظٹ ظ„ظٹط­ط¯ط« ط§ظ†ط¹ظƒط§ط³ ط¹ط§ظ„ظٹ ط§ظ„ط§ط­طھظ…ط§ظ„ â€” ظ„ظٹط³ ظپظ‚ط· ط£ظٹظ†طŒ ط¨ظ„ ظ…طھظ‰ ط¨ط§ظ„ط¶ط¨ط·.',
+      title: 'هذه الأداة تربط بين أين ومتى',
+      content: 'كما قال غان: "الوقت هو العامل الأكثر أهمية". هذه الأداة تخبرك باليوم الذي سيصل فيه السعر إلى هدفه الهندسي ليحدث انعكاس عالي الاحتمال — ليس فقط أين، بل متى بالضبط.',
     },
   ];
 
@@ -309,14 +309,14 @@ function GannStarGuide() {
     <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden" dir="rtl">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-5 py-4.5 active:bg-white/[0.03] transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3.5 active:bg-white/[0.03] transition-colors"
       >
-        <div className="flex items-center gap-3.5">
-          <Info className="w-6 h-6 text-orange-400/70" />
-          <span className="text-lg font-bold text-white/70">ط§ظ„ط¯ظ„ظٹظ„ ط§ظ„ط¥ط±ط´ط§ط¯ظٹ ظ„طھط·ط¨ظٹظ‚ ظ،ظ¤ظ¤</span>
+        <div className="flex items-center gap-2.5">
+          <Info className="w-4 h-4 text-orange-400/70" />
+          <span className="text-sm font-bold text-white/70">الدليل الإرشادي لتطبيق ١٤٤</span>
         </div>
         <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.25 }}>
-          <ChevronDown className="w-6 h-6 text-white/30" />
+          <ChevronDown className="w-4 h-4 text-white/30" />
         </motion.div>
       </button>
 
@@ -331,9 +331,9 @@ function GannStarGuide() {
           >
             <div className="border-t border-white/[0.05] divide-y divide-white/[0.04]">
               {sections.map((s, i) => (
-                <div key={i} className="px-5 py-4.5">
-                  <p className="text-sm font-bold text-orange-400/80 mb-1.5">{s.title}</p>
-                  <p className="text-sm text-white/55 leading-relaxed">{s.content}</p>
+                <div key={i} className="px-4 py-3.5">
+                  <p className="text-[11px] font-bold text-orange-400/80 mb-1.5">{s.title}</p>
+                  <p className="text-[12px] text-white/55 leading-relaxed">{s.content}</p>
                 </div>
               ))}
             </div>
@@ -344,9 +344,9 @@ function GannStarGuide() {
   );
 }
 
-// â”€â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Gann144StarPage() {
-  // â”€â”€ All hooks MUST be declared unconditionally at the top â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── All hooks MUST be declared unconditionally at the top ──────────────────
   const [symbol,      setSymbol]      = useState('BTCUSDT');
   const [anchorType,  setAnchorType]  = useState<AnchorType>('bottom');
   const [anchorDate,  setAnchorDate]  = useState('');
@@ -356,7 +356,7 @@ export default function Gann144StarPage() {
   const [error,       setError]       = useState('');
   const [loading,     setLoading]     = useState(false);
 
-  // Guard â€” after all hooks so React rules are satisfied
+  // Guard — after all hooks so React rules are satisfied
   const tool = slugToTool('gann-144-star');
   if (!tool) return notFound();
 
@@ -364,10 +364,10 @@ export default function Gann144StarPage() {
     setError('');
 
     // Validate
-    if (!symbol.trim())    return setError('ط£ط¯ط®ظ„ ط§ط³ظ… ط§ظ„ط¹ظ…ظ„ط© ط£ظˆ ط§ظ„ط±ظ…ط².');
-    if (!anchorDate)       return setError('ط§ط®طھط± طھط§ط±ظٹط® ظ†ظ‚ط·ط© ط§ظ„ط§ط±طھظƒط§ط².');
+    if (!symbol.trim())    return setError('أدخل اسم العملة أو الرمز.');
+    if (!anchorDate)       return setError('اختر تاريخ نقطة الارتكاز.');
     const price = parseFloat(anchorPrice);
-    if (isNaN(price) || price <= 0) return setError('ط£ط¯ط®ظ„ ط³ط¹ط± ط§ط±طھظƒط§ط² طµط­ظٹط­ ظˆظ…ظˆط¬ط¨.');
+    if (isNaN(price) || price <= 0) return setError('أدخل سعر ارتكاز صحيح وموجب.');
 
     setLoading(true);
     setAnimated(false);
@@ -385,7 +385,7 @@ export default function Gann144StarPage() {
         setResult(res);
         setTimeout(() => setAnimated(true), 80);
       } catch (e: unknown) {
-        setError('ط®ط·ط£ ظپظٹ ط§ظ„ط­ط³ط§ط¨. طھط­ظ‚ظ‚ ظ…ظ† ط§ظ„ظ…ط¯ط®ظ„ط§طھ ظˆط£ط¹ط¯ ط§ظ„ظ…ط­ط§ظˆظ„ط©.');
+        setError('خطأ في الحساب. تحقق من المدخلات وأعد المحاولة.');
         console.error(e);
       } finally {
         setLoading(false);
@@ -400,54 +400,54 @@ export default function Gann144StarPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Page Header */}
-      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-black text-orange-400/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full">
-            Gann آ· 144
+      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <span className="text-[9px] font-black text-orange-400/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full">
+            Gann · 144
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">
-          ظ†ط¬ظ…ط© ط¬ط§ظ† ظ،ظ¤ظ¤
+          نجمة جان ١٤٤
         </h1>
-        <p className="text-sm text-white/40 font-mono leading-relaxed">
-          ط­ط§ط³ط¨ط© ط§ظ„طھظˆط§ظپظ‚ ط§ظ„ط²ظ…ظ†ظٹ ظˆط§ظ„ط³ط¹ط±ظٹ â€” ط¹ط§ظ…ظ„ ط§ظ„ط²ظ…ظ† ط§ظ„ط±ط¦ظٹط³ظٹ (ظ،ظ¢أ—ظ،ظ¢)
+        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+          حاسبة التوافق الزمني والسعري — عامل الزمن الرئيسي (١٢×١٢)
         </p>
       </div>
 
-      <div className="px-5 flex flex-col gap-5">
+      <div className="px-4 flex flex-col gap-5">
 
-        {/* â”€â”€ Glassmorphism Input Form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-6">
+        {/* ── Glassmorphism Input Form ─────────────────────────────────────── */}
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-4">
 
           {/* Symbol */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-bold text-white/50 uppercase tracking-widest">
-              ط±ظ…ط² ط§ظ„ط£طµظ„ / ط§ظ„ط¹ظ…ظ„ط©
+            <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
+              رمز الأصل / العملة
             </label>
             <input
               type="text"
               value={symbol}
               onChange={e => setSymbol(e.target.value)}
               placeholder="BTCUSDT"
-              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-lg px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-colors"
+              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-colors"
               dir="ltr"
             />
           </div>
 
           {/* Anchor Type */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-bold text-white/50 uppercase tracking-widest">
-              ظ†ظˆط¹ ط§ظ„ط§ط±طھظƒط§ط²
+            <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
+              نوع الارتكاز
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {([
-                { value: 'bottom', labelAr: 'ظ‚ط§ط¹ ط±ط¦ظٹط³ظٹ', icon: <TrendingUp className="w-6 h-6" /> },
-                { value: 'top',    labelAr: 'ظ‚ظ…ط© ط±ط¦ظٹط³ظٹط©', icon: <TrendingDown className="w-6 h-6" /> },
+                { value: 'bottom', labelAr: 'قاع رئيسي', icon: <TrendingUp className="w-4 h-4" /> },
+                { value: 'top',    labelAr: 'قمة رئيسية', icon: <TrendingDown className="w-4 h-4" /> },
               ] as { value: AnchorType; labelAr: string; icon: React.ReactNode }[]).map(({ value, labelAr, icon }) => (
                 <button
                   key={value}
                   onClick={() => setAnchorType(value)}
-                  className={`flex items-center justify-center gap-3 py-4 rounded-xl border text-lg font-bold transition-all active:scale-95 ${
+                  className={`flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-bold transition-all active:scale-95 ${
                     anchorType === value
                       ? value === 'bottom'
                         ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
@@ -464,31 +464,31 @@ export default function Gann144StarPage() {
 
           {/* Anchor Date */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-bold text-white/50 uppercase tracking-widest">
-              طھط§ط±ظٹط® ط§ظ„ط§ط±طھظƒط§ط²
+            <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
+              تاريخ الارتكاز
             </label>
             <input
               type="date"
               value={anchorDate}
               onChange={e => setAnchorDate(e.target.value)}
-              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-lg px-5 py-4 focus:outline-none focus:border-orange-500/40 transition-colors [color-scheme:dark]"
+              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 focus:outline-none focus:border-orange-500/40 transition-colors [color-scheme:dark]"
               dir="ltr"
             />
           </div>
 
           {/* Anchor Price */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-bold text-white/50 uppercase tracking-widest">
-              ط³ط¹ط± ط§ظ„ط§ط±طھظƒط§ط²
+            <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
+              سعر الارتكاز
             </label>
             <input
               type="number"
               value={anchorPrice}
               onChange={e => setAnchorPrice(e.target.value)}
-              placeholder="ظ…ط«ط§ظ„: 60000"
+              placeholder="مثال: 60000"
               min="0"
               step="any"
-              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-lg px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-colors"
+              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-colors"
               dir="ltr"
             />
           </div>
@@ -500,10 +500,10 @@ export default function Gann144StarPage() {
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                className="flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-4.5"
+                className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-2.5"
               >
-                <AlertCircle className="w-6 h-6 text-red-400 shrink-0" />
-                <p className="text-base text-red-300">{error}</p>
+                <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                <p className="text-xs text-red-300">{error}</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -512,18 +512,18 @@ export default function Gann144StarPage() {
           <button
             onClick={handleCalculate}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3.5 rounded-xl py-4 font-black text-lg text-black tracking-wide active:scale-[0.98] transition-all disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2.5 rounded-xl py-4 font-black text-sm text-black tracking-wide active:scale-[0.98] transition-all disabled:opacity-50"
             style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)' }}
           >
             {loading
-              ? <span className="w-6 h-6 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-              : <Sparkles className="w-6 h-6" />
+              ? <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+              : <Sparkles className="w-4 h-4" />
             }
-            {loading ? 'ط¬ط§ط±ظٹ ط§ظ„ط­ط³ط§ط¨...' : 'ط§ط­ط³ط¨ ظ†ظ‚ط§ط· ط§ظ„طھظˆط§ظپظ‚'}
+            {loading ? 'جاري الحساب...' : 'احسب نقاط التوافق'}
           </button>
         </div>
 
-        {/* â”€â”€ Results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Results ───────────────────────────────────────────────────────── */}
         <AnimatePresence>
           {result && (
             <motion.div
@@ -535,66 +535,66 @@ export default function Gann144StarPage() {
               className="flex flex-col gap-5"
             >
               {/* Summary Banner */}
-              <div className="rounded-2xl border border-orange-500/20 bg-orange-500/5 px-5 py-4">
+              <div className="rounded-2xl border border-orange-500/20 bg-orange-500/5 px-4 py-4">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <p className="text-sm text-orange-400/70 font-mono tracking-widest uppercase mb-0.5">
-                      {result.input.symbol} آ· ظ†ط¬ظ…ط© ط¬ط§ظ† ظ،ظ¤ظ¤
+                    <p className="text-[10px] text-orange-400/70 font-mono tracking-widest uppercase mb-0.5">
+                      {result.input.symbol} · نجمة جان ١٤٤
                     </p>
-                    <h2 className="text-lg font-black text-white">
-                      {result.summary.squaringNodeCount} ظ†ظ‚ط§ط· طھظˆط§ظپظ‚ آ· {result.summary.direction}
+                    <h2 className="text-base font-black text-white">
+                      {result.summary.squaringNodeCount} نقاط توافق · {result.summary.direction}
                     </h2>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className={`text-sm font-bold px-2 py-0.5 rounded-full border ${
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                       isBottom
                         ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                         : 'bg-red-500/10 border-red-500/20 text-red-400'
                     }`}>
-                      {isBottom ? 'ظ‚ط§ط¹ ط±ط¦ظٹط³ظٹ' : 'ظ‚ظ…ط© ط±ط¦ظٹط³ظٹط©'}
+                      {isBottom ? 'قاع رئيسي' : 'قمة رئيسية'}
                     </span>
-                    <span className="text-sm text-white/30 font-mono">
+                    <span className="text-[10px] text-white/30 font-mono">
                       {formatGannDateShort(result.input.anchorDate)}
                     </span>
                   </div>
                 </div>
 
                 {/* Next node countdown */}
-                <div className="rounded-xl bg-black/30 border border-white/[0.05] px-3 py-4.5 flex items-center justify-between">
-                  <p className="text-sm text-white/40 font-mono">ط§ظ„ظ†ظ‚ط·ط© ط§ظ„ظ‚ط§ط¯ظ…ط©</p>
+                <div className="rounded-xl bg-black/30 border border-white/[0.05] px-3 py-2.5 flex items-center justify-between">
+                  <p className="text-[10px] text-white/40 font-mono">النقطة القادمة</p>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-mono text-orange-400">
+                    <span className="text-[10px] font-mono text-orange-400">
                       {formatGannDateShort(result.summary.nextNode.targetDate)}
                     </span>
-                    <span className="text-base font-black text-white">
+                    <span className="text-xs font-black text-white">
                       {result.summary.nextNodeDaysAway}
-                      <span className="text-white/40 font-normal text-sm mr-1">ظٹظˆظ…</span>
+                      <span className="text-white/40 font-normal text-[10px] mr-1">يوم</span>
                     </span>
                   </div>
                 </div>
               </div>
 
               {/* Gann Star Visual */}
-              <div className="relative rounded-2xl border border-white/[0.06] bg-[#0a0f1e] p-6 flex flex-col items-center gap-3">
-                <p className="text-sm font-mono text-white/25 tracking-widest uppercase mb-2">
-                  ظ†ط¬ظ…ط© ط§ظ„طھظˆط§ظپظ‚ â€” {result.input.symbol}
+              <div className="relative rounded-2xl border border-white/[0.06] bg-[#0a0f1e] p-6 flex flex-col items-center gap-2">
+                <p className="text-[9px] font-mono text-white/25 tracking-widest uppercase mb-2">
+                  نجمة التوافق — {result.input.symbol}
                 </p>
                 <div className="w-full max-w-[300px]">
                   <GannStarSvg result={result} animated={animated} />
                 </div>
-                <p className="text-sm text-white/20 font-mono mt-2 text-center">
-                  ظƒظ„ ظ†ظ‚ط·ط© طھظ…ط«ظ„ ط¯ظˆط±ط© ظ،ظ¤ظ¤ ظٹظˆظ…ط§ظ‹ آ· ط§ظ„ط£ط±ظ‚ط§ظ… طھظ…ط«ظ„ ط±ظ‚ظ… ط§ظ„ط¯ظˆط±ط©
+                <p className="text-[9px] text-white/20 font-mono mt-2 text-center">
+                  كل نقطة تمثل دورة ١٤٤ يوماً · الأرقام تمثل رقم الدورة
                 </p>
               </div>
 
               {/* Node Cards */}
-              <div className="flex flex-col gap-3.5">
+              <div className="flex flex-col gap-2.5">
                 <div className="flex items-center justify-between px-1">
-                  <h3 className="text-sm font-bold text-white/50 uppercase tracking-widest">
-                    ظ†ظ‚ط§ط· ط§ظ„طھظˆط§ظپظ‚ ط§ظ„ط²ظ…ظ†ظٹ ظˆط§ظ„ط³ط¹ط±ظٹ
+                  <h3 className="text-[11px] font-bold text-white/50 uppercase tracking-widest">
+                    نقاط التوافق الزمني والسعري
                   </h3>
-                  <span className="text-sm text-white/25 font-mono">
-                    {result.nodes.length} ظ†ظ‚ط·ط©
+                  <span className="text-[10px] text-white/25 font-mono">
+                    {result.nodes.length} نقطة
                   </span>
                 </div>
 
@@ -611,14 +611,14 @@ export default function Gann144StarPage() {
           )}
         </AnimatePresence>
 
-        {/* â”€â”€ Guide â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Guide ─────────────────────────────────────────────────────────── */}
         <GannStarGuide />
 
-        {/* â”€â”€ Disclaimer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-        <p className="text-sm text-white/25 text-center font-mono leading-relaxed pb-4 max-w-xs mx-auto" dir="rtl">
-          ظ‡ط°ظ‡ ط§ظ„ط£ط¯ط§ط© طھط³طھظ†ط¯ ط¥ظ„ظ‰ ط§ظ„ط¯ظˆط±ط§طھ ط§ظ„ط¥ط­طµط§ط¦ظٹط© ط§ظ„طھط§ط±ظٹط®ظٹط© ظˆط§ظ„ظ‡ظ†ط¯ط³ط© ط§ظ„ط±ظٹط§ط¶ظٹط© ظ„ظ…ط¯ط±ط³ط© ط؛ط§ظ†.
-          ط¬ظ…ظٹط¹ ط§ظ„ظ…ط®ط±ط¬ط§طھ ط°ط§طھ ط§ط­طھظ…ط§ظ„ظٹط© ط¹ط§ظ„ظٹط© ط¬ط¯ط§ظ‹ ظˆظ„ظٹط³طھ ط¶ظ…ط§ظ†ط§ظ‹ ط£ظˆ ظٹظ‚ظٹظ†ط§ظ‹.
-          ظ„ظ„ط£ط؛ط±ط§ط¶ ط§ظ„طھط¹ظ„ظٹظ…ظٹط© ظˆط§ظ„طھط­ظ„ظٹظ„ظٹط© ظپظ‚ط·.
+        {/* ── Disclaimer ─────────────────────────────────────────────────────── */}
+        <p className="text-[9px] text-white/25 text-center font-mono leading-relaxed pb-4 max-w-xs mx-auto" dir="rtl">
+          هذه الأداة تستند إلى الدورات الإحصائية التاريخية والهندسة الرياضية لمدرسة غان.
+          جميع المخرجات ذات احتمالية عالية جداً وليست ضماناً أو يقيناً.
+          للأغراض التعليمية والتحليلية فقط.
         </p>
 
       </div>

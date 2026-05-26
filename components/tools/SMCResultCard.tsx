@@ -1,8 +1,8 @@
-﻿'use client';
+'use client';
 
 import type { SMCResult } from '@/lib/algorithms/smc';
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function fmt(n: number): string {
   if (n >= 10_000)   return n.toLocaleString('en-US', { maximumFractionDigits: 1 });
@@ -22,8 +22,8 @@ function ScoreBar({ label, value, maxValue, color }: ScoreBarProps) {
   return (
     <div className="space-y-1">
       <div className="flex justify-between items-center">
-        <span className="text-sm text-white/40 uppercase tracking-wider font-mono">{label}</span>
-        <span className="text-sm text-white/60 font-mono tabular-nums">{value}/{maxValue}</span>
+        <span className="text-[10px] text-white/40 uppercase tracking-wider font-mono">{label}</span>
+        <span className="text-[10px] text-white/60 font-mono tabular-nums">{value}/{maxValue}</span>
       </div>
       <div className="h-[3px] w-full rounded-full bg-white/[0.06]">
         <div
@@ -57,14 +57,14 @@ function SetupBox({ labelEn, labelAr, value, variant }: SetupBoxProps) {
   };
   return (
     <div className={`rounded-xl border p-3 text-center ${styles[variant]}`}>
-      <p className={`text-sm font-bold uppercase tracking-widest mb-0.5 ${labelColors[variant]}`}>{labelEn}</p>
-      <p className="text-sm text-white/30 mb-2 font-medium">{labelAr}</p>
-      <p className="text-lg font-mono font-bold text-white tabular-nums leading-tight">{value}</p>
+      <p className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${labelColors[variant]}`}>{labelEn}</p>
+      <p className="text-[9px] text-white/30 mb-2 font-medium">{labelAr}</p>
+      <p className="text-sm font-mono font-bold text-white tabular-nums leading-tight">{value}</p>
     </div>
   );
 }
 
-// â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Main Component ─────────────────────────────────────────────────────────────
 
 interface Props {
   data:   SMCResult;
@@ -87,37 +87,37 @@ export function SMCResultCard({ data, symbol }: Props) {
 
   // Arabic verdict text
   const verdictAr = isBull
-    ? `ظƒطھظ„ط© ط£ظˆط§ظ…ط± ط´ط±ط§ط¦ظٹط© ط¹ظ†ط¯ ${fmt(data.priceRange.low)}â€“${fmt(data.priceRange.high)} آ· ط«ظ‚ط© ${data.score}%. ${data.strongMoveDetails}. ${isFresh ? 'ط§ظ„ظ…ظ†ط·ظ‚ط© ظ†ط¸ظٹظپط© ظˆظ„ظ… طھظڈظ…ط³ظ‘ ط¨ط¹ط¯.' : 'ط§ظ„ظ…ظ†ط·ظ‚ط© طھط¹ط±ظ‘ط¶طھ ظ„ظ„ط§ط®طھط¨ط§ط±.'}`
-    : `ظƒطھظ„ط© ط£ظˆط§ظ…ط± ط¨ظٹط¹ظٹط© ط¹ظ†ط¯ ${fmt(data.priceRange.low)}â€“${fmt(data.priceRange.high)} آ· ط«ظ‚ط© ${data.score}%. ${data.strongMoveDetails}. ${isFresh ? 'ط§ظ„ظ…ظ†ط·ظ‚ط© ظ†ط¸ظٹظپط© ظˆظ„ظ… طھظڈظ…ط³ظ‘ ط¨ط¹ط¯.' : 'ط§ظ„ظ…ظ†ط·ظ‚ط© طھط¹ط±ظ‘ط¶طھ ظ„ظ„ط§ط®طھط¨ط§ط±.'}`;
+    ? `كتلة أوامر شرائية عند ${fmt(data.priceRange.low)}–${fmt(data.priceRange.high)} · ثقة ${data.score}%. ${data.strongMoveDetails}. ${isFresh ? 'المنطقة نظيفة ولم تُمسّ بعد.' : 'المنطقة تعرّضت للاختبار.'}`
+    : `كتلة أوامر بيعية عند ${fmt(data.priceRange.low)}–${fmt(data.priceRange.high)} · ثقة ${data.score}%. ${data.strongMoveDetails}. ${isFresh ? 'المنطقة نظيفة ولم تُمسّ بعد.' : 'المنطقة تعرّضت للاختبار.'}`;
 
   return (
     <div
       className="rounded-2xl border border-white/[0.06] bg-[#0d0d0d] overflow-hidden space-y-0"
       style={{ animation: 'slide-up 0.35s cubic-bezier(0.16,1,0.3,1) forwards' }}
     >
-      {/* â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05] bg-[#111111]">
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.05] bg-[#111111]">
         <div>
-          <p className="text-sm text-white/30 uppercase tracking-widest font-mono">SMC آ· Order Block</p>
-          <p className="text-white font-bold text-lg font-mono tabular-nums leading-tight">{symbol}</p>
-          <p className="text-sm text-white/40 font-mono tabular-nums">${fmt(data.lastClose)}</p>
+          <p className="text-[10px] text-white/30 uppercase tracking-widest font-mono">SMC · Order Block</p>
+          <p className="text-white font-bold text-base font-mono tabular-nums leading-tight">{symbol}</p>
+          <p className="text-[11px] text-white/40 font-mono tabular-nums">${fmt(data.lastClose)}</p>
         </div>
         <div className="flex flex-col items-end gap-1.5">
-          <span className={`text-sm font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${verdictBg}`}>
-            {isBull ? 'â–² BULLISH' : 'â–¼ BEARISH'}
+          <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${verdictBg}`}>
+            {isBull ? '▲ BULLISH' : '▼ BEARISH'}
           </span>
-          <span className={`text-sm font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border ${statusBg}`}>
+          <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border ${statusBg}`}>
             {data.status}
           </span>
         </div>
       </div>
 
-      {/* â”€â”€ Quality Score â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="px-5 py-4 border-b border-white/[0.05] space-y-3">
-        <div className="flex items-baseline gap-3">
+      {/* ── Quality Score ──────────────────────────────────────────────────── */}
+      <div className="px-4 py-3 border-b border-white/[0.05] space-y-3">
+        <div className="flex items-baseline gap-2">
           <span className={`text-3xl font-black tabular-nums font-mono ${scoreColor}`}>{data.score}</span>
           <span className="text-white/20 text-lg font-mono">/100</span>
-          <span className="text-sm text-white/30 uppercase tracking-widest ml-1">ط¬ظˆط¯ط© ط§ظ„ط¥ط´ط§ط±ط©</span>
+          <span className="text-[10px] text-white/30 uppercase tracking-widest ml-1">جودة الإشارة</span>
         </div>
         <div className="space-y-2">
           <ScoreBar label="Displacement"  value={data.scoreBreakdown.displacement} maxValue={25} color="bg-orange-500" />
@@ -128,45 +128,45 @@ export function SMCResultCard({ data, symbol }: Props) {
         </div>
       </div>
 
-      {/* â”€â”€ Data Grid (Arabic RTL) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="px-5 py-4 border-b border-white/[0.05]" dir="rtl">
-        <p className="text-sm text-white/25 uppercase tracking-widest mb-2 text-right font-mono">ط¨ظٹط§ظ†ط§طھ ط§ظ„ظƒطھظ„ط©</p>
+      {/* ── Data Grid (Arabic RTL) ─────────────────────────────────────────── */}
+      <div className="px-4 py-3 border-b border-white/[0.05]" dir="rtl">
+        <p className="text-[9px] text-white/25 uppercase tracking-widest mb-2 text-right font-mono">بيانات الكتلة</p>
         <div className="space-y-2">
           {[
-            { ar: 'ط§ظ„ظ…ظ†ط·ظ‚ط©',          val: `${fmt(data.priceRange.low)} â€” ${fmt(data.priceRange.high)}` },
-            { ar: 'ط§ظ„ط¬ط³ظ…',            val: `${fmt(data.bodyRange.low)} â€” ${fmt(data.bodyRange.high)}`   },
-            { ar: 'ط§ظ„ط­ط±ظƒط© ط§ظ„ظ‚ظˆظٹط©',    val: data.strongMoveDetails                                       },
-            { ar: 'FVG',              val: data.scoreBreakdown.fvg >= 15 ? 'ظ…ظƒطھط´ظپ âœ“' : 'ط؛ظٹط± ظ…ظƒطھط´ظپ'    },
+            { ar: 'المنطقة',          val: `${fmt(data.priceRange.low)} — ${fmt(data.priceRange.high)}` },
+            { ar: 'الجسم',            val: `${fmt(data.bodyRange.low)} — ${fmt(data.bodyRange.high)}`   },
+            { ar: 'الحركة القوية',    val: data.strongMoveDetails                                       },
+            { ar: 'FVG',              val: data.scoreBreakdown.fvg >= 15 ? 'مكتشف ✓' : 'غير مكتشف'    },
             { ar: 'BOS',              val: fmt(data.bosLevel)                                            },
-            { ar: 'ط§ظ„ظ„ظ…ط³ط§طھ',          val: String(data.touches)                                         },
+            { ar: 'اللمسات',          val: String(data.touches)                                         },
           ].map(({ ar, val }) => (
             <div key={ar} className="flex justify-between items-center">
-              <span className="text-sm font-mono tabular-nums text-white/70">{val}</span>
-              <span className="text-sm text-white/35 font-medium">{ar}</span>
+              <span className="text-[11px] font-mono tabular-nums text-white/70">{val}</span>
+              <span className="text-[10px] text-white/35 font-medium">{ar}</span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* â”€â”€ Trade Setup (4 Boxes) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="px-5 py-4 border-b border-white/[0.05]">
-        <p className="text-sm text-white/25 uppercase tracking-widest mb-2.5 font-mono">ط¥ط¹ط¯ط§ط¯ ط§ظ„طµظپظ‚ط©</p>
-        <div className="grid grid-cols-2 gap-3">
-          <SetupBox labelEn="ENTRY"     labelAr="ط³ط¹ط± ط§ظ„ط¯ط®ظˆظ„"   value={`$${fmt(data.setup.entry)}`}  variant="entry"   />
-          <SetupBox labelEn="STOP LOSS" labelAr="ظˆظ‚ظپ ط§ظ„ط®ط³ط§ط±ط©"  value={`$${fmt(data.setup.sl)}`}     variant="sl"      />
-          <SetupBox labelEn="TP1"       labelAr="ط§ظ„ظ‡ط¯ظپ ط§ظ„ط£ظˆظ„"  value={`$${fmt(data.setup.tp1)}`}    variant="tp"      />
-          <SetupBox labelEn="TP2"       labelAr="ط§ظ„ظ‡ط¯ظپ ط§ظ„ط«ط§ظ†ظٹ" value={`$${fmt(data.setup.tp2)}`}    variant="tp"      />
+      {/* ── Trade Setup (4 Boxes) ─────────────────────────────────────────── */}
+      <div className="px-4 py-3 border-b border-white/[0.05]">
+        <p className="text-[9px] text-white/25 uppercase tracking-widest mb-2.5 font-mono">إعداد الصفقة</p>
+        <div className="grid grid-cols-2 gap-2">
+          <SetupBox labelEn="ENTRY"     labelAr="سعر الدخول"   value={`$${fmt(data.setup.entry)}`}  variant="entry"   />
+          <SetupBox labelEn="STOP LOSS" labelAr="وقف الخسارة"  value={`$${fmt(data.setup.sl)}`}     variant="sl"      />
+          <SetupBox labelEn="TP1"       labelAr="الهدف الأول"  value={`$${fmt(data.setup.tp1)}`}    variant="tp"      />
+          <SetupBox labelEn="TP2"       labelAr="الهدف الثاني" value={`$${fmt(data.setup.tp2)}`}    variant="tp"      />
         </div>
         <div className="mt-2 text-center">
-          <span className="text-sm text-white/25 font-mono">ظ†ط³ط¨ط© ط§ظ„ظ…ط®ط§ط·ط±ط© / ط§ظ„ط¹ط§ط¦ط¯ آ· </span>
-          <span className="text-sm text-orange-400 font-bold font-mono">{data.setup.rr}</span>
+          <span className="text-[10px] text-white/25 font-mono">نسبة المخاطرة / العائد · </span>
+          <span className="text-[10px] text-orange-400 font-bold font-mono">{data.setup.rr}</span>
         </div>
       </div>
 
-      {/* â”€â”€ Verdict (Orange left-border) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      <div className="px-5 py-4" dir="rtl">
+      {/* ── Verdict (Orange left-border) ──────────────────────────────────── */}
+      <div className="px-4 py-3" dir="rtl">
         <div className="border-r-2 border-orange-500 pr-3">
-          <p className="text-sm text-white/60 leading-relaxed text-right">{verdictAr}</p>
+          <p className="text-[11px] text-white/60 leading-relaxed text-right">{verdictAr}</p>
         </div>
       </div>
     </div>

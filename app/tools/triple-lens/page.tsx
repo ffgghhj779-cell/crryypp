@@ -1,9 +1,9 @@
-﻿'use client';
+'use client';
 
 /**
  * app/tools/triple-lens/page.tsx
  *
- * Triple Lens (ط§ظ„ط¹ط¯ط³ط© ط§ظ„ط«ظ„ط§ط«ظٹط©)
+ * Triple Lens (العدسة الثلاثية)
  * Analyzes an asset using 3 lenses: Ichimoku, Bollinger, Volume Profile.
  */
 
@@ -25,28 +25,28 @@ export default function TripleLensPage() {
   const [error, setError] = useState('');
   const [animated, setAnimated] = useState(false);
 
-  // â”€â”€ Guard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Guard ──────────────────────────────────────────────────────────────────
   const tool = slugToTool('triple-lens');
   if (!tool) return notFound();
 
-  // â”€â”€ Handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Handlers ───────────────────────────────────────────────────────────────
   const handleCalculate = async () => {
     setError('');
-    if (!symbol.trim()) return setError('ط£ط¯ط®ظ„ ط§ط³ظ… ط§ظ„ط£طµظ„.');
+    if (!symbol.trim()) return setError('أدخل اسم الأصل.');
     
     setLoading(true);
     setAnimated(false);
     
     try {
       const klines = await fetchKlines(symbol.toUpperCase().trim(), timeframe.toLowerCase(), 100);
-      if (klines.length === 0) throw new Error('ظ„ط§ طھظˆط¬ط¯ ط¨ظٹط§ظ†ط§طھ ظ…طھط§ط­ط© ظ„ظ‡ط°ط§ ط§ظ„ط£طµظ„.');
+      if (klines.length === 0) throw new Error('لا توجد بيانات متاحة لهذا الأصل.');
       
       const res = analyzeTripleLens(symbol.toUpperCase().trim(), klines);
       setResult(res);
       setTimeout(() => setAnimated(true), 100);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'ط­ط¯ط« ط®ط·ط£ ط£ط«ظ†ط§ط، ط¬ظ„ط¨ ط§ظ„ط¨ظٹط§ظ†ط§طھ ط£ظˆ ط§ظ„ظ…ط¹ط§ظ„ط¬ط©.');
+      setError(err.message || 'حدث خطأ أثناء جلب البيانات أو المعالجة.');
     } finally {
       setLoading(false);
     }
@@ -57,45 +57,45 @@ export default function TripleLensPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-black text-emerald-400/70 tracking-widest uppercase border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 rounded-full">
-            Multifactor آ· TA
+      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <span className="text-[9px] font-black text-emerald-400/70 tracking-widest uppercase border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 rounded-full">
+            Multifactor · TA
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">
-          ط§ظ„ط¹ط¯ط³ط© ط§ظ„ط«ظ„ط§ط«ظٹط©
+          العدسة الثلاثية
         </h1>
-        <p className="text-sm text-white/40 font-mono leading-relaxed">
-          طھط­ظ„ظٹظ„ ظ…ظˆط­ط¯ ط¨ط§ط³طھط®ط¯ط§ظ… (Ichimoku, Bollinger, Volume Profile)
+        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+          تحليل موحد باستخدام (Ichimoku, Bollinger, Volume Profile)
         </p>
       </div>
 
-      <div className="px-5 flex flex-col gap-5">
-        {/* â”€â”€ Input Form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-6 shadow-xl shadow-black/50">
+      <div className="px-4 flex flex-col gap-5">
+        {/* ── Input Form ─────────────────────────────────────────────────── */}
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-4 shadow-xl shadow-black/50">
           <div className="grid grid-cols-2 gap-3">
             {/* Symbol */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">ط±ظ…ط² ط§ظ„ط£طµظ„</label>
+              <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">رمز الأصل</label>
               <input
                 type="text"
                 value={symbol}
                 onChange={e => setSymbol(e.target.value)}
                 placeholder="BTCUSDT"
-                className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-lg px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-emerald-500/40 transition-colors"
+                className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 placeholder:text-white/20 focus:outline-none focus:border-emerald-500/40 transition-colors"
                 dir="ltr"
               />
             </div>
 
             {/* Timeframe */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">ط§ظ„ط¥ط·ط§ط± ط§ظ„ط²ظ…ظ†ظٹ</label>
+              <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">الإطار الزمني</label>
               <div className="relative">
                 <select
                   value={timeframe}
                   onChange={e => setTimeframe(e.target.value)}
-                  className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-lg px-5 py-4 appearance-none focus:outline-none focus:border-emerald-500/40 transition-colors cursor-pointer"
+                  className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 appearance-none focus:outline-none focus:border-emerald-500/40 transition-colors cursor-pointer"
                   dir="ltr"
                 >
                   <option value="15m">15m</option>
@@ -104,7 +104,7 @@ export default function TripleLensPage() {
                   <option value="1d">1D</option>
                 </select>
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <ChevronDown className="w-6 h-6 text-white/40" />
+                  <ChevronDown className="w-4 h-4 text-white/40" />
                 </div>
               </div>
             </div>
@@ -113,9 +113,9 @@ export default function TripleLensPage() {
           <AnimatePresence>
             {error && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                <div className="flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-4.5 mt-2">
-                  <AlertCircle className="w-6 h-6 text-red-400 shrink-0" />
-                  <p className="text-base text-red-300">{error}</p>
+                <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-2.5 mt-2">
+                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                  <p className="text-xs text-red-300">{error}</p>
                 </div>
               </motion.div>
             )}
@@ -124,18 +124,18 @@ export default function TripleLensPage() {
           <button
             onClick={handleCalculate}
             disabled={loading}
-            className="w-full mt-2 flex items-center justify-center gap-3.5 rounded-xl py-4 font-black text-lg tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
+            className="w-full mt-2 flex items-center justify-center gap-2.5 rounded-xl py-4 font-black text-sm tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
             style={{
               background: loading ? 'linear-gradient(135deg, #0f766e, #064e3b)' : 'linear-gradient(135deg, #10b981, #047857)',
               boxShadow: !loading ? '0 0 20px rgba(16, 185, 129, 0.2)' : 'none'
             }}
           >
-            {loading ? <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-6 h-6" />}
-            {loading ? 'ط¬ط§ط±ظچ ط§ظ„طھط­ظ„ظٹظ„...' : 'طھط´ط؛ظٹظ„ ط§ظ„ط¹ط¯ط³ط© ط§ظ„ط«ظ„ط§ط«ظٹط©'}
+            {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-4 h-4" />}
+            {loading ? 'جارٍ التحليل...' : 'تشغيل العدسة الثلاثية'}
           </button>
         </div>
 
-        {/* â”€â”€ Results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Results ────────────────────────────────────────────────────── */}
         <AnimatePresence>
           {result && (
             <motion.div
@@ -144,7 +144,7 @@ export default function TripleLensPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ type: 'spring', stiffness: 100, damping: 18 }}
-              className="flex flex-col gap-6"
+              className="flex flex-col gap-4"
             >
               {/* Main Score Area */}
               <div className="rounded-2xl border border-white/[0.08] bg-[#111] p-5 flex flex-col items-center justify-center shadow-lg relative overflow-hidden">
@@ -158,9 +158,9 @@ export default function TripleLensPage() {
                   }}
                 />
                 
-                <p className="text-sm font-bold text-white/40 uppercase tracking-widest mb-1 z-10">ط§ظ„ط­ظƒظ… ط§ظ„ظ…ظˆط­ط¯</p>
+                <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1 z-10">الحكم الموحد</p>
                 
-                <div className="flex items-baseline gap-3 z-10">
+                <div className="flex items-baseline gap-2 z-10">
                   <span className={`text-5xl font-black font-mono tracking-tighter ${
                     result.overallBias === 'BULL' ? 'text-emerald-400' : result.overallBias === 'BEAR' ? 'text-red-400' : 'text-gray-400'
                   }`}>
@@ -174,12 +174,12 @@ export default function TripleLensPage() {
                 </div>
                 
                 {/* Tally */}
-                <div className="flex items-center gap-3 mt-4 z-10 bg-black/40 px-5 py-4 rounded-full border border-white/[0.05]">
-                  <span className="text-base font-mono text-emerald-400 font-bold">{result.bullCount} BULL</span>
+                <div className="flex items-center gap-3 mt-4 z-10 bg-black/40 px-4 py-2 rounded-full border border-white/[0.05]">
+                  <span className="text-xs font-mono text-emerald-400 font-bold">{result.bullCount} BULL</span>
                   <span className="w-1 h-1 rounded-full bg-white/20" />
-                  <span className="text-base font-mono text-gray-400 font-bold">{result.neutralCount} WAIT</span>
+                  <span className="text-xs font-mono text-gray-400 font-bold">{result.neutralCount} WAIT</span>
                   <span className="w-1 h-1 rounded-full bg-white/20" />
-                  <span className="text-base font-mono text-red-400 font-bold">{result.bearCount} BEAR</span>
+                  <span className="text-xs font-mono text-red-400 font-bold">{result.bearCount} BEAR</span>
                 </div>
                 
                 {/* Power Meter */}
@@ -197,9 +197,9 @@ export default function TripleLensPage() {
                     />
                   </div>
                   <div className="flex justify-between mt-1.5 px-1">
-                    <span className="text-sm font-bold text-red-500/70">BEAR (0%)</span>
-                    <span className="text-sm font-bold text-gray-500/70">NEUTRAL (50%)</span>
-                    <span className="text-sm font-bold text-emerald-500/70">BULL (100%)</span>
+                    <span className="text-[9px] font-bold text-red-500/70">BEAR (0%)</span>
+                    <span className="text-[9px] font-bold text-gray-500/70">NEUTRAL (50%)</span>
+                    <span className="text-[9px] font-bold text-emerald-500/70">BULL (100%)</span>
                   </div>
                 </div>
               </div>
@@ -209,63 +209,63 @@ export default function TripleLensPage() {
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.3 }}
-                className="rounded-xl border-r-2 border-r-emerald-500 border-white/[0.05] bg-emerald-500/[0.03] p-6 text-right shadow-inner"
+                className="rounded-xl border-r-2 border-r-emerald-500 border-white/[0.05] bg-emerald-500/[0.03] p-4 text-right shadow-inner"
               >
-                <p className="text-sm text-emerald-50 font-medium leading-relaxed">
+                <p className="text-[12px] text-emerald-50 font-medium leading-relaxed">
                   {result.verdictTextAr}
                 </p>
               </motion.div>
 
-              {/* â”€â”€ Lens Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+              {/* ── Lens Cards ────────────────────────────────────────────── */}
               <div className="flex flex-col gap-3 mt-2">
                 <LensCard 
                   title="Ichimoku Cloud" 
-                  subtitle="ط§ظ„ط§طھط¬ط§ظ‡ (Trend)"
-                  icon={<TrendingUp className="w-6 h-6 text-white/50" />}
+                  subtitle="الاتجاه (Trend)"
+                  icon={<TrendingUp className="w-4 h-4 text-white/50" />}
                   data={result.lenses.ichimoku}
                   delay={0.4}
                   rows={[
-                    { label: 'ط§ظ„ط³ط¹ط± ظˆط§ظ„ط³ط­ط§ط¨ط©', value: result.lenses.ichimoku.priceVsCloud },
+                    { label: 'السعر والسحابة', value: result.lenses.ichimoku.priceVsCloud },
                     { label: 'Tenkan / Kijun', value: result.lenses.ichimoku.tenkanKijun },
                     { label: 'Chikou Span', value: result.lenses.ichimoku.chikouSpan },
-                    { label: 'ط³ط­ط§ط¨ط© ط§ظ„ظ…ط³طھظ‚ط¨ظ„', value: result.lenses.ichimoku.futureCloud },
-                    { label: 'ط§ظ„ظ…ط³ط§ظپط© ط¹ظ† ط§ظ„ط³ط­ط§ط¨ط©', value: result.lenses.ichimoku.cloudDistancePct },
+                    { label: 'سحابة المستقبل', value: result.lenses.ichimoku.futureCloud },
+                    { label: 'المسافة عن السحابة', value: result.lenses.ichimoku.cloudDistancePct },
                   ]}
                 />
                 
                 <LensCard 
                   title="Bollinger Bands" 
-                  subtitle="ط§ظ„طھظ‚ظ„ط¨ (Volatility)"
-                  icon={<Activity className="w-6 h-6 text-white/50" />}
+                  subtitle="التقلب (Volatility)"
+                  icon={<Activity className="w-4 h-4 text-white/50" />}
                   data={result.lenses.bollinger}
                   delay={0.5}
                   rows={[
                     { label: '%B Position', value: result.lenses.bollinger.pctB },
-                    { label: 'ط§ظ„ط³ط¹ط± / SMA20', value: result.lenses.bollinger.priceVsSMA },
-                    { label: 'ط¹ط±ط¶ ط§ظ„ظ†ط·ط§ظ‚', value: result.lenses.bollinger.bandwidth },
-                    { label: 'ط­ط§ظ„ط© ط§ظ„ط¶ط؛ط·', value: result.lenses.bollinger.squeezeStatus },
+                    { label: 'السعر / SMA20', value: result.lenses.bollinger.priceVsSMA },
+                    { label: 'عرض النطاق', value: result.lenses.bollinger.bandwidth },
+                    { label: 'حالة الضغط', value: result.lenses.bollinger.squeezeStatus },
                   ]}
                 />
                 
                 <LensCard 
                   title="Volume Profile" 
-                  subtitle="ط§ظ„ط³ظٹظˆظ„ط© (Liquidity)"
-                  icon={<BarChart2 className="w-6 h-6 text-white/50" />}
+                  subtitle="السيولة (Liquidity)"
+                  icon={<BarChart2 className="w-4 h-4 text-white/50" />}
                   data={result.lenses.volumeProfile}
                   delay={0.6}
                   rows={[
-                    { label: 'ظ†ظ‚ط·ط© ط§ظ„طھط­ظƒظ… POC', value: result.lenses.volumeProfile.poc },
-                    { label: 'ط§ظ„ط³ط¹ط± ظ…ظ‚ط§ط±ظ†ط© ط¨ظ€ POC', value: result.lenses.volumeProfile.priceVsPocPct },
-                    { label: 'ظ…ظ†ط·ظ‚ط© ط§ظ„ظ‚ظٹظ…ط© VA', value: result.lenses.volumeProfile.valueArea },
+                    { label: 'نقطة التحكم POC', value: result.lenses.volumeProfile.poc },
+                    { label: 'السعر مقارنة بـ POC', value: result.lenses.volumeProfile.priceVsPocPct },
+                    { label: 'منطقة القيمة VA', value: result.lenses.volumeProfile.valueArea },
                   ]}
                 />
               </div>
 
               {/* Guide */}
-              <div className="flex items-start gap-3 mt-4 px-2 mb-4">
-                <Info className="w-6 h-6 text-white/20 shrink-0 mt-0.5" />
-                <p className="text-sm text-white/30 leading-relaxed font-mono">
-                  <strong>ط¯ظ„ظٹظ„ ط§ظ„ظ‚ط±ط§ط،ط©:</strong> ظٹطھظ… ط­ط³ط§ط¨ ط¯ط±ط¬ط© ط§ظ„ط¥ط¬ظ…ط§ط¹ ظ…ظ† ط®ظ„ط§ظ„ طھط¬ظ…ظٹط¹ ط§ظ„ظ†ظ‚ط§ط· ط§ظ„ظ…ط³طھط®ط±ط¬ط© ظ…ظ† ط§ظ„ط¥ط·ط§ط± ط§ظ„ط²ظ…ظ†ظٹ ط§ظ„ظ…ط®طھط§ط± ظ„ظƒظ„ ظ†ط¸ط§ظ… ظ…ظ† ط§ظ„ط£ظ†ط¸ظ…ط© ط§ظ„ط«ظ„ط§ط«ط©. (Ichimoku: 5 ظ†ظ‚ط§ط·طŒ Bollinger: 4 ظ†ظ‚ط§ط·طŒ Volume Profile: 4 ظ†ظ‚ط§ط·).
+              <div className="flex items-start gap-2 mt-4 px-2 mb-4">
+                <Info className="w-4 h-4 text-white/20 shrink-0 mt-0.5" />
+                <p className="text-[10px] text-white/30 leading-relaxed font-mono">
+                  <strong>دليل القراءة:</strong> يتم حساب درجة الإجماع من خلال تجميع النقاط المستخرجة من الإطار الزمني المختار لكل نظام من الأنظمة الثلاثة. (Ichimoku: 5 نقاط، Bollinger: 4 نقاط، Volume Profile: 4 نقاط).
                 </p>
               </div>
 
@@ -277,7 +277,7 @@ export default function TripleLensPage() {
   );
 }
 
-// â”€â”€ Components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Components ────────────────────────────────────────────────────────────────
 
 function LensCard({ title, subtitle, icon, data, delay, rows }: { title: string, subtitle: string, icon: React.ReactNode, data: any, delay: number, rows: { label: string, value: string }[] }) {
   const [open, setOpen] = useState(true);
@@ -302,16 +302,16 @@ function LensCard({ title, subtitle, icon, data, delay, rows }: { title: string,
             {icon}
           </div>
           <div className="text-right flex flex-col items-start">
-            <span className="text-sm text-white/40 font-mono tracking-widest">{subtitle}</span>
-            <span className="text-lg font-bold text-white/90">{title}</span>
+            <span className="text-[10px] text-white/40 font-mono tracking-widest">{subtitle}</span>
+            <span className="text-sm font-bold text-white/90">{title}</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <div className={`px-2 py-1 rounded border flex flex-col items-center ${colorClass}`}>
-            <span className="text-sm font-black font-mono leading-none">{data.score}/{data.maxScore}</span>
-            <span className="text-sm font-bold tracking-widest mt-0.5">{data.bias}</span>
+            <span className="text-[12px] font-black font-mono leading-none">{data.score}/{data.maxScore}</span>
+            <span className="text-[8px] font-bold tracking-widest mt-0.5">{data.bias}</span>
           </div>
-          <ChevronDown className={`w-6 h-6 text-white/30 transition-transform ${open ? 'rotate-180' : ''}`} />
+          <ChevronDown className={`w-4 h-4 text-white/30 transition-transform ${open ? 'rotate-180' : ''}`} />
         </div>
       </button>
 
@@ -326,9 +326,9 @@ function LensCard({ title, subtitle, icon, data, delay, rows }: { title: string,
             <div className="p-3 border-t border-white/[0.04]">
               <div className="flex flex-col gap-1">
                 {rows.map((r, i) => (
-                  <div key={i} className="flex justify-between items-center py-4 px-1 border-b border-white/[0.02] last:border-0">
-                    <span className="text-sm font-bold text-white/80">{r.value}</span>
-                    <span className="text-sm text-white/40 uppercase tracking-wide">{r.label}</span>
+                  <div key={i} className="flex justify-between items-center py-2 px-1 border-b border-white/[0.02] last:border-0">
+                    <span className="text-[11px] font-bold text-white/80">{r.value}</span>
+                    <span className="text-[10px] text-white/40 uppercase tracking-wide">{r.label}</span>
                   </div>
                 ))}
               </div>

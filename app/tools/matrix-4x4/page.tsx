@@ -1,9 +1,9 @@
-﻿'use client';
+'use client';
 
 /**
  * app/tools/matrix-4x4/page.tsx
  *
- * 4x4 Matrix (طھظˆط§ظپظ‚ ط§ظ„ط£ط·ط±)
+ * 4x4 Matrix (توافق الأطر)
  * Visual Grid analyzing 4 indicators across 4 timeframes.
  */
 
@@ -24,28 +24,28 @@ export default function Matrix4x4Page() {
   const [error, setError] = useState('');
   const [animated, setAnimated] = useState(false);
 
-  // â”€â”€ Guard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Guard ──────────────────────────────────────────────────────────────────
   const tool = slugToTool('matrix-4x4');
   if (!tool) return notFound();
 
-  // â”€â”€ Handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Handlers ───────────────────────────────────────────────────────────────
   const handleCalculate = async () => {
     setError('');
-    if (!symbol.trim()) return setError('ط£ط¯ط®ظ„ ط§ط³ظ… ط§ظ„ط£طµظ„.');
+    if (!symbol.trim()) return setError('أدخل اسم الأصل.');
     
     setLoading(true);
     setAnimated(false);
     
     try {
       const klines = await fetchKlines(symbol.toUpperCase().trim(), '1h', 100);
-      if (klines.length === 0) throw new Error('ظ„ط§ طھظˆط¬ط¯ ط¨ظٹط§ظ†ط§طھ ظ…طھط§ط­ط© ظ„ظ‡ط°ط§ ط§ظ„ط£طµظ„.');
+      if (klines.length === 0) throw new Error('لا توجد بيانات متاحة لهذا الأصل.');
       
       const res = analyzeMatrix4x4Single(symbol.toUpperCase().trim(), klines);
       setResult(res);
       setTimeout(() => setAnimated(true), 100);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'ط­ط¯ط« ط®ط·ط£ ط£ط«ظ†ط§ط، ط¬ظ„ط¨ ط§ظ„ط¨ظٹط§ظ†ط§طھ ط£ظˆ ط§ظ„ظ…ط¹ط§ظ„ط¬ط©.');
+      setError(err.message || 'حدث خطأ أثناء جلب البيانات أو المعالجة.');
     } finally {
       setLoading(false);
     }
@@ -58,9 +58,9 @@ export default function Matrix4x4Page() {
   };
 
   const getCellText = (signal: MatrixSignal) => {
-    if (signal === 'bullish' || signal === 'oversold') return 'ط¥ظٹط¬ط§ط¨ظٹ';
-    if (signal === 'bearish' || signal === 'overbought') return 'ط³ظ„ط¨ظٹ';
-    return 'ظ…ط­ط§ظٹط¯';
+    if (signal === 'bullish' || signal === 'oversold') return 'إيجابي';
+    if (signal === 'bearish' || signal === 'overbought') return 'سلبي';
+    return 'محايد';
   };
 
   const getCellScore = (signal: MatrixSignal): number => {
@@ -76,31 +76,31 @@ export default function Matrix4x4Page() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-black text-amber-400/70 tracking-widest uppercase border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 rounded-full">
+      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <span className="text-[9px] font-black text-amber-400/70 tracking-widest uppercase border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 rounded-full">
             Confluence Matrix
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">
-          طھظˆط§ظپظ‚ ط§ظ„ط£ط·ط± (4x4)
+          توافق الأطر (4x4)
         </h1>
-        <p className="text-sm text-white/40 font-mono leading-relaxed">
-          ظ…طµظپظˆظپط© ط§ظ„طھظˆط§ظپظ‚ ظ„طھط­ظ„ظٹظ„ 4 ظ…ط¤ط´ط±ط§طھ ط¹ط¨ط± 4 ط¥ط·ط§ط±ط§طھ ط²ظ…ظ†ظٹط©
+        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+          مصفوفة التوافق لتحليل 4 مؤشرات عبر 4 إطارات زمنية
         </p>
       </div>
 
-      <div className="px-5 flex flex-col gap-5">
-        {/* â”€â”€ Input Form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-6 shadow-xl shadow-black/50">
+      <div className="px-4 flex flex-col gap-5">
+        {/* ── Input Form ─────────────────────────────────────────────────── */}
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-4 shadow-xl shadow-black/50">
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">ط±ظ…ط² ط§ظ„ط£طµظ„</label>
+            <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">رمز الأصل</label>
             <input
               type="text"
               value={symbol}
               onChange={e => setSymbol(e.target.value)}
               placeholder="BTCUSDT"
-              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-lg px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-amber-500/40 transition-colors"
+              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 placeholder:text-white/20 focus:outline-none focus:border-amber-500/40 transition-colors"
               dir="ltr"
             />
           </div>
@@ -108,9 +108,9 @@ export default function Matrix4x4Page() {
           <AnimatePresence>
             {error && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                <div className="flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-4.5 mt-2">
-                  <AlertCircle className="w-6 h-6 text-red-400 shrink-0" />
-                  <p className="text-base text-red-300">{error}</p>
+                <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-2.5 mt-2">
+                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                  <p className="text-xs text-red-300">{error}</p>
                 </div>
               </motion.div>
             )}
@@ -119,18 +119,18 @@ export default function Matrix4x4Page() {
           <button
             onClick={handleCalculate}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3.5 rounded-xl py-4 font-black text-lg tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
+            className="w-full flex items-center justify-center gap-2.5 rounded-xl py-4 font-black text-sm tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
             style={{
               background: loading ? 'linear-gradient(135deg, #78350f, #451a03)' : 'linear-gradient(135deg, #f59e0b, #d97706)',
               boxShadow: !loading ? '0 0 20px rgba(245, 158, 11, 0.2)' : 'none'
             }}
           >
-            {loading ? <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-6 h-6" />}
-            {loading ? 'ط¬ط§ط±ظچ ط§ظ„طھط­ظ„ظٹظ„...' : 'طھط´ط؛ظٹظ„ ظ…طµظپظˆظپط© ط§ظ„طھظˆط§ظپظ‚'}
+            {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-4 h-4" />}
+            {loading ? 'جارٍ التحليل...' : 'تشغيل مصفوفة التوافق'}
           </button>
         </div>
 
-        {/* â”€â”€ Results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Results ────────────────────────────────────────────────────── */}
         <AnimatePresence>
           {result && (
             <motion.div
@@ -139,13 +139,13 @@ export default function Matrix4x4Page() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ type: 'spring', stiffness: 100, damping: 18 }}
-              className="flex flex-col gap-6"
+              className="flex flex-col gap-4"
             >
               {/* Consensus Bar */}
               <div className="rounded-2xl border border-white/[0.08] bg-[#111] p-5 flex flex-col shadow-lg">
                 <div className="flex justify-between items-end mb-3">
                   <div className="flex flex-col gap-1">
-                    <span className="text-sm font-bold text-white/40 uppercase tracking-widest">ط§ظ„طھظˆط§ظپظ‚ ط§ظ„ط¹ط§ظ… (Global Confluence)</span>
+                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">التوافق العام (Global Confluence)</span>
                     <span className={`text-2xl font-black tracking-widest ${
                       result.overallBias === 'BULL' ? 'text-emerald-500' : result.overallBias === 'BEAR' ? 'text-red-500' : 'text-gray-400'
                     }`}>
@@ -175,25 +175,25 @@ export default function Matrix4x4Page() {
               </div>
 
               {/* 4x4 Glowing Grid */}
-              <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0c] p-6 flex flex-col shadow-xl overflow-x-auto">
+              <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0c] p-4 flex flex-col shadow-xl overflow-x-auto">
                 <div className="min-w-[300px]">
                   {/* Grid Header (Indicators) */}
-                  <div className="grid grid-cols-5 gap-3 mb-2">
-                    <div className="text-sm font-bold text-white/30 uppercase tracking-widest flex items-center justify-center">ط§ظ„ظپط±ظٹظ…</div>
+                  <div className="grid grid-cols-5 gap-2 mb-2">
+                    <div className="text-[9px] font-bold text-white/30 uppercase tracking-widest flex items-center justify-center">الفريم</div>
                     {indicators.map((ind, i) => (
-                      <div key={i} className="text-sm font-bold text-amber-500/70 font-mono uppercase tracking-widest flex items-center justify-center bg-amber-500/5 rounded border border-amber-500/10 py-1.5">
+                      <div key={i} className="text-[10px] font-bold text-amber-500/70 font-mono uppercase tracking-widest flex items-center justify-center bg-amber-500/5 rounded border border-amber-500/10 py-1.5">
                         {ind}
                       </div>
                     ))}
                   </div>
 
                   {/* Grid Rows (Timeframes) */}
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-2">
                     {result.rows.map((row, rowIndex) => (
-                      <div key={row.timeframe} className="grid grid-cols-5 gap-3">
+                      <div key={row.timeframe} className="grid grid-cols-5 gap-2">
                         {/* Timeframe Label */}
-                        <div className="flex items-center justify-center bg-white/[0.03] border border-white/[0.05] rounded-lg py-4">
-                          <span className="text-sm font-black text-white/80 font-mono">{row.timeframe}</span>
+                        <div className="flex items-center justify-center bg-white/[0.03] border border-white/[0.05] rounded-lg py-2">
+                          <span className="text-[12px] font-black text-white/80 font-mono">{row.timeframe}</span>
                         </div>
                         
                         {/* Cells */}
@@ -203,11 +203,11 @@ export default function Matrix4x4Page() {
                             initial={{ rotateX: 90, opacity: 0 }}
                             animate={animated ? { rotateX: 0, opacity: 1 } : { rotateX: 90, opacity: 0 }}
                             transition={{ delay: 0.1 * (rowIndex * 4 + colIndex), duration: 0.4, type: "spring" }}
-                            className={`flex flex-col items-center justify-center rounded-lg border py-4 ${getCellColor(ind.signal)} transition-colors`}
+                            className={`flex flex-col items-center justify-center rounded-lg border py-2 ${getCellColor(ind.signal)} transition-colors`}
                             style={{ transformOrigin: "center" }}
                           >
-                            <span className="text-sm font-bold uppercase tracking-widest mb-0.5">{getCellText(ind.signal)}</span>
-                            <span className="text-sm opacity-60 font-mono">
+                            <span className="text-[10px] font-bold uppercase tracking-widest mb-0.5">{getCellText(ind.signal)}</span>
+                            <span className="text-[8px] opacity-60 font-mono">
                               {getCellScore(ind.signal) > 0 ? '+1' : getCellScore(ind.signal) < 0 ? '-1' : '0'}
                             </span>
                           </motion.div>
@@ -223,13 +223,13 @@ export default function Matrix4x4Page() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 }}
-                className="rounded-xl border-t-2 border-t-amber-500 border-white/[0.05] bg-amber-500/[0.03] p-6 text-right shadow-inner"
+                className="rounded-xl border-t-2 border-t-amber-500 border-white/[0.05] bg-amber-500/[0.03] p-4 text-right shadow-inner"
               >
-                <div className="flex items-center gap-3 mb-2 justify-end">
-                  <AlignJustify className="w-6 h-6 text-amber-500" />
-                  <span className="text-sm font-black text-amber-500 tracking-widest uppercase">ط®ظ„ط§طµط© ط§ظ„ظ…طµظپظˆظپط©</span>
+                <div className="flex items-center gap-2 mb-2 justify-end">
+                  <AlignJustify className="w-4 h-4 text-amber-500" />
+                  <span className="text-[10px] font-black text-amber-500 tracking-widest uppercase">خلاصة المصفوفة</span>
                 </div>
-                <p className="text-sm text-amber-50 font-medium leading-relaxed">
+                <p className="text-[12px] text-amber-50 font-medium leading-relaxed">
                   {result.dominantTfAr}
                 </p>
               </motion.div>

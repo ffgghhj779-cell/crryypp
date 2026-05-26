@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import WebApp from '@twa-dev/sdk';
@@ -17,7 +17,7 @@ declare global {
 
 const DISCLAIMER_KEY = 'ct360_disclaimer_v1';
 
-// â”€â”€â”€ First-launch Disclaimer Sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── First-launch Disclaimer Sheet ───────────────────────────────────────────
 function DisclaimerSheet({ onAccept }: { onAccept: () => void }) {
   return (
     <div
@@ -48,42 +48,42 @@ function DisclaimerSheet({ onAccept }: { onAccept: () => void }) {
               <AlertTriangle className="w-7 h-7 text-orange-500" />
             </div>
             <div>
-              <h2 className="text-white font-black text-lg tracking-tight">ط¥ط®ظ„ط§ط، ظ…ط³ط¤ظˆظ„ظٹط© ظ‡ط§ظ…</h2>
-              <p className="text-white/40 text-base mt-0.5 font-mono tracking-widest uppercase">Important Disclaimer</p>
+              <h2 className="text-white font-black text-lg tracking-tight">إخلاء مسؤولية هام</h2>
+              <p className="text-white/40 text-xs mt-0.5 font-mono tracking-widest uppercase">Important Disclaimer</p>
             </div>
           </div>
 
           {/* Disclaimer body */}
-          <div className="rounded-2xl border border-orange-500/15 bg-orange-500/[0.04] p-6 space-y-3 text-right" dir="rtl">
-            <p className="text-base text-white/70 leading-relaxed">
-              ط¬ظ…ظٹط¹ ط§ظ„طھط­ظ„ظٹظ„ط§طھ ظˆط§ظ„ظ…ط¹ظ„ظˆظ…ط§طھ ط§ظ„ظ…ظ‚ط¯ظ…ط© ظپظٹ ظ‡ط°ط§ ط§ظ„طھط·ط¨ظٹظ‚ ظ‡ظٹ{' '}
-              <span className="text-orange-400 font-bold">ظ„ط£ط؛ط±ط§ط¶ طھط¹ظ„ظٹظ…ظٹط© ظˆط¥ط¹ظ„ط§ظ…ظٹط© ظپظ‚ط·</span>طŒ
-              ظˆظ„ط§ طھظڈط¹ط¯ظ‘ ظ†طµظٹط­ط©ظ‹ ط§ط³طھط«ظ…ط§ط±ظٹط© ط£ظˆ طھظˆطµظٹط©ظ‹ ط¨ط§ظ„ط´ط±ط§ط، ط£ظˆ ط§ظ„ط¨ظٹط¹.
+          <div className="rounded-2xl border border-orange-500/15 bg-orange-500/[0.04] p-4 space-y-3 text-right" dir="rtl">
+            <p className="text-[13px] text-white/70 leading-relaxed">
+              جميع التحليلات والمعلومات المقدمة في هذا التطبيق هي{' '}
+              <span className="text-orange-400 font-bold">لأغراض تعليمية وإعلامية فقط</span>،
+              ولا تُعدّ نصيحةً استثمارية أو توصيةً بالشراء أو البيع.
             </p>
-            <p className="text-base text-white/70 leading-relaxed">
-              ط£ط³ظˆط§ظ‚ ط§ظ„ط¹ظ…ظ„ط§طھ ط§ظ„ط±ظ‚ظ…ظٹط© <span className="text-red-400 font-bold">ط´ط¯ظٹط¯ط© ط§ظ„طھظ‚ظ„ط¨</span> ظˆطھظ†ط·ظˆظٹ
-              ط¹ظ„ظ‰ ظ…ط®ط§ط·ط± ط¹ط§ظ„ظٹط© ظ‚ط¯ طھط¤ط¯ظٹ ط¥ظ„ظ‰ ط®ط³ط§ط±ط© ط±ط£ط³ ط§ظ„ظ…ط§ظ„. طھط­ظ…ظ‘ظ„ ظ…ط³ط¤ظˆظ„ظٹط© ظ‚ط±ط§ط±ط§طھظƒ ط§ظ„ط§ط³طھط«ظ…ط§ط±ظٹط© ط¨ط§ظ„ظƒط§ظ…ظ„.
+            <p className="text-[13px] text-white/70 leading-relaxed">
+              أسواق العملات الرقمية <span className="text-red-400 font-bold">شديدة التقلب</span> وتنطوي
+              على مخاطر عالية قد تؤدي إلى خسارة رأس المال. تحمّل مسؤولية قراراتك الاستثمارية بالكامل.
             </p>
-            <p className="text-sm text-white/35 leading-relaxed">
-              ط¨ط§ط³طھط®ط¯ط§ظ…ظƒ ظ‡ط°ط§ ط§ظ„طھط·ط¨ظٹظ‚طŒ ظپط¥ظ†ظƒ طھظ‚ط±ظ‘ ط¨ط£ظ†ظƒ ظ‚ط±ط£طھ ظ‡ط°ط§ ط§ظ„ط¥ط®ظ„ط§ط، ظˆظپظ‡ظ…طھظ‡ ظˆظˆط§ظپظ‚طھ ط¹ظ„ظٹظ‡.
+            <p className="text-[11px] text-white/35 leading-relaxed">
+              باستخدامك هذا التطبيق، فإنك تقرّ بأنك قرأت هذا الإخلاء وفهمته ووافقت عليه.
             </p>
           </div>
 
           {/* Accept button */}
           <button
             onClick={onAccept}
-            className="w-full flex items-center justify-center gap-3.5 py-4 rounded-2xl font-black text-lg text-white tracking-wide transition-all active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl font-black text-base text-white tracking-wide transition-all active:scale-[0.98]"
             style={{
               background: 'linear-gradient(135deg, #f97316, #ea580c)',
               boxShadow: '0 0 32px rgba(249,115,22,0.35)',
             }}
           >
             <ShieldCheck className="w-5 h-5" />
-            ظپظ‡ظ…طھ ظˆط£ظˆط§ظپظ‚ â€” ط§ط¨ط¯ط£ ط§ظ„طھط­ظ„ظٹظ„
+            فهمت وأوافق — ابدأ التحليل
           </button>
 
-          <p className="text-center text-sm text-white/20 font-mono">
-            Crypto Terminal 360 آ· v3.0.0
+          <p className="text-center text-[10px] text-white/20 font-mono">
+            Crypto Terminal 360 · v3.0.0
           </p>
         </div>
       </div>
@@ -91,7 +91,7 @@ function DisclaimerSheet({ onAccept }: { onAccept: () => void }) {
   );
 }
 
-// â”€â”€â”€ App Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── App Layout ───────────────────────────────────────────────────────────────
 export default function AppLayout() {
   const [disclaimerAccepted, setDisclaimerAccepted] = useState<boolean | null>(null);
   const loadFavorites = useAppStore(s => s.loadFavorites);
@@ -106,36 +106,36 @@ export default function AppLayout() {
   useEffect(() => {
     if (typeof window === 'undefined' || !window.Telegram?.WebApp) return;
 
-    // â”€â”€ Core: ready + full-expand (available since v6.0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Core: ready + full-expand (available since v6.0) ─────────────────────
     WebApp.ready();
     WebApp.expand();
 
-    // â”€â”€ Theme: dark shell â€” prevents white flash on open (v6.1+) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Theme: dark shell — prevents white flash on open (v6.1+) ─────────────
     if (WebApp.isVersionAtLeast('6.1')) {
       WebApp.setHeaderColor('#000000');
       WebApp.setBackgroundColor('#000000');
     }
 
-    // â”€â”€ Bottom bar color (v7.10+) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Bottom bar color (v7.10+) ─────────────────────────────────────────────
     if (WebApp.isVersionAtLeast('7.10')) {
       WebApp.setBottomBarColor?.('#000000');
     }
 
-    // â”€â”€ Disable OS vertical-swipe-to-close (v7.7+) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Disable OS vertical-swipe-to-close (v7.7+) ───────────────────────────
     // Prevents OS swipe-down from closing the Mini App while the user drags
     // our NativeSheet. Without this, the gesture conflicts.
     if (WebApp.isVersionAtLeast('7.7')) {
       WebApp.disableVerticalSwipes?.();
     }
 
-    // â”€â”€ Closing confirmation â€” prevents accidental exit (v6.2+) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Closing confirmation — prevents accidental exit (v6.2+) ──────────────
     if (WebApp.isVersionAtLeast('6.2')) {
       WebApp.enableClosingConfirmation?.();
     }
 
-    // â”€â”€ Stable viewport height (v6.0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Stable viewport height (v6.0) ─────────────────────────────────────────
     // viewportHeight jitters on scroll; viewportStableHeight only changes when
-    // the on-screen keyboard opens/closes â€” use it for layout height.
+    // the on-screen keyboard opens/closes — use it for layout height.
     const setStableHeight = () => {
       const h = WebApp.viewportStableHeight || window.innerHeight;
       document.documentElement.style.setProperty('--app-stable-height', `${h}px`);
@@ -143,8 +143,8 @@ export default function AppLayout() {
     setStableHeight();
     WebApp.onEvent('viewportChanged', setStableHeight);
 
-    // â”€â”€ Auth: verify initData server-side â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // VULN-14: NEVER trust initDataUnsafe.user.id â€” it can be spoofed in DevTools.
+    // ── Auth: verify initData server-side ─────────────────────────────────────
+    // VULN-14: NEVER trust initDataUnsafe.user.id — it can be spoofed in DevTools.
     const rawInitData = WebApp.initData;
     if (rawInitData) {
       fetch('/api/auth/verify', {
@@ -186,10 +186,10 @@ export default function AppLayout() {
   }
 
   return (
-    // â”€â”€ Flex-column shell: TopBar | scrollable main | BottomNav â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Flex-column shell: TopBar | scrollable main | BottomNav ─────────────────────
     // Height is driven by --app-stable-height (set from viewportStableHeight in JS)
     // so it does NOT reflow on every scroll tick.
-    // BottomNav is the LAST flex child â€” no position:fixed needed, no jitter.
+    // BottomNav is the LAST flex child — no position:fixed needed, no jitter.
     <div
       className="bg-black text-white font-sans selection:bg-orange-500/30 flex flex-col overflow-hidden"
       style={{ height: 'var(--app-stable-height, 100dvh)' }}
@@ -197,17 +197,17 @@ export default function AppLayout() {
       <AntiInspect />
       <TopBar />
 
-      {/* Scrollable area â€” overflow-y:auto here, NOT on html/body */}
+      {/* Scrollable area — overflow-y:auto here, NOT on html/body */}
       <main className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain min-h-0">
         <div className="flex justify-center w-full">
           <Dashboard />
         </div>
       </main>
 
-      {/* BottomNav stays in flex flow â€” no position:fixed, no jitter */}
+      {/* BottomNav stays in flex flow — no position:fixed, no jitter */}
       <BottomNav />
 
-      {/* ModalsWrapper â€” position:fixed z-[100], always above BottomNav's z-40 */}
+      {/* ModalsWrapper — position:fixed z-[100], always above BottomNav's z-40 */}
       <ModalsWrapper />
 
       {/* Disclaimer gates the entire app on first launch */}

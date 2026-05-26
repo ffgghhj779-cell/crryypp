@@ -1,9 +1,9 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { X, Cpu, Flame, Layers, Activity } from 'lucide-react';
 
-// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Types ─────────────────────────────────────────────────────────────────────
 interface NetworkData {
   spotPrice:    number;   // from parent (Binance ticker)
   mempoolTx:    number;
@@ -19,7 +19,7 @@ const HALVING_START = 840_000;   // 4th halving block
 const HALVING_END   = 1_050_000; // 5th halving block
 const BTC_PRODUCTION_COST = 98_500; // industry avg estimate (USD)
 
-// â”€â”€ Fetch helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Fetch helpers ─────────────────────────────────────────────────────────────
 async function fetchNetworkData(): Promise<NetworkData> {
   const [mempoolRes, heightRes, hashrateRes, diffRes] = await Promise.allSettled([
     fetch('https://mempool.space/api/mempool').then(r => r.json()),
@@ -62,19 +62,19 @@ async function fetchNetworkData(): Promise<NetworkData> {
   };
 }
 
-// â”€â”€ Stat Row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Stat Row ──────────────────────────────────────────────────────────────────
 function StatRow({ label, value, valueColor = 'text-white' }: {
   label: string; value: string; valueColor?: string;
 }) {
   return (
-    <div className="flex items-center justify-between py-4 border-b border-white/[0.04] last:border-0" dir="rtl">
-      <span className="text-sm text-white/60">{label}</span>
-      <span className={`text-base font-mono font-bold tabular-nums ${valueColor}`}>{value}</span>
+    <div className="flex items-center justify-between py-3 border-b border-white/[0.04] last:border-0" dir="rtl">
+      <span className="text-[12px] text-white/60">{label}</span>
+      <span className={`text-[13px] font-mono font-bold tabular-nums ${valueColor}`}>{value}</span>
     </div>
   );
 }
 
-// â”€â”€ Public Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Public Modal ─────────────────────────────────────────────────────────────
 export function NetworkMacroModal({
   spotPrice,
   halvingDays,
@@ -108,14 +108,14 @@ export function NetworkMacroModal({
   const priceAboveCost = spotPrice >= BTC_PRODUCTION_COST;
 
   // Ribbon signal
-  const ribbonSignal  = data && data.hashrateChange24h > 0 ? 'طھط¹ط§ظپظٹ ظˆطھط±ط§ظƒظ…' : 'ط¶ط؛ط· ظˆطھط±ط§ط¬ط¹';
+  const ribbonSignal  = data && data.hashrateChange24h > 0 ? 'تعافي وتراكم' : 'ضغط وتراجع';
   const ribbonColor   = data && data.hashrateChange24h > 0 ? 'text-orange-400' : 'text-red-400';
 
   // Mempool status color
   const mStatusColor  = data?.mempoolStatus === 'Congestion' ? 'text-red-400'
     : data?.mempoolStatus === 'Normal' ? 'text-yellow-400' : 'text-emerald-400';
-  const mStatusAr     = data?.mempoolStatus === 'Congestion' ? 'ط§ط²ط¯ط­ط§ظ… ط¹ط§ظ„ظچ'
-    : data?.mempoolStatus === 'Normal' ? 'ط³ظٹظˆظ„ط© ظ…ط¹طھط¯ظ„ط©' : 'طھط¯ظپظ‚ ظ…ظ†ط®ظپط¶';
+  const mStatusAr     = data?.mempoolStatus === 'Congestion' ? 'ازدحام عالٍ'
+    : data?.mempoolStatus === 'Normal' ? 'سيولة معتدلة' : 'تدفق منخفض';
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center"
@@ -129,18 +129,18 @@ export function NetworkMacroModal({
         {/* Drag handle */}
         <div className="flex justify-center pt-3 shrink-0"><div className="w-10 h-1 bg-white/20 rounded-full" /></div>
 
-        <div className="overflow-y-auto px-5 pt-4 pb-8 space-y-3" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="overflow-y-auto px-4 pt-4 pb-8 space-y-3" style={{ WebkitOverflowScrolling: 'touch' }}>
 
           {/* Header */}
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-xl font-black text-orange-400">ظ…ط§ظƒط±ظˆ ط§ظ„ط´ط¨ظƒط© ظˆط§ظ„طھط¹ط¯ظٹظ†</h2>
-              <p className="text-sm text-white/40 mt-0.5 leading-relaxed">
-                ظ„ظˆط­ط© ظ‚ظٹط§ط¯ط© ط§ظ‚طھطµط§ط¯ظٹط© ظ„طھظ‚ظٹظٹظ… ط§ظ„ظ†ط¯ط±ط©طŒ ط§ظ„طھظƒظ„ظپط©طŒ ظˆطµط­ط© ط§ظ„ط¨ظ„ظˆظƒطھط´ظٹظ†
+              <h2 className="text-xl font-black text-orange-400">ماكرو الشبكة والتعدين</h2>
+              <p className="text-[11px] text-white/40 mt-0.5 leading-relaxed">
+                لوحة قيادة اقتصادية لتقييم الندرة، التكلفة، وصحة البلوكتشين
               </p>
             </div>
             <button onClick={onClose} className="p-1.5 rounded-full bg-white/[0.06] text-white/40 hover:text-white shrink-0">
-              <X className="w-6 h-6" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
@@ -150,71 +150,71 @@ export function NetworkMacroModal({
             </div>
           ) : (
             <>
-              {/* â”€â”€ Epoch Progress â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
+              {/* ── Epoch Progress ─────────────────────────────────────── */}
+              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-bold text-white/40">ط¯ظˆط±ط© ط§ظ„طھظ†طµظٹظپ ط§ظ„ظ‚ط§ط¯ظ…ط© (Halving Epoch 5)</p>
-                  <span className="text-sm font-mono font-black text-white">{epochPct.toFixed(2)}%</span>
+                  <p className="text-[11px] font-bold text-white/40">دورة التنصيف القادمة (Halving Epoch 5)</p>
+                  <span className="text-[11px] font-mono font-black text-white">{epochPct.toFixed(2)}%</span>
                 </div>
                 {/* Progress bar */}
                 <div className="h-2 w-full rounded-full bg-white/[0.06] overflow-hidden mb-3">
                   <div className="h-full rounded-full" style={{ width: `${epochPct}%`, background: 'linear-gradient(90deg,#f97316,#ea580c)' }} />
                 </div>
-                <div className="flex justify-between text-sm font-mono text-white/30">
-                  <span>ط§ظ„ظ…ظƒط§ظپط¢طھ ط§ظ„ظ…ظ†طھط¸ط±ط©: <span className="text-white/60 font-bold">BTC 3.125</span></span>
-                  <span>ط§ظ„ظ…ظƒط§ظپط¢طھ ط§ظ„ط­ط§ظ„ظٹط©: <span className="text-white/50">{currentBlock.toLocaleString()}</span></span>
+                <div className="flex justify-between text-[10px] font-mono text-white/30">
+                  <span>المكافآت المنتظرة: <span className="text-white/60 font-bold">BTC 3.125</span></span>
+                  <span>المكافآت الحالية: <span className="text-white/50">{currentBlock.toLocaleString()}</span></span>
                 </div>
               </div>
 
-              {/* â”€â”€ Price vs Cost â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+              {/* ── Price vs Cost ──────────────────────────────────────── */}
               <div className="grid grid-cols-2 gap-3">
                 {/* Production cost */}
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3">
                   <div className="flex items-center gap-1.5 mb-1">
                     <Flame className="w-3 h-3 text-orange-400" />
-                    <p className="text-sm text-white/40 font-mono">طھظƒظ„ظپط© ط§ظ„ط¥ظ†طھط§ط¬ (BTC 1)</p>
+                    <p className="text-[9px] text-white/40 font-mono">تكلفة الإنتاج (BTC 1)</p>
                   </div>
                   <p className="text-[17px] font-mono font-black tabular-nums text-white">
                     ${BTC_PRODUCTION_COST.toLocaleString()}
                   </p>
-                  <p className={`text-sm mt-1 font-semibold ${priceAboveCost ? 'text-red-400' : 'text-emerald-400'}`}>
-                    ط¹ط¬ط² طھظ‚ط¯ظٹط±ظٹ: {priceAboveCost ? '-' : '+'}{Math.abs(parseFloat(priceVsCost))}%
+                  <p className={`text-[9px] mt-1 font-semibold ${priceAboveCost ? 'text-red-400' : 'text-emerald-400'}`}>
+                    عجز تقديري: {priceAboveCost ? '-' : '+'}{Math.abs(parseFloat(priceVsCost))}%
                   </p>
                 </div>
                 {/* Spot price */}
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3">
                   <div className="flex items-center gap-1.5 mb-1">
                     <Activity className="w-3 h-3 text-emerald-400" />
-                    <p className="text-sm text-white/40 font-mono">ط§ظ„ط³ط¹ط± ط§ظ„ظ„ط­ط¸ظٹ (Spot)</p>
+                    <p className="text-[9px] text-white/40 font-mono">السعر اللحظي (Spot)</p>
                   </div>
                   <p className="text-[17px] font-mono font-black tabular-nums text-white">
                     ${spotPrice > 0 ? spotPrice.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '---'}
                   </p>
-                  <p className="text-sm text-white/30 mt-1">طھط³ط¹ظٹط± ط§ظ„ط³ظˆظ‚ ط§ظ„ط®ط§ط±ط¬ظٹ</p>
+                  <p className="text-[9px] text-white/30 mt-1">تسعير السوق الخارجي</p>
                 </div>
               </div>
 
-              {/* â”€â”€ Mempool + Ribbons + Hashrate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-              <div className="grid grid-cols-3 gap-3">
+              {/* ── Mempool + Ribbons + Hashrate ───────────────────────── */}
+              <div className="grid grid-cols-3 gap-2">
                 {/* Mempool */}
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3 flex flex-col">
-                  <p className="text-sm text-white/40 mb-0.5">ط¥ط²ط¯ط­ط§ظ…</p>
-                  <p className="text-sm text-white/25 mb-2">(Mempool)</p>
-                  <p className="text-base font-mono font-black tabular-nums text-white leading-none">
+                  <p className="text-[9px] text-white/40 mb-0.5">إزدحام</p>
+                  <p className="text-[8px] text-white/25 mb-2">(Mempool)</p>
+                  <p className="text-[14px] font-mono font-black tabular-nums text-white leading-none">
                     {data!.mempoolTx > 0 ? data!.mempoolTx.toLocaleString() : '---'}
                   </p>
-                  <p className="text-sm text-white/30 mt-0.5">Tx</p>
-                  <p className={`text-sm font-bold mt-1 ${mStatusColor}`}>{mStatusAr}</p>
+                  <p className="text-[8px] text-white/30 mt-0.5">Tx</p>
+                  <p className={`text-[9px] font-bold mt-1 ${mStatusColor}`}>{mStatusAr}</p>
                 </div>
 
                 {/* Ribbons */}
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3 flex flex-col">
-                  <p className="text-sm text-white/40 mb-0.5">ط£ط´ط±ط·ط© ط§ظ„ظ‡ط§ط´</p>
-                  <p className="text-sm text-white/25 mb-2">(Ribbons)</p>
-                  <p className={`text-sm font-bold leading-tight mt-auto ${ribbonColor}`}>
+                  <p className="text-[9px] text-white/40 mb-0.5">أشرطة الهاش</p>
+                  <p className="text-[8px] text-white/25 mb-2">(Ribbons)</p>
+                  <p className={`text-[12px] font-bold leading-tight mt-auto ${ribbonColor}`}>
                     {ribbonSignal}
                   </p>
-                  <p className="text-sm text-white/25 mt-1">
+                  <p className="text-[8px] text-white/25 mt-1">
                     {data!.hashrateChange24h > 0 ? 'Recovery' : 'Sell Signal'}
                   </p>
                 </div>
@@ -223,36 +223,36 @@ export function NetworkMacroModal({
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3 flex flex-col">
                   <div className="flex items-center gap-1 mb-0.5">
                     <Cpu className="w-2.5 h-2.5 text-white/30" />
-                    <p className="text-sm text-white/40">ط§ظ„ظ‚ظˆط© ط§ظ„ط­ظˆط³ط¨ظٹط©</p>
+                    <p className="text-[9px] text-white/40">القوة الحوسبية</p>
                   </div>
-                  <p className="text-sm text-white/25 mb-2"> </p>
-                  <p className="text-base font-mono font-black tabular-nums text-white leading-none">
+                  <p className="text-[8px] text-white/25 mb-2"> </p>
+                  <p className="text-[14px] font-mono font-black tabular-nums text-white leading-none">
                     {data!.hashrateEH > 0 ? data!.hashrateEH : '---'}
                   </p>
-                  <p className="text-sm text-white/30 mt-0.5">EH/s</p>
-                  <p className={`text-sm font-bold mt-1 ${data!.hashrateChange24h >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <p className="text-[8px] text-white/30 mt-0.5">EH/s</p>
+                  <p className={`text-[9px] font-bold mt-1 ${data!.hashrateChange24h >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                     {data!.hashrateChange24h >= 0 ? '+' : ''}{data!.hashrateChange24h}% (24h)
                   </p>
                 </div>
               </div>
 
-              {/* â”€â”€ Stats rows â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-5 py-1">
-                <StatRow label="طµط¹ظˆط¨ط© ط§ظ„طھط¹ط¯ظٹظ† ط§ظ„طھط±ط§ظƒظ…ظٹط©"
+              {/* ── Stats rows ─────────────────────────────────────────── */}
+              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-1">
+                <StatRow label="صعوبة التعدين التراكمية"
                   value={data!.difficulty > 0 ? `${data!.difficulty}T` : '---'}
                   valueColor="text-orange-400" />
-                <StatRow label="ظ…طھظˆط³ط· ط§ظ„ط¨ظ„ظˆظƒط§طھ ط§ظ„ظٹظˆظ…ظٹط©"
+                <StatRow label="متوسط البلوكات اليومية"
                   value={data!.avgDailyBlocks.toString()} />
-                <StatRow label="ط§ظ„ظƒطھظ„ط© ط§ظ„ط­ط§ظ„ظٹط©"
+                <StatRow label="الكتلة الحالية"
                   value={currentBlock > 0 ? currentBlock.toLocaleString() : '---'} />
-                <StatRow label="ط¨ظ„ظˆظƒط§طھ ظ…طھط¨ظ‚ظٹط© ظ„ظ„ظ‡ط§ظ„ظپظٹظ†ط¬"
+                <StatRow label="بلوكات متبقية للهالفينج"
                   value={currentBlock > 0 ? Math.max(0, HALVING_END - currentBlock).toLocaleString() : '---'} />
               </div>
 
               {/* Footer */}
-              <div className="flex items-center gap-3 px-1">
+              <div className="flex items-center gap-2 px-1">
                 <Layers className="w-3.5 h-3.5 text-white/20" />
-                <p className="text-sm text-white/25 font-mono">ط¨ظٹط§ظ†ط§طھ ظ…ظ† mempool.space آ· طھط­ط¯ظٹط« ظپظˆط±ظٹ</p>
+                <p className="text-[9px] text-white/25 font-mono">بيانات من mempool.space · تحديث فوري</p>
               </div>
             </>
           )}

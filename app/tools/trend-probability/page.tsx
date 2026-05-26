@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useMarketData } from '@/context/MarketDataContext';
 import { slugToTool } from '@/lib/tools/registry';
@@ -49,23 +49,23 @@ export default function TrendProbabilityPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-black text-fuchsia-500/70 tracking-widest uppercase border border-fuchsia-500/20 bg-fuchsia-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <span className="text-[9px] font-black text-fuchsia-500/70 tracking-widest uppercase border border-fuchsia-500/20 bg-fuchsia-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <BarChart className="w-3 h-3" /> Prediction
           </span>
         </div>
-        <h1 className="text-xl font-black text-white tracking-tight mt-1">ط§ط­طھظ…ط§ظ„ظٹط© ط§ظ„ط§طھط¬ط§ظ‡</h1>
-        <p className="text-sm text-white/40 font-mono leading-relaxed">
-          ظ‚ظٹط§ط³ ط§ط­طھظ…ط§ظ„ظٹط© ط§ط³طھظ…ط±ط§ط± ط§ظ„ط§طھط¬ط§ظ‡ ط§ظ„ط­ط§ظ„ظٹ ط¨ظ†ط§ط،ظ‹ ط¹ظ„ظ‰ ط§ظ„ط²ط®ظ… ط§ظ„ط£ط®ظٹط±
+        <h1 className="text-xl font-black text-white tracking-tight mt-1">احتمالية الاتجاه</h1>
+        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+          قياس احتمالية استمرار الاتجاه الحالي بناءً على الزخم الأخير
         </p>
       </div>
 
-      <div className="px-5 flex flex-col gap-5 mt-4">
+      <div className="px-4 flex flex-col gap-5 mt-4">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-6">
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
             <RefreshCcw className="w-8 h-8 text-fuchsia-500 animate-spin" />
-            <p className="text-fuchsia-500/80 font-bold tracking-widest uppercase text-base animate-pulse">ط¬ط§ط±ظٹ ط­ط³ط§ط¨ ط§ظ„ط§ط­طھظ…ط§ظ„ط§طھ...</p>
+            <p className="text-fuchsia-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري حساب الاحتمالات...</p>
           </div>
         ) : (
           <motion.div 
@@ -80,7 +80,7 @@ export default function TrendProbabilityPage() {
             />
 
             {/* Circular Gauge */}
-            <div className="relative w-64 h-96 flex items-center justify-center">
+            <div className="relative w-64 h-64 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90">
                 {/* Background Track */}
                 <circle
@@ -114,22 +114,22 @@ export default function TrendProbabilityPage() {
                 <span className="text-6xl font-black font-mono tracking-tighter dir-ltr" style={{ color }}>
                   {probability}%
                 </span>
-                <span className="text-lg font-bold text-white/50 mt-1 uppercase tracking-widest">ظ…ط¤ظƒط¯</span>
+                <span className="text-sm font-bold text-white/50 mt-1 uppercase tracking-widest">مؤكد</span>
               </div>
             </div>
 
             {/* Label */}
             <div 
-              className="px-6 py-4 rounded-full border border-white/10 mt-2 backdrop-blur-md"
+              className="px-6 py-3 rounded-full border border-white/10 mt-2 backdrop-blur-md"
               style={{ backgroundColor: `${color}15`, borderColor: `${color}30` }}
             >
               <h2 className="text-lg font-black tracking-wide" style={{ color }}>
-                ط§ط­طھظ…ط§ظ„ظٹط© ط§ط³طھظ…ط±ط§ط± {isBullish ? 'ط§ظ„طµط¹ظˆط¯' : 'ط§ظ„ظ‡ط¨ظˆط·'}
+                احتمالية استمرار {isBullish ? 'الصعود' : 'الهبوط'}
               </h2>
             </div>
 
-            <p className="text-sm text-white/40 leading-relaxed font-bold text-center mt-4 max-w-[250px]">
-              طھظ‚ظٹط³ ط§ظ„ط®ظˆط§ط±ط²ظ…ظٹط© ظ‚ظˆط© ط§ظ„ظ…ط´طھط±ظٹظ† ظ…ظ‚ط§ط¨ظ„ ط§ظ„ط¨ط§ط¦ط¹ظٹظ† ظپظٹ ط§ظ„ط´ظ…ظˆط¹ ط§ظ„ط£ط®ظٹط±ط© ظ„طھظˆظ‚ط¹ ط§ظ„ط­ط±ظƒط© ط§ظ„ظ‚ط§ط¯ظ…ط©.
+            <p className="text-[11px] text-white/40 leading-relaxed font-bold text-center mt-4 max-w-[250px]">
+              تقيس الخوارزمية قوة المشترين مقابل البائعين في الشموع الأخيرة لتوقع الحركة القادمة.
             </p>
           </motion.div>
         )}

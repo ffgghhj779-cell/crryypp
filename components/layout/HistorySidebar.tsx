@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { X, Clock, Trash2, History, ChevronLeft } from 'lucide-react';
@@ -74,33 +74,33 @@ export function HistorySidebar({ open, onClose }: Props) {
         dir="rtl"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] shrink-0">
-          <div className="flex items-center gap-3">
-            <History className="w-6 h-6 text-orange-500" />
+        <div className="flex items-center justify-between px-4 py-4 border-b border-white/[0.06] shrink-0">
+          <div className="flex items-center gap-2">
+            <History className="w-4 h-4 text-orange-500" />
             <div>
-              <h2 className="text-white font-bold text-lg">ط³ط¬ظ„ ط§ظ„طھط­ظ„ظٹظ„ط§طھ</h2>
-              <p className="text-sm text-white/30 font-mono">ط¢ط®ط± {entries.length} ط¹ظ…ظ„ظٹط© ظ…ط³ط­</p>
+              <h2 className="text-white font-bold text-sm">سجل التحليلات</h2>
+              <p className="text-[9px] text-white/30 font-mono">آخر {entries.length} عملية مسح</p>
             </div>
           </div>
           <button
             onClick={onClose}
             className="p-1.5 rounded-full text-white/40 hover:text-white bg-white/[0.05] hover:bg-white/10 transition-all active:scale-95"
           >
-            <X className="w-6 h-6" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* List */}
-        {/* PATCH: WebkitOverflowScrolling:touch removed â€” it creates a new GPU
+        {/* PATCH: WebkitOverflowScrolling:touch removed — it creates a new GPU
             stacking context trapping z-index layers and causing paint artifacts.
             overscroll-behavior:contain replaces the momentum-scroll behaviour. */}
         <div className="flex-1 overflow-y-auto p-3 space-y-2 overscroll-contain">
           {entries.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 pb-16">
               <Clock className="w-10 h-10 text-white/10" />
-              <p className="text-white/30 text-lg text-center">ظ„ط§ طھظˆط¬ط¯ ط¹ظ…ظ„ظٹط§طھ ظ…ط³ط­ ظ…ط³ط¬ظ‘ظ„ط© ط¨ط¹ط¯.</p>
-              <p className="text-sm text-white/20 text-center leading-relaxed">
-                ظ‚ظ… ط¨ط¥ط¬ط±ط§ط، ط£ظٹ طھط­ظ„ظٹظ„ ظˆط³ظٹط¸ظ‡ط± ظ‡ظ†ط§ طھظ„ظ‚ط§ط¦ظٹط§ظ‹
+              <p className="text-white/30 text-sm text-center">لا توجد عمليات مسح مسجّلة بعد.</p>
+              <p className="text-[10px] text-white/20 text-center leading-relaxed">
+                قم بإجراء أي تحليل وسيظهر هنا تلقائياً
               </p>
             </div>
           ) : (
@@ -111,7 +111,7 @@ export function HistorySidebar({ open, onClose }: Props) {
                 style={{ animation: 'slide-up 0.25s cubic-bezier(0.16,1,0.3,1) forwards' }}
               >
                 {/* Top row */}
-                <div className="flex items-start justify-between gap-3 mb-1.5">
+                <div className="flex items-start justify-between gap-2 mb-1.5">
                   <button
                     onClick={() => handleDelete(e.id)}
                     className="shrink-0 p-1 rounded-lg text-white/20 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100 active:scale-95"
@@ -120,25 +120,25 @@ export function HistorySidebar({ open, onClose }: Props) {
                     <Trash2 className="w-3 h-3" />
                   </button>
                   <div className="text-right min-w-0 flex-1">
-                    <p className={`text-sm font-bold truncate ${color(e.toolName)}`}>{e.toolName}</p>
+                    <p className={`text-[11px] font-bold truncate ${color(e.toolName)}`}>{e.toolName}</p>
                     <div className="flex items-center justify-end gap-1.5 mt-0.5">
-                      <span className="text-sm text-white/30 font-mono">{e.timeframe}</span>
-                      <span className="text-white/15">آ·</span>
-                      <span className="text-sm text-white font-mono font-bold">{e.symbol}</span>
+                      <span className="text-[9px] text-white/30 font-mono">{e.timeframe}</span>
+                      <span className="text-white/15">·</span>
+                      <span className="text-[9px] text-white font-mono font-bold">{e.symbol}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Summary */}
-                <p className="text-sm text-white/45 leading-relaxed text-right border-r-2 border-orange-500/40 pr-2">
+                <p className="text-[10px] text-white/45 leading-relaxed text-right border-r-2 border-orange-500/40 pr-2">
                   {e.summary}
                 </p>
 
                 {/* Age */}
                 <div className="flex justify-end mt-1.5">
-                  <span className="flex items-center gap-1 text-sm text-white/20 font-mono">
+                  <span className="flex items-center gap-1 text-[8px] text-white/20 font-mono">
                     <Clock className="w-2.5 h-2.5" />
-                    {formatAge(e.timestamp)} ظ…ط¶طھ
+                    {formatAge(e.timestamp)} مضت
                   </span>
                 </div>
               </div>
@@ -148,19 +148,19 @@ export function HistorySidebar({ open, onClose }: Props) {
 
         {/* Footer actions */}
         {entries.length > 0 && (
-          <div className="px-3 py-4 border-t border-white/[0.06] shrink-0 space-y-2">
+          <div className="px-3 py-3 border-t border-white/[0.06] shrink-0 space-y-2">
             <button
               onClick={handleClearAll}
-              className="w-full py-4.5 rounded-xl text-sm font-bold text-red-400 border border-red-500/20 bg-red-500/[0.05] hover:bg-red-500/10 transition-all active:scale-[0.98]"
+              className="w-full py-2.5 rounded-xl text-[11px] font-bold text-red-400 border border-red-500/20 bg-red-500/[0.05] hover:bg-red-500/10 transition-all active:scale-[0.98]"
             >
-              ظ…ط³ط­ ط§ظ„ط³ط¬ظ„ ط¨ط§ظ„ظƒط§ظ…ظ„
+              مسح السجل بالكامل
             </button>
             <button
               onClick={onClose}
-              className="w-full py-4.5 rounded-xl text-sm font-bold text-white/50 border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] transition-all active:scale-[0.98] flex items-center justify-center gap-1.5"
+              className="w-full py-2.5 rounded-xl text-[11px] font-bold text-white/50 border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] transition-all active:scale-[0.98] flex items-center justify-center gap-1.5"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
-              ط§ظ„ط¹ظˆط¯ط©
+              العودة
             </button>
           </div>
         )}

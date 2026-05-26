@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { slugToTool } from '@/lib/tools/registry';
 import { notFound } from 'next/navigation';
@@ -7,7 +7,7 @@ import { Hexagon, RefreshCcw } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useState, useMemo, useEffect } from 'react';
 
-// Module-level constant â€” moved out of useMemo to fix TS2304 dep array error
+// Module-level constant — moved out of useMemo to fix TS2304 dep array error
 const LAST_CYCLE_LOW = new Date('2022-11-21T00:00:00Z');
 
 export default function CycleCalculatorPage() {
@@ -34,7 +34,7 @@ export default function CycleCalculatorPage() {
       if (targetDate.getTime() > now && dates.length < 3) {
         dates.push({
           date: targetDate.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }),
-          cycleName: `ط¯ظˆط±ط© ${days} ظٹظˆظ… (ط²ط§ظˆظٹط© ظ‡ظ†ط¯ط³ظٹط©)`,
+          cycleName: `دورة ${days} يوم (زاوية هندسية)`,
         });
       }
     }
@@ -48,23 +48,23 @@ export default function CycleCalculatorPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-black text-orange-500/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <span className="text-[9px] font-black text-orange-500/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <Hexagon className="w-3 h-3" /> Cycles
           </span>
         </div>
-        <h1 className="text-xl font-black text-white tracking-tight mt-1">ط­ط§ط³ط¨ط© ط§ظ„ط¯ظˆط±ط§طھ ظˆط§ظ„ط£ط´ظƒط§ظ„</h1>
-        <p className="text-sm text-white/40 font-mono leading-relaxed">
-          ط­ط³ط§ط¨ ط§ظ„طھظˆط§ط±ظٹط® ط§ظ„ظ‚ط§ط¯ظ…ط© ط§ظ„ظ…طھظˆظ‚ط¹ط© ظ„ظ„ط§ظ†ط¹ظƒط§ط³ ط§ظ„ط³ط¹ط±ظٹ ط¨ظ†ط§ط،ظ‹ ط¹ظ„ظ‰ ط§ظ„ط£ط´ظƒط§ظ„ ط§ظ„ظ‡ظ†ط¯ط³ظٹط©
+        <h1 className="text-xl font-black text-white tracking-tight mt-1">حاسبة الدورات والأشكال</h1>
+        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+          حساب التواريخ القادمة المتوقعة للانعكاس السعري بناءً على الأشكال الهندسية
         </p>
       </div>
 
-      <div className="px-5 flex flex-col gap-5 mt-4">
+      <div className="px-4 flex flex-col gap-5 mt-4">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-6">
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
             <RefreshCcw className="w-8 h-8 text-orange-500 animate-spin" />
-            <p className="text-orange-500/80 font-bold tracking-widest uppercase text-base animate-pulse">ط¬ط§ط±ظٹ ط­ط³ط§ط¨ ط§ظ„ط¯ظˆط±ط§طھ ط§ظ„ط²ظ…ظ†ظٹط©...</p>
+            <p className="text-orange-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري حساب الدورات الزمنية...</p>
           </div>
         ) : (
           <motion.div 
@@ -73,7 +73,7 @@ export default function CycleCalculatorPage() {
             className="flex flex-col gap-6"
           >
             {/* Visual Graphic */}
-            <div className="rounded-3xl border border-orange-500/20 bg-[#0d0d0d] p-8 flex flex-col items-center justify-center shadow-[0_0_30px_rgba(249,115,22,0.1)] relative overflow-hidden h-96">
+            <div className="rounded-3xl border border-orange-500/20 bg-[#0d0d0d] p-8 flex flex-col items-center justify-center shadow-[0_0_30px_rgba(249,115,22,0.1)] relative overflow-hidden h-64">
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-orange-500/10 blur-[50px] rounded-full pointer-events-none" />
               
               <motion.div 
@@ -92,7 +92,7 @@ export default function CycleCalculatorPage() {
 
             {/* Dates List */}
             <div className="flex flex-col gap-3">
-              <h2 className="text-lg font-bold text-white/80 pr-2 border-r-2 border-orange-500">ط§ظ„طھظˆط§ط±ظٹط® ط§ظ„ظ‚ط§ط¯ظ…ط© ط§ظ„ظ…طھظˆظ‚ط¹ط© ظ„ظ„ط§ظ†ط¹ظƒط§ط³:</h2>
+              <h2 className="text-sm font-bold text-white/80 pr-2 border-r-2 border-orange-500">التواريخ القادمة المتوقعة للانعكاس:</h2>
               
               {cycles.map((c, i) => (
                 <motion.div 
@@ -100,18 +100,18 @@ export default function CycleCalculatorPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.1 }}
-                  className="rounded-xl border border-white/[0.05] bg-[#111] p-6 flex flex-col gap-3 relative overflow-hidden"
+                  className="rounded-xl border border-white/[0.05] bg-[#111] p-4 flex flex-col gap-2 relative overflow-hidden"
                 >
                   <div className="absolute top-0 bottom-0 right-0 w-1 bg-orange-500/50" />
-                  <span className="text-sm text-orange-400 font-bold tracking-widest uppercase">{c.cycleName}</span>
+                  <span className="text-[10px] text-orange-400 font-bold tracking-widest uppercase">{c.cycleName}</span>
                   <span className="text-lg font-black text-white/90">{c.date}</span>
                 </motion.div>
               ))}
             </div>
 
             <div className="mt-2 text-center px-2">
-              <p className="text-sm text-white/40 leading-relaxed font-bold">
-                طھط¹طھظ…ط¯ ظ‡ط°ظ‡ ط§ظ„طھظˆط§ط±ظٹط® ط¹ظ„ظ‰ ظ‚ظˆط§ظ†ظٹظ† ط§ظ„ط²ظ…ظ† ط§ظ„ظ‡ظ†ط¯ط³ظٹط©. ط¹ظ†ط¯ظ…ط§ ظ†طµظ„ ط¥ظ„ظ‰ ظ‡ط°ظ‡ ط§ظ„طھظˆط§ط±ظٹط®طŒ ظٹط²ط¯ط§ط¯ ط§ط­طھظ…ط§ظ„ طھط؛ظٹظٹط± ظ…ط³ط§ط± ط§ظ„ط³ظˆظ‚ ط¨ط´ظƒظ„ ط¬ط°ط±ظٹ.
+              <p className="text-[11px] text-white/40 leading-relaxed font-bold">
+                تعتمد هذه التواريخ على قوانين الزمن الهندسية. عندما نصل إلى هذه التواريخ، يزداد احتمال تغيير مسار السوق بشكل جذري.
               </p>
             </div>
 

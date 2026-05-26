@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { Component, ReactNode } from 'react';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
@@ -29,7 +29,7 @@ export class ErrorBoundary extends Component<Props, State> {
         style={{ background: 'radial-gradient(ellipse at center, #0a0a0a 0%, #000 100%)' }}
       >
         {/* Glow orb */}
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-96 bg-orange-500/10 blur-3xl rounded-full pointer-events-none" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-orange-500/10 blur-3xl rounded-full pointer-events-none" />
 
         <div className="relative flex flex-col items-center gap-5 max-w-xs text-center">
           <div className="w-16 h-16 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
@@ -38,13 +38,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
           <div className="space-y-2">
             <h1 className="text-xl font-black text-white tracking-tight">
-              ط­ط¯ط« ط®ط·ط£ ط؛ظٹط± ظ…طھظˆظ‚ط¹
+              حدث خطأ غير متوقع
             </h1>
-            <p className="text-lg text-white/40 leading-relaxed">
-              طھط¹ط°ظ‘ط± طھط­ظ…ظٹظ„ ط§ظ„طھط·ط¨ظٹظ‚. ظٹط±ط¬ظ‰ ط¥ط¹ط§ط¯ط© ط§ظ„طھط´ط؛ظٹظ„.
+            <p className="text-sm text-white/40 leading-relaxed">
+              تعذّر تحميل التطبيق. يرجى إعادة التشغيل.
             </p>
             {this.state.message && (
-              <p className="text-sm font-mono text-white/20 break-all mt-2 px-3 py-4 rounded-lg bg-white/[0.03] border border-white/[0.05]">
+              <p className="text-[10px] font-mono text-white/20 break-all mt-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.05]">
                 {this.state.message}
               </p>
             )}
@@ -52,11 +52,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
           <button
             onClick={() => window.location.reload()}
-            className="flex items-center gap-3.5 px-6 py-4 rounded-2xl font-bold text-lg text-white transition-all active:scale-95"
+            className="flex items-center gap-2.5 px-6 py-3 rounded-2xl font-bold text-sm text-white transition-all active:scale-95"
             style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)', boxShadow: '0 0 24px rgba(249,115,22,0.35)' }}
           >
-            <RefreshCw className="w-6 h-6" />
-            ط¥ط¹ط§ط¯ط© طھط´ط؛ظٹظ„ ط§ظ„طھط·ط¨ظٹظ‚
+            <RefreshCw className="w-4 h-4" />
+            إعادة تشغيل التطبيق
           </button>
         </div>
       </div>

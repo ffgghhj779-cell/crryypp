@@ -1,9 +1,9 @@
-﻿'use client';
+'use client';
 
 /**
  * app/tools/unified-decision/page.tsx
  *
- * Unified Decision - 6 Tools (ط§ظ„ظ‚ط±ط§ط± ط§ظ„ظ…ظˆط­ط¯)
+ * Unified Decision - 6 Tools (القرار الموحد)
  * Features a Hexagonal Radar Chart visualizing the 6 indicators.
  */
 
@@ -25,28 +25,28 @@ export default function UnifiedDecisionPage() {
   const [error, setError] = useState('');
   const [animated, setAnimated] = useState(false);
 
-  // â”€â”€ Guard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Guard ──────────────────────────────────────────────────────────────────
   const tool = slugToTool('unified-decision-6-tools');
   if (!tool) return notFound();
 
-  // â”€â”€ Handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Handlers ───────────────────────────────────────────────────────────────
   const handleCalculate = async () => {
     setError('');
-    if (!symbol.trim()) return setError('ط£ط¯ط®ظ„ ط§ط³ظ… ط§ظ„ط£طµظ„.');
+    if (!symbol.trim()) return setError('أدخل اسم الأصل.');
     
     setLoading(true);
     setAnimated(false);
     
     try {
       const klines = await fetchKlines(symbol.toUpperCase().trim(), timeframe.toLowerCase(), 100);
-      if (klines.length === 0) throw new Error('ظ„ط§ طھظˆط¬ط¯ ط¨ظٹط§ظ†ط§طھ ظ…طھط§ط­ط© ظ„ظ‡ط°ط§ ط§ظ„ط£طµظ„.');
+      if (klines.length === 0) throw new Error('لا توجد بيانات متاحة لهذا الأصل.');
       
       const res = calculateUnifiedDecision(symbol.toUpperCase().trim(), klines);
       setResult(res);
       setTimeout(() => setAnimated(true), 100);
     } catch (err: any) {
       console.error(err);
-      setError(err.message || 'ط­ط¯ط« ط®ط·ط£ ط£ط«ظ†ط§ط، ط¬ظ„ط¨ ط§ظ„ط¨ظٹط§ظ†ط§طھ ط£ظˆ ط§ظ„ظ…ط¹ط§ظ„ط¬ط©.');
+      setError(err.message || 'حدث خطأ أثناء جلب البيانات أو المعالجة.');
     } finally {
       setLoading(false);
     }
@@ -57,42 +57,42 @@ export default function UnifiedDecisionPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-black text-amber-400/70 tracking-widest uppercase border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 rounded-full">
+      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <span className="text-[9px] font-black text-amber-400/70 tracking-widest uppercase border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 rounded-full">
             Consensus Engine
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">
-          ط§ظ„ظ‚ط±ط§ط± ط§ظ„ظ…ظˆط­ط¯ (6 ط£ط¯ظˆط§طھ)
+          القرار الموحد (6 أدوات)
         </h1>
-        <p className="text-sm text-white/40 font-mono leading-relaxed">
-          ظ†ط¸ط§ظ… طھط¬ظ…ظٹط¹ظٹ ظ„ظ‚ظٹط§ط³ ط§ظ„ط²ط®ظ… ظˆط§ظ„ط§طھط¬ط§ظ‡ ط¹ط¨ط± 6 ظ…ط¤ط´ط±ط§طھ ظ…ط³طھظ‚ظ„ط©
+        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+          نظام تجميعي لقياس الزخم والاتجاه عبر 6 مؤشرات مستقلة
         </p>
       </div>
 
-      <div className="px-5 flex flex-col gap-5">
-        {/* â”€â”€ Input Form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-6 shadow-xl shadow-black/50">
+      <div className="px-4 flex flex-col gap-5">
+        {/* ── Input Form ─────────────────────────────────────────────────── */}
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-4 shadow-xl shadow-black/50">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">ط±ظ…ط² ط§ظ„ط£طµظ„</label>
+              <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">رمز الأصل</label>
               <input
                 type="text"
                 value={symbol}
                 onChange={e => setSymbol(e.target.value)}
                 placeholder="BTCUSDT"
-                className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-lg px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-amber-500/40 transition-colors"
+                className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 placeholder:text-white/20 focus:outline-none focus:border-amber-500/40 transition-colors"
                 dir="ltr"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">ط§ظ„ط¥ط·ط§ط± ط§ظ„ط²ظ…ظ†ظٹ</label>
+              <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">الإطار الزمني</label>
               <div className="relative">
                 <select
                   value={timeframe}
                   onChange={e => setTimeframe(e.target.value)}
-                  className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-lg px-5 py-4 appearance-none focus:outline-none focus:border-amber-500/40 transition-colors cursor-pointer"
+                  className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 appearance-none focus:outline-none focus:border-amber-500/40 transition-colors cursor-pointer"
                   dir="ltr"
                 >
                   <option value="15m">15m</option>
@@ -101,7 +101,7 @@ export default function UnifiedDecisionPage() {
                   <option value="1d">1D</option>
                 </select>
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <ChevronDown className="w-6 h-6 text-white/40" />
+                  <ChevronDown className="w-4 h-4 text-white/40" />
                 </div>
               </div>
             </div>
@@ -110,9 +110,9 @@ export default function UnifiedDecisionPage() {
           <AnimatePresence>
             {error && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                <div className="flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-4.5 mt-2">
-                  <AlertCircle className="w-6 h-6 text-red-400 shrink-0" />
-                  <p className="text-base text-red-300">{error}</p>
+                <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-2.5 mt-2">
+                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                  <p className="text-xs text-red-300">{error}</p>
                 </div>
               </motion.div>
             )}
@@ -121,18 +121,18 @@ export default function UnifiedDecisionPage() {
           <button
             onClick={handleCalculate}
             disabled={loading}
-            className="w-full mt-2 flex items-center justify-center gap-3.5 rounded-xl py-4 font-black text-lg tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
+            className="w-full mt-2 flex items-center justify-center gap-2.5 rounded-xl py-4 font-black text-sm tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
             style={{
               background: loading ? 'linear-gradient(135deg, #78350f, #451a03)' : 'linear-gradient(135deg, #f59e0b, #d97706)',
               boxShadow: !loading ? '0 0 20px rgba(245, 158, 11, 0.2)' : 'none'
             }}
           >
-            {loading ? <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-6 h-6" />}
-            {loading ? 'ط¬ط§ط±ظچ ط§ظ„طھط­ظ„ظٹظ„...' : 'طھط´ط؛ظٹظ„ ط§ظ„ظ‚ط±ط§ط± ط§ظ„ظ…ظˆط­ط¯'}
+            {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-4 h-4" />}
+            {loading ? 'جارٍ التحليل...' : 'تشغيل القرار الموحد'}
           </button>
         </div>
 
-        {/* â”€â”€ Results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Results ────────────────────────────────────────────────────── */}
         <AnimatePresence>
           {result && (
             <motion.div
@@ -141,7 +141,7 @@ export default function UnifiedDecisionPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ type: 'spring', stiffness: 100, damping: 18 }}
-              className="flex flex-col gap-6"
+              className="flex flex-col gap-4"
             >
               {/* Verdict Header */}
               <div className="rounded-2xl border border-white/[0.08] bg-[#111] p-5 flex flex-col items-center justify-center shadow-lg relative overflow-hidden">
@@ -153,8 +153,8 @@ export default function UnifiedDecisionPage() {
                     } 0%, transparent 70%)` 
                   }}
                 />
-                <p className="text-sm font-bold text-white/40 uppercase tracking-widest mb-1 z-10">ط§ظ„ط«ظ‚ط© ط§ظ„ظ†ظ‡ط§ط¦ظٹط© (Confidence)</p>
-                <div className="flex items-baseline gap-3 z-10">
+                <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1 z-10">الثقة النهائية (Confidence)</p>
+                <div className="flex items-baseline gap-2 z-10">
                   <span className={`text-5xl font-black font-mono tracking-tighter ${
                     result.verdictEn === 'BULL' ? 'text-emerald-400' : result.verdictEn === 'BEAR' ? 'text-red-400' : 'text-gray-400'
                   }`}>
@@ -187,13 +187,13 @@ export default function UnifiedDecisionPage() {
                       className="rounded-xl border border-white/[0.05] bg-black/40 p-3 flex flex-col gap-1.5"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-mono text-white/40 uppercase truncate" dir="ltr">{ind.nameEn}</span>
-                        <div className={`px-1.5 py-0.5 rounded border text-sm font-bold tracking-widest ${badgeColor}`}>
+                        <span className="text-[10px] font-mono text-white/40 uppercase truncate" dir="ltr">{ind.nameEn}</span>
+                        <div className={`px-1.5 py-0.5 rounded border text-[8px] font-bold tracking-widest ${badgeColor}`}>
                           {ind.label}
                         </div>
                       </div>
-                      <span className="text-sm font-bold text-white/80">{ind.nameAr}</span>
-                      <span className="text-sm text-white/50 mt-1">{ind.valueText}</span>
+                      <span className="text-[11px] font-bold text-white/80">{ind.nameAr}</span>
+                      <span className="text-[10px] text-white/50 mt-1">{ind.valueText}</span>
                     </motion.div>
                   );
                 })}
@@ -204,13 +204,13 @@ export default function UnifiedDecisionPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 }}
-                className="rounded-xl border-t-2 border-t-amber-500 border-white/[0.05] bg-amber-500/[0.03] p-6 text-right shadow-inner mb-2"
+                className="rounded-xl border-t-2 border-t-amber-500 border-white/[0.05] bg-amber-500/[0.03] p-4 text-right shadow-inner mb-2"
               >
-                <div className="flex items-center gap-3 mb-2 justify-end">
-                  <Activity className="w-6 h-6 text-amber-500" />
-                  <span className="text-sm font-black text-amber-500 tracking-widest uppercase">ظ…ظ„ط®طµ ط§ظ„ط°ظƒط§ط، ط§ظ„ط§طµط·ظ†ط§ط¹ظٹ</span>
+                <div className="flex items-center gap-2 mb-2 justify-end">
+                  <Activity className="w-4 h-4 text-amber-500" />
+                  <span className="text-[10px] font-black text-amber-500 tracking-widest uppercase">ملخص الذكاء الاصطناعي</span>
                 </div>
-                <p className="text-sm text-amber-50 font-medium leading-relaxed">
+                <p className="text-[12px] text-amber-50 font-medium leading-relaxed">
                   {result.summaryAr}
                 </p>
               </motion.div>
@@ -223,7 +223,7 @@ export default function UnifiedDecisionPage() {
   );
 }
 
-// â”€â”€ Radar Chart Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Radar Chart Component ───────────────────────────────────────────────────
 
 function RadarChart({ result, animated }: { result: UnifiedDecisionResult, animated: boolean }) {
   const size = 300;
@@ -273,7 +273,7 @@ function RadarChart({ result, animated }: { result: UnifiedDecisionResult, anima
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.2 }}
-      className="rounded-2xl border border-white/[0.08] bg-[#0c0c0c] flex items-center justify-center p-6 shadow-xl"
+      className="rounded-2xl border border-white/[0.08] bg-[#0c0c0c] flex items-center justify-center p-4 shadow-xl"
     >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="overflow-visible">
         {/* Background Grids */}
