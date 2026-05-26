@@ -272,10 +272,13 @@ function CommoditiesPanel() {
   const [lastUpdated, setLastUpdated] = useState<string>('');
 
   useEffect(() => {
+    // Safety: always dismiss skeleton after 10s max
+    const safetyTimer = setTimeout(() => setLoading(false), 10_000);
+
     async function load() {
       try {
         const res = await fetch('/api/commodities', { cache: 'no-store' });
-        if (!res.ok) return;
+        if (!res.ok) { setLoading(false); return; }
         const d = await res.json();
         startTransition(() => {
           setData({
@@ -285,14 +288,18 @@ function CommoditiesPanel() {
             egyptianGold: d.egyptianGold ?? null,
           });
           setLoading(false);
+          clearTimeout(safetyTimer);
           const now = new Date();
           setLastUpdated(now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
         });
-      } catch { setLoading(false); }
+      } catch {
+        setLoading(false);
+        clearTimeout(safetyTimer);
+      }
     }
     load();
     const t = setInterval(load, 60_000);
-    return () => clearInterval(t);
+    return () => { clearInterval(t); clearTimeout(safetyTimer); };
   }, []);
 
   type CardDef = {
