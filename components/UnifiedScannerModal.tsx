@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { X, Zap, Globe, BarChart2, AlertTriangle } from 'lucide-react';
 import { NativeSheet } from '@/components/ui/NativeSheet';
 import { fetchKlines }      from '@/lib/binance/fetcher';
+import { SymbolDropdown }   from '@/components/tools/SymbolDropdown';
 import { calculateSMC }    from '@/lib/algorithms/smc';
 import type { SMCResult }  from '@/lib/algorithms/smc';
 import { SMCResultCard }   from '@/components/tools/SMCResultCard';
@@ -679,11 +680,9 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
                   );
 
                   if (key === 'symbol') return (
-                    <div key={key}>
+                    <div key={key} className="col-span-2">
                       <label className="text-sm text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
-                      <input value={symbol} onChange={onSymbolChange}
-                        className={inputClass} placeholder={meta.placeholder}
-                        autoCapitalize="characters" autoCorrect="off" spellCheck={false} />
+                      <SymbolDropdown value={symbol} onChange={setSymbol} />
                     </div>
                   );
 
