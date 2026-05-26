@@ -284,13 +284,13 @@ function CommoditiesPanel() {
         ]);
 
         const goldPrice    = Number(goldData?.price ?? 3345);
-        const goldPrev     = Number(goldData?.prev_close_price ?? goldPrice);
-        const goldChgPct   = goldPrev ? ((goldPrice - goldPrev) / goldPrev) * 100 : 0;
+        // gold-api.com returns 'chp' = change percent directly
+        const goldChgPct   = Number(goldData?.chp ?? goldData?.change_pct ?? 0);
         const egpRate      = Number(egpData?.rates?.EGP ?? 50.85);
         const oilPrice     = Number(oilData?.price ?? 79.5);
-        const oilPrev      = Number(oilData?.prev_close_price ?? oilPrice);
-        const oilChgPct    = oilPrev ? ((oilPrice - oilPrev) / oilPrev) * 100 : 0;
+        const oilChgPct    = Number(oilData?.chp ?? oilData?.change_pct ?? 0);
         const egpGold      = Math.round((goldPrice / 31.1035) * egpRate * (21 / 24));
+
 
         startTransition(() => {
           setData({
