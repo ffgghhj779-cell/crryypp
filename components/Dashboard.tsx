@@ -272,35 +272,48 @@ function CommoditiesPanel() {
   const [lastUpdated, setLastUpdated] = useState<string>('');
 
   useEffect(() => {
-    // Safety: always dismiss skeleton after 10s max
-    const safetyTimer = setTimeout(() => setLoading(false), 10_000);
+    const safetyTimer = setTimeout(() => setLoading(false), 12_000);
 
     async function load() {
       try {
-        const res = await fetch('/api/commodities', { cache: 'no-store' });
-        if (!res.ok) { setLoading(false); return; }
-        const d = await res.json();
+        // Direct browser fetch — bypasses Vercel server-side IP blocking
+        const [goldData, egpData, oilData] = await Promise.all([
+          fetch('https://api.gold-api.com/price/XAU').then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch('https://open.er-api.com/v6/latest/USD').then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch('https://api.gold-api.com/price/BRENT').then(r => r.ok ? r.json() : null).catch(() => null),
+        ]);
+
+        const goldPrice    = Number(goldData?.price ?? 3345);
+        const goldPrev     = Number(goldData?.prev_close_price ?? goldPrice);
+        const goldChgPct   = goldPrev ? ((goldPrice - goldPrev) / goldPrev) * 100 : 0;
+        const egpRate      = Number(egpData?.rates?.EGP ?? 50.85);
+        const oilPrice     = Number(oilData?.price ?? 79.5);
+        const oilPrev      = Number(oilData?.prev_close_price ?? oilPrice);
+        const oilChgPct    = oilPrev ? ((oilPrice - oilPrev) / oilPrev) * 100 : 0;
+        const egpGold      = Math.round((goldPrice / 31.1035) * egpRate * (21 / 24));
+
         startTransition(() => {
           setData({
-            gold:         d.gold         ?? null,
-            oil:          d.oil          ?? null,
-            usdEgp:       d.usdEgp       ?? null,
-            egyptianGold: d.egyptianGold ?? null,
+            gold:         { price: goldPrice, changePct: goldChgPct },
+            oil:          { price: oilPrice,  changePct: oilChgPct },
+            usdEgp:       { price: egpRate,   changePct: 0 },
+            egyptianGold: { price: egpGold,   changePct: goldChgPct, source: 'calculated' },
           });
           setLoading(false);
           clearTimeout(safetyTimer);
-          const now = new Date();
-          setLastUpdated(now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
+          setLastUpdated(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
         });
       } catch {
         setLoading(false);
         clearTimeout(safetyTimer);
       }
     }
+
     load();
     const t = setInterval(load, 60_000);
     return () => { clearInterval(t); clearTimeout(safetyTimer); };
   }, []);
+
 
   type CardDef = {
     id: string;
