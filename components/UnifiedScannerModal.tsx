@@ -241,16 +241,16 @@ function ResultCard({ result, tool }: { result: ScanResult; tool: ToolDef }) {
   const dotColor = isBull ? 'bg-emerald-500' : isBear ? 'bg-red-500' : 'bg-orange-500';
 
   return (
-    <div className={`rounded-2xl border p-4 space-y-3 ${accent}`}>
-      <div className="flex items-center gap-2 mb-1">
+    <div className={`rounded-2xl border p-6 space-y-3 ${accent}`}>
+      <div className="flex items-center gap-3 mb-1">
         <span className={`w-2 h-2 rounded-full ${dotColor} animate-pulse`} />
-        <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Scan Complete — {tool.name}</span>
+        <span className="text-sm font-bold uppercase tracking-widest text-white/40">Scan Complete — {tool.name}</span>
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3">
         {Object.entries(result).map(([k, v]) => (
           <div key={k} className="p-2.5 rounded-xl bg-black/30 border border-white/[0.05]">
-            <p className="text-[9px] uppercase tracking-widest text-white/30 mb-1">{k.replace(/_/g, ' ')}</p>
-            <p className={`text-sm font-mono font-bold tabular-nums leading-tight ${
+            <p className="text-sm uppercase tracking-widest text-white/30 mb-1">{k.replace(/_/g, ' ')}</p>
+            <p className={`text-base font-mono font-bold tabular-nums leading-tight ${
               String(v).includes('BULL') || String(v).includes('BUY') || String(v).includes('✓') ? 'text-emerald-400'
               : String(v).includes('BEAR') || String(v).includes('SELL') || String(v).includes('✗') ? 'text-red-400'
               : 'text-orange-300'
@@ -625,7 +625,7 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
   // ── Shared body JSX (used in both modal and page mode) ──────────────────────
   const bodyContent = (
     <div
-      className="overflow-y-auto flex-1 px-4 pt-4 pb-8 space-y-4 overscroll-contain"
+      className="overflow-y-auto flex-1 px-5 pt-4 pb-8 space-y-4 overscroll-contain"
       style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom, 0.5rem))' }}
     >
 
@@ -643,10 +643,10 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
           {!isWidget && !/^Trading VIP/.test(tool.name) && (
             <>
               {/* Tag + category strip */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border ${tool.tagColor}`}>{tool.tag}</span>
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className={`text-sm font-bold uppercase tracking-wider px-2 py-1 rounded-md border ${tool.tagColor}`}>{tool.tag}</span>
                 <BarChart2 className="w-3.5 h-3.5 text-white/20" />
-                <span className="text-[10px] text-white/30 font-mono">
+                <span className="text-sm text-white/30 font-mono">
                   {tool.requiredInputs.map(k => getInputValue(k)).filter(Boolean).join(' · ')}
                 </span>
               </div>
@@ -655,12 +655,12 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
               <div className={`grid gap-3 ${tool.requiredInputs.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
                 {tool.requiredInputs.map((key) => {
                   const meta = INPUT_META[key];
-                  // py-3 = ~48px total height, satisfies 44px min touch target
-                  const inputClass = "w-full px-3 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white font-mono text-sm focus:outline-none focus:border-orange-500/60 focus:bg-white/[0.07] focus:ring-1 focus:ring-orange-500/30 transition-all placeholder:text-white/20 tabular-nums";
+                  // py-4 = ~48px total height, satisfies 44px min touch target
+                  const inputClass = "w-full px-3 py-4 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white font-mono text-base focus:outline-none focus:border-orange-500/60 focus:bg-white/[0.07] focus:ring-1 focus:ring-orange-500/30 transition-all placeholder:text-white/20 tabular-nums";
 
                   if (meta.type === 'select' && key === 'timeframe') return (
                     <div key={key}>
-                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
+                      <label className="text-sm text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
                       <select value={timeframe} onChange={onTfChange}
                         className={inputClass + ' appearance-none cursor-pointer'}>
                         {['15m','1H','4H','1D'].map(tf => <option key={tf} value={tf} className="bg-zinc-900">{tf}</option>)}
@@ -670,7 +670,7 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
 
                   if (meta.type === 'select' && key === 'direction') return (
                     <div key={key}>
-                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
+                      <label className="text-sm text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
                       <select value={direction} onChange={onDirChange}
                         className={inputClass + ' appearance-none cursor-pointer'}>
                         {['Bullish ↑','Bearish ↓'].map(d => <option key={d} value={d} className="bg-zinc-900">{d}</option>)}
@@ -680,7 +680,7 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
 
                   if (key === 'symbol') return (
                     <div key={key}>
-                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
+                      <label className="text-sm text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
                       <input value={symbol} onChange={onSymbolChange}
                         className={inputClass} placeholder={meta.placeholder}
                         autoCapitalize="characters" autoCorrect="off" spellCheck={false} />
@@ -689,7 +689,7 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
 
                   if (key === 'price_start') return (
                     <div key={key}>
-                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
+                      <label className="text-sm text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
                       <input type="number" inputMode="decimal" value={priceStart} onChange={onPriceStartChange}
                         className={inputClass} placeholder={meta.placeholder} />
                     </div>
@@ -697,7 +697,7 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
 
                   if (key === 'price_end') return (
                     <div key={key}>
-                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
+                      <label className="text-sm text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
                       <input type="number" inputMode="decimal" value={priceEnd} onChange={onPriceEndChange}
                         className={inputClass} placeholder={meta.placeholder} />
                     </div>
@@ -705,7 +705,7 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
 
                   if (key === 'period') return (
                     <div key={key}>
-                      <label className="text-[10px] text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
+                      <label className="text-sm text-white/30 uppercase tracking-widest block mb-2">{meta.label}</label>
                       <input type="number" inputMode="numeric" value={period} onChange={onPeriodChange}
                         className={inputClass} placeholder={meta.placeholder} min="1" max="200" />
                     </div>
@@ -718,13 +718,13 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
               {/* Error toast */}
               {fetchErr && (
                 <div
-                  className="flex items-start gap-3 px-4 py-3 rounded-2xl border border-red-500/30 bg-red-500/[0.07]"
+                  className="flex items-start gap-3 px-5 py-4 rounded-2xl border border-red-500/30 bg-red-500/[0.07]"
                   style={{ animation: 'slide-up 0.25s cubic-bezier(0.16,1,0.3,1) forwards' }}
                 >
-                  <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                  <AlertTriangle className="w-6 h-6 text-red-400 shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-xs font-bold text-red-400 uppercase tracking-wider">Fetch Error</p>
-                    <p className="text-[11px] text-red-300/80 mt-0.5 leading-snug">{fetchErr}</p>
+                    <p className="text-sm font-bold text-red-400 uppercase tracking-wider">Fetch Error</p>
+                    <p className="text-sm text-red-300/80 mt-0.5 leading-snug">{fetchErr}</p>
                   </div>
                 </div>
               )}
@@ -733,7 +733,7 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
               <button
                 onClick={handleScan}
                 disabled={phase === 'scanning'}
-                className="w-full min-h-[52px] rounded-2xl font-bold text-base tracking-wider transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed relative overflow-hidden"
+                className="w-full min-h-[52px] rounded-2xl font-bold text-lg tracking-wider transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed relative overflow-hidden"
                 style={{
                   background: phase === 'scanning'
                     ? 'linear-gradient(135deg, #92400e, #78350f)'
@@ -743,12 +743,12 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
                 }}
               >
                 {phase === 'scanning' ? (
-                  <span className="flex items-center justify-center gap-2.5 py-3.5">
-                    <span className="w-4 h-4 border-2 border-orange-300/40 border-t-orange-200 rounded-full animate-spin" />
-                    <span className="animate-pulse tracking-[0.15em] text-sm">جارٍ جلب البيانات اللحظية...</span>
+                  <span className="flex items-center justify-center gap-3.5 py-4.5">
+                    <span className="w-6 h-6 border-2 border-orange-300/40 border-t-orange-200 rounded-full animate-spin" />
+                    <span className="animate-pulse tracking-[0.15em] text-base">جارٍ جلب البيانات اللحظية...</span>
                   </span>
                 ) : (
-                  <span className="flex items-center justify-center py-3.5 tracking-[0.15em]">⚡ تشغيل التحليل</span>
+                  <span className="flex items-center justify-center py-4.5 tracking-[0.15em]">⚡ تشغيل التحليل</span>
                 )}
               </button>
 
@@ -854,10 +854,10 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
 
               {/* EWA error state */}
               {phase === 'done' && ewaResult?.error && tool.name === 'Elliott Wave (EWA)' && (
-                <div className="flex items-start gap-3 px-4 py-3 rounded-2xl border border-red-500/30 bg-red-500/[0.07]">
+                <div className="flex items-start gap-3 px-5 py-4 rounded-2xl border border-red-500/30 bg-red-500/[0.07]">
                   <div>
-                    <p className="text-xs font-bold text-red-400 uppercase tracking-wider">EWA Engine Error</p>
-                    <p className="text-[11px] text-red-300/80 mt-0.5 leading-snug" dir="rtl">{ewaResult.error}</p>
+                    <p className="text-sm font-bold text-red-400 uppercase tracking-wider">EWA Engine Error</p>
+                    <p className="text-sm text-red-300/80 mt-0.5 leading-snug" dir="rtl">{ewaResult.error}</p>
                   </div>
                 </div>
               )}
@@ -879,13 +879,13 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
         <div className="flex items-center gap-3 min-w-0">
           {tool.category === 'widget' ? <Globe className="w-5 h-5 text-orange-500 shrink-0" /> : <Zap className="w-5 h-5 text-orange-500 shrink-0" />}
           <div className="min-w-0">
-            <h2 className="text-white font-bold text-base truncate">{tool.name}</h2>
-            <p className="text-[10px] text-white/35 truncate">{tool.subtitle}</p>
+            <h2 className="text-white font-bold text-lg truncate">{tool.name}</h2>
+            <p className="text-sm text-white/35 truncate">{tool.subtitle}</p>
           </div>
         </div>
         <button onClick={onClose} aria-label="Close"
           className="shrink-0 ml-2 w-11 h-11 flex items-center justify-center text-white/40 hover:text-white bg-white/[0.05] hover:bg-white/10 rounded-full transition-all active:scale-95">
-          <X className="w-4 h-4" />
+          <X className="w-6 h-6" />
         </button>
       </div>
       {bodyContent}

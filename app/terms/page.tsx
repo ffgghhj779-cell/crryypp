@@ -3,7 +3,7 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen bg-black text-white p-6 max-w-2xl mx-auto" dir="rtl">
       <h1 className="text-2xl font-black text-orange-400 mb-2">شروط الاستخدام</h1>
-      <p className="text-xs text-white/30 font-mono mb-8">آخر تحديث: مايو 2025 · Crypto Terminal 360</p>
+      <p className="text-sm text-white/30 font-mono mb-8">آخر تحديث: مايو 2025 · Crypto Terminal 360</p>
 
       {[
         { title: '1. طبيعة الخدمة', body: 'Crypto Terminal 360 هي منصة تحليلية تعليمية توفر أدوات تقنية لتحليل أسواق العملات الرقمية. لا تُقدّم المنصة أي نصائح استثمارية أو توصيات مالية ملزمة.' },
@@ -13,8 +13,8 @@ export default function TermsPage() {
         { title: '5. تعديل الشروط', body: 'يحق لنا تعديل هذه الشروط في أي وقت. سيتم إشعار المستخدمين بالتغييرات الجوهرية عبر القنوات الرسمية.' },
       ].map(s => (
         <section key={s.title} className="mb-6">
-          <h2 className="text-sm font-bold text-white/70 mb-2">{s.title}</h2>
-          <p className="text-sm text-white/40 leading-relaxed">{s.body}</p>
+          <h2 className="text-base font-bold text-white/70 mb-2">{s.title}</h2>
+          <p className="text-base text-white/40 leading-relaxed">{s.body}</p>
         </section>
       ))}
     </div>

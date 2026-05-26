@@ -66,11 +66,11 @@ function LearnContentModal({ topic, onClose }: { topic: Topic; onClose: () => vo
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="min-w-0 text-right flex-1 mx-3">
-            <h2 className="text-white font-bold text-base truncate" dir="rtl">{topic.title}</h2>
-            <p className="text-[10px] text-white/35 truncate" dir="rtl">{topic.subtitle}</p>
+            <h2 className="text-white font-bold text-lg truncate" dir="rtl">{topic.title}</h2>
+            <p className="text-sm text-white/35 truncate" dir="rtl">{topic.subtitle}</p>
           </div>
           <button onClick={onClose} aria-label="Close" className="w-11 h-11 flex items-center justify-center text-white/40 hover:text-white bg-white/[0.05] hover:bg-white/10 rounded-full transition-all active:scale-95">
-            <X className="w-4 h-4" />
+            <X className="w-6 h-6" />
           </button>
         </div>
 
@@ -81,10 +81,10 @@ function LearnContentModal({ topic, onClose }: { topic: Topic; onClose: () => vo
           </div>
           <div className="text-center space-y-2">
             <h3 className="text-white font-black text-xl" dir="rtl">{topic.title}</h3>
-            <p className="text-white/40 text-sm leading-relaxed" dir="rtl">{topic.subtitle}</p>
+            <p className="text-white/40 text-base leading-relaxed" dir="rtl">{topic.subtitle}</p>
           </div>
           <div className="w-full rounded-2xl border border-orange-500/20 bg-orange-500/[0.04] px-5 py-4 text-center">
-            <p className="text-[11px] text-white/50" dir="rtl">
+            <p className="text-sm text-white/50" dir="rtl">
               <span className="text-orange-400 font-bold">قريباً · </span>
               المحتوى التفصيلي لهذا القسم سيكون متاحاً قريباً. يتضمن شرحاً مرئياً خطوة بخطوة.
             </p>
@@ -121,22 +121,22 @@ export function LearnHubModal({ onClose }: LearnHubModalProps) {
           style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
         >
           {/* Back button row */}
-          <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center justify-between px-5 py-4">
             <button
               onClick={onClose}
-              className="flex items-center gap-1.5 text-orange-400 hover:text-orange-300 active:scale-95 transition-all text-[11px] font-bold tracking-wide"
+              className="flex items-center gap-1.5 text-orange-400 hover:text-orange-300 active:scale-95 transition-all text-sm font-bold tracking-wide"
               aria-label="رجوع للرئيسية"
             >
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-6 h-6" />
               <span>رجوع للرئيسية</span>
             </button>
-            <p className="text-[9px] text-white/20 font-mono uppercase tracking-widest">EDUCATIONAL CENTER</p>
+            <p className="text-sm text-white/20 font-mono uppercase tracking-widest">EDUCATIONAL CENTER</p>
           </div>
 
           {/* Title block */}
-          <div className="px-4 pb-4 text-right" dir="rtl">
+          <div className="px-5 pb-4 text-right" dir="rtl">
             <h1 className="text-2xl font-black text-orange-500 leading-tight">Learn Hub 360</h1>
-            <p className="text-[11px] text-white/40 mt-0.5">المركز التعليمي لمدارس التحليل الفني والكمي</p>
+            <p className="text-sm text-white/40 mt-0.5">المركز التعليمي لمدارس التحليل الفني والكمي</p>
           </div>
         </div>
 
@@ -145,35 +145,35 @@ export function LearnHubModal({ onClose }: LearnHubModalProps) {
           className="flex-1 overflow-y-auto overscroll-contain px-3 pt-3 min-h-0"
           style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom, 0.5rem))' }}
         >
-          <div className="grid grid-cols-2 gap-2 pb-4">
+          <div className="grid grid-cols-2 gap-3 pb-4">
             {TOPICS.map((topic, i) => (
               <button
                 key={i}
                 onClick={() => handleCardClick(topic)}
-                className={`group relative flex flex-col items-center text-center p-4 rounded-2xl border ${topic.border} ${topic.bg} hover:border-orange-500/30 active:scale-[0.97] transition-all duration-150 overflow-hidden gap-3`}
+                className={`group relative flex flex-col items-center text-center p-6 rounded-2xl border ${topic.border} ${topic.bg} hover:border-orange-500/30 active:scale-[0.97] transition-all duration-150 overflow-hidden gap-3`}
                 dir="rtl"
               >
                 {/* Hover glow */}
                 <span className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-[radial-gradient(ellipse_at_center,rgba(249,115,22,0.06),transparent_70%)]" />
 
                 {/* Favourite star placeholder */}
-                <span className="absolute top-2.5 left-2.5 text-white/15 text-[10px]">☆</span>
+                <span className="absolute top-2.5 left-2.5 text-white/15 text-sm">☆</span>
 
                 {/* Icon */}
                 <div className={`${topic.color} opacity-90`}>{topic.icon}</div>
 
                 {/* Text */}
                 <div className="space-y-1 min-w-0 w-full">
-                  <p className="text-[11px] font-bold text-white leading-tight">{topic.title}</p>
-                  <p className="text-[9px] text-white/35 leading-tight">{topic.subtitle}</p>
+                  <p className="text-sm font-bold text-white leading-tight">{topic.title}</p>
+                  <p className="text-sm text-white/35 leading-tight">{topic.subtitle}</p>
                 </div>
               </button>
             ))}
           </div>
 
           {/* Coming soon footer */}
-          <div className="rounded-xl border border-white/[0.04] bg-white/[0.02] px-4 py-3 text-center mb-2">
-            <p className="text-[10px] text-white/30" dir="rtl">
+          <div className="rounded-xl border border-white/[0.04] bg-white/[0.02] px-5 py-4 text-center mb-2">
+            <p className="text-sm text-white/30" dir="rtl">
               <span className="text-orange-500 font-bold">قريباً · </span>
               فيديوهات تفاعلية ومحاضرات صوتية لكل قسم
             </p>

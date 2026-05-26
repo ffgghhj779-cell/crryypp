@@ -54,32 +54,32 @@ export default function PatternScannerPage() {
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
       <ToolPageHeader tool={tool} />
 
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-orange-500/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full flex items-center gap-1">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-orange-500/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full flex items-center gap-1">
             <Eye className="w-3 h-3" /> Classic Patterns
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">
           مكتشف النماذج الكلاسيكية
         </h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
           الرصد الأوتوماتيكي لنماذج المثلثات والرأس والكتفين والقمم المزدوجة
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5">
+      <div className="px-5 flex flex-col gap-5">
         
         {/* Control Panel */}
-        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-4 shadow-xl shadow-black/50">
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-6 shadow-xl shadow-black/50">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">رمز الأصل المالي</label>
+            <label className="text-sm font-bold text-white/50 uppercase tracking-widest">رمز الأصل المالي</label>
             <input
               type="text"
               value={symbol}
               onChange={e => setSymbol(e.target.value)}
               placeholder="BTCUSDT"
-              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-colors"
+              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-base px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-colors"
               dir="ltr"
             />
           </div>
@@ -87,9 +87,9 @@ export default function PatternScannerPage() {
           <AnimatePresence>
             {error && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-2.5 mt-2">
-                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                  <p className="text-xs text-red-300">{error}</p>
+                <div className="flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-4.5 mt-2">
+                  <AlertCircle className="w-6 h-6 text-red-400 shrink-0" />
+                  <p className="text-sm text-red-300">{error}</p>
                 </div>
               </motion.div>
             )}
@@ -98,13 +98,13 @@ export default function PatternScannerPage() {
           <button
             onClick={handleScan}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2.5 rounded-xl py-4 font-black text-sm tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
+            className="w-full flex items-center justify-center gap-3.5 rounded-xl py-4 font-black text-base tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
             style={{
               background: loading ? 'linear-gradient(135deg, #7c2d12, #431407)' : 'linear-gradient(135deg, #ea580c, #9a3412)',
               boxShadow: !loading ? '0 0 20px rgba(234, 88, 12, 0.25)' : 'none'
             }}
           >
-            {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-4 h-4" />}
+            {loading ? <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-6 h-6" />}
             {loading ? 'جاري الفحص المتقدم...' : 'مسح النماذج الكلاسيكية'}
           </button>
         </div>
@@ -118,16 +118,16 @@ export default function PatternScannerPage() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ type: 'spring', stiffness: 100, damping: 18 }}
-              className="flex flex-col gap-4"
+              className="flex flex-col gap-6"
             >
               
               {/* Status Card */}
-              <div className={`rounded-xl border p-4 flex flex-col gap-3 shadow-lg ${
+              <div className={`rounded-xl border p-6 flex flex-col gap-3 shadow-lg ${
                 result.isBullish ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-orange-500/10 border-orange-500/20'
               }`}>
                 <div className="flex justify-between items-start">
                   <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">
+                    <span className="text-sm font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">
                       <Zap className="w-3 h-3" /> تم التعرف على هيكل
                     </span>
                     <span className={`text-lg font-black tracking-widest ${
@@ -137,15 +137,15 @@ export default function PatternScannerPage() {
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-black/40 border border-white/[0.05]">
-                  <Rocket className={`w-4 h-4 ${result.isBullish ? 'text-emerald-500' : 'text-orange-500'}`} />
-                  <span className="text-xs font-bold text-white/80">{result.statusAr}</span>
+                <div className="flex items-center gap-3 px-3 py-4 rounded-lg bg-black/40 border border-white/[0.05]">
+                  <Rocket className={`w-6 h-6 ${result.isBullish ? 'text-emerald-500' : 'text-orange-500'}`} />
+                  <span className="text-sm font-bold text-white/80">{result.statusAr}</span>
                 </div>
               </div>
 
               {/* Visual Pattern Chart */}
-              <div className="rounded-2xl border border-white/[0.08] bg-[#111] p-4 flex flex-col shadow-[0_0_30px_rgba(234,88,12,0.1)] relative overflow-hidden h-72">
-                <p className="text-[10px] font-bold text-orange-500/50 uppercase tracking-widest mb-2 z-10">{result.patternNameEn} Visualizer</p>
+              <div className="rounded-2xl border border-white/[0.08] bg-[#111] p-6 flex flex-col shadow-[0_0_30px_rgba(234,88,12,0.1)] relative overflow-hidden h-[420px]">
+                <p className="text-sm font-bold text-orange-500/50 uppercase tracking-widest mb-2 z-10">{result.patternNameEn} Visualizer</p>
                 <div className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" style={{
                   backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
                   backgroundSize: '20px 20px'
@@ -157,29 +157,29 @@ export default function PatternScannerPage() {
               {/* Trade Parameters Table */}
               <div className="flex flex-col rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md overflow-hidden">
                 <div className="bg-white/[0.02] border-b border-white/[0.05] p-3">
-                  <span className="text-[11px] font-bold text-white/70 uppercase tracking-widest flex items-center gap-2">
-                    <Crosshair className="w-4 h-4 text-orange-400" /> إعدادات الصفقة المقترحة
+                  <span className="text-sm font-bold text-white/70 uppercase tracking-widest flex items-center gap-3">
+                    <Crosshair className="w-6 h-6 text-orange-400" /> إعدادات الصفقة المقترحة
                   </span>
                 </div>
                 
                 <div className="grid grid-cols-2 divide-x divide-x-reverse divide-white/[0.05]">
-                  <div className="flex flex-col p-4 gap-1">
-                    <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Entry Trigger (الاختراق)</span>
+                  <div className="flex flex-col p-6 gap-1">
+                    <span className="text-sm font-bold text-white/40 uppercase tracking-widest">Entry Trigger (الاختراق)</span>
                     <span className="text-lg font-black text-white font-mono">${priceStr(result.entryTrigger)}</span>
                   </div>
-                  <div className="flex flex-col p-4 gap-1">
-                    <span className="text-[9px] font-bold text-red-500/70 uppercase tracking-widest flex items-center gap-1"><ShieldAlert className="w-3 h-3" /> Stop Loss (الإلغاء)</span>
+                  <div className="flex flex-col p-6 gap-1">
+                    <span className="text-sm font-bold text-red-500/70 uppercase tracking-widest flex items-center gap-1"><ShieldAlert className="w-3 h-3" /> Stop Loss (الإلغاء)</span>
                     <span className="text-lg font-black text-red-400 font-mono">${priceStr(result.stopLoss)}</span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 divide-x divide-x-reverse divide-white/[0.05] border-t border-white/[0.05] bg-emerald-500/5">
-                  <div className="flex flex-col p-4 gap-1 border-emerald-500/10">
-                    <span className="text-[9px] font-bold text-emerald-500/70 uppercase tracking-widest flex items-center gap-1"><Target className="w-3 h-3" /> Target 1 (هدف أول)</span>
+                  <div className="flex flex-col p-6 gap-1 border-emerald-500/10">
+                    <span className="text-sm font-bold text-emerald-500/70 uppercase tracking-widest flex items-center gap-1"><Target className="w-3 h-3" /> Target 1 (هدف أول)</span>
                     <span className="text-lg font-black text-emerald-400 font-mono">${priceStr(result.target1)}</span>
                   </div>
-                  <div className="flex flex-col p-4 gap-1 border-emerald-500/10">
-                    <span className="text-[9px] font-bold text-emerald-500/70 uppercase tracking-widest flex items-center gap-1"><Target className="w-3 h-3" /> Target 2 (هدف ثاني)</span>
+                  <div className="flex flex-col p-6 gap-1 border-emerald-500/10">
+                    <span className="text-sm font-bold text-emerald-500/70 uppercase tracking-widest flex items-center gap-1"><Target className="w-3 h-3" /> Target 2 (هدف ثاني)</span>
                     <span className="text-lg font-black text-emerald-400 font-mono">${priceStr(result.target2)}</span>
                   </div>
                 </div>

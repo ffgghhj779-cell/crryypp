@@ -52,30 +52,30 @@ export default function HalvingPulsePage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-rose-500/70 tracking-widest uppercase border border-rose-500/20 bg-rose-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-rose-500/70 tracking-widest uppercase border border-rose-500/20 bg-rose-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <Clock className="w-3 h-3" /> Event
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">نبض الوقت</h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
           العد التنازلي لحدث تنصيف البتكوين القادم (Halving 2028)
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5 mt-4">
+      <div className="px-5 flex flex-col gap-5 mt-4">
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="relative rounded-3xl border border-rose-500/30 bg-black/60 p-8 flex flex-col items-center justify-center gap-8 shadow-[0_0_40px_rgba(244,63,94,0.15)] overflow-hidden"
         >
           {/* Glowing neon bg */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-rose-500/20 blur-[100px] rounded-full pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-[420px] bg-rose-500/20 blur-[100px] rounded-full pointer-events-none" />
 
-          <div className="flex items-center gap-3 z-10 bg-rose-500/10 px-4 py-2 rounded-full border border-rose-500/30">
+          <div className="flex items-center gap-3 z-10 bg-rose-500/10 px-5 py-4 rounded-full border border-rose-500/30">
             <Zap className="w-5 h-5 text-rose-400 animate-pulse" />
-            <span className="text-sm font-bold text-rose-400 tracking-wider">التنصيف القادم: أبريل 2028</span>
+            <span className="text-base font-bold text-rose-400 tracking-wider">التنصيف القادم: أبريل 2028</span>
           </div>
 
           <div className="grid grid-cols-4 gap-3 w-full z-10" dir="ltr">
@@ -85,14 +85,14 @@ export default function HalvingPulsePage() {
                 <span className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tighter" style={{ textShadow: '0 0 20px rgba(255,255,255,0.3)' }}>
                   {block.value.toString().padStart(2, '0')}
                 </span>
-                <span className="text-[10px] sm:text-xs font-bold text-rose-400/80 uppercase tracking-widest mt-1 font-sans">
+                <span className="text-sm sm:text-sm font-bold text-rose-400/80 uppercase tracking-widest mt-1 font-sans">
                   {block.label}
                 </span>
               </div>
             ))}
           </div>
 
-          <p className="text-center text-xs text-white/40 leading-relaxed z-10 px-4">
+          <p className="text-center text-sm text-white/40 leading-relaxed z-10 px-5">
             ينخفض معدل التعدين إلى النصف، مما يقلل العرض ويزيد الندرة. تاريخياً، يشهد السوق دورات صعود قوية بعد كل تنصيف.
           </p>
         </motion.div>

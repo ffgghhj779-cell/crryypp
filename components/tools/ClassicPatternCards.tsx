@@ -27,13 +27,13 @@ function Header({ label, symbol, timeframe, badge, badgeColor }: {
   label: string; symbol: string; timeframe: string; badge: string; badgeColor: string;
 }) {
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.05] bg-[#0f0f0f]">
+    <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05] bg-[#0f0f0f]">
       <div>
-        <p className="text-[9px] text-white/25 uppercase tracking-widest font-mono">{label}</p>
-        <p className="text-white font-bold text-base font-mono">{symbol}</p>
-        <p className="text-[10px] text-white/30 font-mono">{timeframe}</p>
+        <p className="text-sm text-white/25 uppercase tracking-widest font-mono">{label}</p>
+        <p className="text-white font-bold text-lg font-mono">{symbol}</p>
+        <p className="text-sm text-white/30 font-mono">{timeframe}</p>
       </div>
-      <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border ${badgeColor}`}>
+      <span className={`text-sm font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border ${badgeColor}`}>
         {badge}
       </span>
     </div>
@@ -43,8 +43,8 @@ function Header({ label, symbol, timeframe, badge, badgeColor }: {
 function Verdict({ text }: { text: string }) {
   return (
     <div className="mx-4 mb-4" dir="rtl">
-      <div className="rounded-xl border border-white/[0.05] bg-[#0a0a0a] px-3 py-3 border-r-2 border-r-orange-500">
-        <p className="text-[11px] text-white/55 leading-relaxed text-right">{text}</p>
+      <div className="rounded-xl border border-white/[0.05] bg-[#0a0a0a] px-3 py-4 border-r-2 border-r-orange-500">
+        <p className="text-sm text-white/55 leading-relaxed text-right">{text}</p>
       </div>
     </div>
   );
@@ -52,17 +52,17 @@ function Verdict({ text }: { text: string }) {
 
 function EmptyState({ text }: { text: string }) {
   return (
-    <div className="mx-4 my-3 rounded-xl border border-white/[0.05] bg-[#0a0a0a] px-4 py-5 text-center">
-      <p className="text-white/50 text-sm">{text}</p>
+    <div className="mx-4 my-3 rounded-xl border border-white/[0.05] bg-[#0a0a0a] px-5 py-5 text-center">
+      <p className="text-white/50 text-base">{text}</p>
     </div>
   );
 }
 
 function PriceRow({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div className="flex items-center justify-between px-3 py-2.5" dir="rtl">
-      <span className={`text-sm font-mono font-bold tabular-nums ${color}`}>{value}</span>
-      <span className="text-[10px] text-white/35">{label}</span>
+    <div className="flex items-center justify-between px-3 py-4.5" dir="rtl">
+      <span className={`text-base font-mono font-bold tabular-nums ${color}`}>{value}</span>
+      <span className="text-sm text-white/35">{label}</span>
     </div>
   );
 }
@@ -94,8 +94,8 @@ export function DoublePatternCard({ data, symbol, timeframe }: DoubleProps) {
             <PriceRow label="الهدف المتوقع"   value={`$${fmtPrice(data.target)}`}   color={isTop ? 'text-red-400' : 'text-emerald-400'} />
           </div>
           <div className="mx-4 mb-3 flex justify-between items-center" dir="rtl">
-            <span className="text-[10px] text-white/25">الثقة</span>
-            <span className="text-sm font-mono font-bold text-orange-300">{data.confidence}%</span>
+            <span className="text-sm text-white/25">الثقة</span>
+            <span className="text-base font-mono font-bold text-orange-300">{data.confidence}%</span>
           </div>
         </>
       )}
@@ -121,22 +121,22 @@ export function CupHandleCard({ data, symbol, timeframe }: CupProps) {
         badge={data.detected ? '▲ CUP & HANDLE' : 'NO PATTERN'} badgeColor={badgeColor} />
       {!data.detected ? <EmptyState text="لم يُرصد نموذج الكوب والمقبض." /> : (
         <>
-          <div className="mx-4 my-3 grid grid-cols-2 gap-2" dir="rtl">
+          <div className="mx-4 my-3 grid grid-cols-2 gap-3" dir="rtl">
             {[
               { label: 'عمق الكوب',    value: `${data.cupDepthPct}%`,    color: 'text-sky-300' },
               { label: 'عمق المقبض',   value: `${data.handleDepthPct}%`, color: 'text-violet-300' },
               { label: 'مستوى الحافة', value: `$${fmtPrice(data.rimLevel)}`, color: 'text-orange-300' },
               { label: 'الهدف',        value: `$${fmtPrice(data.target)}`,   color: 'text-emerald-300' },
             ].map(({ label, value, color }) => (
-              <div key={label} className="rounded-xl bg-white/[0.03] border border-white/[0.05] px-3 py-3 text-right">
-                <p className="text-[9px] text-white/30 mb-1">{label}</p>
-                <p className={`text-sm font-mono font-bold tabular-nums ${color}`}>{value}</p>
+              <div key={label} className="rounded-xl bg-white/[0.03] border border-white/[0.05] px-3 py-4 text-right">
+                <p className="text-sm text-white/30 mb-1">{label}</p>
+                <p className={`text-base font-mono font-bold tabular-nums ${color}`}>{value}</p>
               </div>
             ))}
           </div>
           <div className="mx-4 mb-3 flex justify-between items-center" dir="rtl">
-            <span className="text-[10px] text-white/25">الثقة</span>
-            <span className="text-sm font-mono font-bold text-orange-300">{data.confidence}%</span>
+            <span className="text-sm text-white/25">الثقة</span>
+            <span className="text-base font-mono font-bold text-orange-300">{data.confidence}%</span>
           </div>
         </>
       )}
@@ -173,8 +173,8 @@ export function HeadShouldersCard({ data, symbol, timeframe }: HSProps) {
             <PriceRow label="الهدف المتوقع"  value={`$${fmtPrice(data.target)}`}         color={isInverse ? 'text-emerald-400' : 'text-red-400'} />
           </div>
           <div className="mx-4 mb-3 flex justify-between items-center" dir="rtl">
-            <span className="text-[10px] text-white/25">الثقة</span>
-            <span className="text-sm font-mono font-bold text-orange-300">{data.confidence}%</span>
+            <span className="text-sm text-white/25">الثقة</span>
+            <span className="text-base font-mono font-bold text-orange-300">{data.confidence}%</span>
           </div>
         </>
       )}
@@ -203,21 +203,21 @@ export function TriangleCard({ data, symbol, timeframe }: TriangleProps) {
       <Header label="Triangle Predictor · المثلثات" symbol={symbol} timeframe={timeframe} badge={badge} badgeColor={badgeColor} />
       {!data.detected ? <EmptyState text="لم يُرصد نموذج مثلث واضح." /> : (
         <>
-          <div className="mx-4 my-3 grid grid-cols-3 gap-2" dir="rtl">
+          <div className="mx-4 my-3 grid grid-cols-3 gap-3" dir="rtl">
             {[
               { label: 'النوع',           value: data.typeAr.split(' (')[0], color: 'text-white' },
               { label: 'الذروة (شمعة)',   value: `${data.apexBars}`,         color: 'text-orange-300' },
               { label: 'التحيّز',         value: isBull ? 'صعودي' : isBear ? 'هبوطي' : 'محايد', color: isBull ? 'text-emerald-300' : isBear ? 'text-red-300' : 'text-amber-300' },
             ].map(({ label, value, color }) => (
-              <div key={label} className="rounded-xl bg-white/[0.03] border border-white/[0.05] px-2 py-3 text-center">
-                <p className="text-[9px] text-white/30 mb-1">{label}</p>
-                <p className={`text-xs font-bold font-mono ${color}`}>{value}</p>
+              <div key={label} className="rounded-xl bg-white/[0.03] border border-white/[0.05] px-2 py-4 text-center">
+                <p className="text-sm text-white/30 mb-1">{label}</p>
+                <p className={`text-sm font-bold font-mono ${color}`}>{value}</p>
               </div>
             ))}
           </div>
           <div className="mx-4 mb-3 flex justify-between items-center" dir="rtl">
-            <span className="text-[10px] text-white/25">الثقة</span>
-            <span className="text-sm font-mono font-bold text-orange-300">{data.confidence}%</span>
+            <span className="text-sm text-white/25">الثقة</span>
+            <span className="text-base font-mono font-bold text-orange-300">{data.confidence}%</span>
           </div>
         </>
       )}
@@ -247,11 +247,11 @@ export function MarketStructureCard({ data, symbol, timeframe }: MSProps) {
       <Header label="Market Structure · BOS & CHoCH" symbol={symbol} timeframe={timeframe} badge={trendAr} badgeColor={badgeColor} />
 
       {/* Big trend label */}
-      <div className="px-4 py-4 text-center border-b border-white/[0.05]">
+      <div className="px-5 py-4 text-center border-b border-white/[0.05]">
         <p className={`text-2xl font-black font-mono ${trendColor}`}>
           {data.trend === 'UPTREND' ? 'اتجاه صاعد' : data.trend === 'DOWNTREND' ? 'اتجاه هابط' : 'سوق عرضي'}
         </p>
-        <p className="text-[10px] text-orange-400 font-bold mt-1">{data.lastEventAr}</p>
+        <p className="text-sm text-orange-400 font-bold mt-1">{data.lastEventAr}</p>
       </div>
 
       {/* Swing levels */}

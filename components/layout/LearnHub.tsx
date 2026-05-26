@@ -12,9 +12,9 @@ export function LearnHub() {
       {/* ── Entry Card ────────────────────────────────────────────────────── */}
       <section className="w-full" dir="rtl">
         {/* Section label */}
-        <div className="flex items-center gap-2 mb-3 px-1">
-          <BookOpen className="w-4 h-4 text-orange-500" />
-          <h2 className="text-[11px] font-bold text-white/30 uppercase tracking-widest">
+        <div className="flex items-center gap-3 mb-3 px-1">
+          <BookOpen className="w-6 h-6 text-orange-500" />
+          <h2 className="text-sm font-bold text-white/30 uppercase tracking-widest">
             مركز التعلم · Learn Hub 360
           </h2>
         </div>
@@ -33,7 +33,7 @@ export function LearnHub() {
           <span className="pointer-events-none absolute -top-8 -right-8 w-36 h-36 rounded-full bg-orange-500/20 blur-2xl" />
           <span className="pointer-events-none absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-orange-500/10 blur-xl" />
 
-          <div className="relative z-10 flex items-center gap-4 px-5 py-5">
+          <div className="relative z-10 flex items-center gap-6 px-5 py-5">
             {/* Icon badge */}
             <div className="shrink-0 w-14 h-14 rounded-2xl border border-orange-500/30 bg-orange-500/10 flex items-center justify-center">
               <GraduationCap className="w-7 h-7 text-orange-500" />
@@ -41,11 +41,11 @@ export function LearnHub() {
 
             {/* Text */}
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-orange-400/70 font-bold uppercase tracking-widest mb-0.5">
+              <p className="text-sm text-orange-400/70 font-bold uppercase tracking-widest mb-0.5">
                 EDUCATIONAL CENTER
               </p>
               <h3 className="text-white font-black text-lg leading-tight">Learn Hub 360</h3>
-              <p className="text-[11px] text-white/40 mt-0.5 leading-tight">
+              <p className="text-sm text-white/40 mt-0.5 leading-tight">
                 إرشادات فنية · 18 مدرسة تحليلية
               </p>
             </div>
@@ -55,9 +55,9 @@ export function LearnHub() {
           </div>
 
           {/* Bottom strip */}
-          <div className="relative z-10 flex items-center gap-3 px-5 py-2.5 border-t border-white/[0.05] bg-black/20">
+          <div className="relative z-10 flex items-center gap-3 px-5 py-4.5 border-t border-white/[0.05] bg-black/20">
             {['Chart Patterns', 'Wyckoff', 'ICT & SMC', 'Elliott', '+14 more'].map((tag) => (
-              <span key={tag} className="text-[9px] font-bold text-white/25 whitespace-nowrap font-mono">
+              <span key={tag} className="text-sm font-bold text-white/25 whitespace-nowrap font-mono">
                 {tag}
               </span>
             ))}

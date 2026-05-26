@@ -67,9 +67,9 @@ function StatRow({ label, value, valueColor = 'text-white' }: {
   label: string; value: string; valueColor?: string;
 }) {
   return (
-    <div className="flex items-center justify-between py-3 border-b border-white/[0.04] last:border-0" dir="rtl">
-      <span className="text-[12px] text-white/60">{label}</span>
-      <span className={`text-[13px] font-mono font-bold tabular-nums ${valueColor}`}>{value}</span>
+    <div className="flex items-center justify-between py-4 border-b border-white/[0.04] last:border-0" dir="rtl">
+      <span className="text-sm text-white/60">{label}</span>
+      <span className={`text-base font-mono font-bold tabular-nums ${valueColor}`}>{value}</span>
     </div>
   );
 }
@@ -129,18 +129,18 @@ export function NetworkMacroModal({
         {/* Drag handle */}
         <div className="flex justify-center pt-3 shrink-0"><div className="w-10 h-1 bg-white/20 rounded-full" /></div>
 
-        <div className="overflow-y-auto px-4 pt-4 pb-8 space-y-3" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="overflow-y-auto px-5 pt-4 pb-8 space-y-3" style={{ WebkitOverflowScrolling: 'touch' }}>
 
           {/* Header */}
           <div className="flex items-start justify-between gap-3">
             <div>
               <h2 className="text-xl font-black text-orange-400">ماكرو الشبكة والتعدين</h2>
-              <p className="text-[11px] text-white/40 mt-0.5 leading-relaxed">
+              <p className="text-sm text-white/40 mt-0.5 leading-relaxed">
                 لوحة قيادة اقتصادية لتقييم الندرة، التكلفة، وصحة البلوكتشين
               </p>
             </div>
             <button onClick={onClose} className="p-1.5 rounded-full bg-white/[0.06] text-white/40 hover:text-white shrink-0">
-              <X className="w-4 h-4" />
+              <X className="w-6 h-6" />
             </button>
           </div>
 
@@ -151,16 +151,16 @@ export function NetworkMacroModal({
           ) : (
             <>
               {/* ── Epoch Progress ─────────────────────────────────────── */}
-              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4">
+              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[11px] font-bold text-white/40">دورة التنصيف القادمة (Halving Epoch 5)</p>
-                  <span className="text-[11px] font-mono font-black text-white">{epochPct.toFixed(2)}%</span>
+                  <p className="text-sm font-bold text-white/40">دورة التنصيف القادمة (Halving Epoch 5)</p>
+                  <span className="text-sm font-mono font-black text-white">{epochPct.toFixed(2)}%</span>
                 </div>
                 {/* Progress bar */}
                 <div className="h-2 w-full rounded-full bg-white/[0.06] overflow-hidden mb-3">
                   <div className="h-full rounded-full" style={{ width: `${epochPct}%`, background: 'linear-gradient(90deg,#f97316,#ea580c)' }} />
                 </div>
-                <div className="flex justify-between text-[10px] font-mono text-white/30">
+                <div className="flex justify-between text-sm font-mono text-white/30">
                   <span>المكافآت المنتظرة: <span className="text-white/60 font-bold">BTC 3.125</span></span>
                   <span>المكافآت الحالية: <span className="text-white/50">{currentBlock.toLocaleString()}</span></span>
                 </div>
@@ -172,12 +172,12 @@ export function NetworkMacroModal({
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3">
                   <div className="flex items-center gap-1.5 mb-1">
                     <Flame className="w-3 h-3 text-orange-400" />
-                    <p className="text-[9px] text-white/40 font-mono">تكلفة الإنتاج (BTC 1)</p>
+                    <p className="text-sm text-white/40 font-mono">تكلفة الإنتاج (BTC 1)</p>
                   </div>
                   <p className="text-[17px] font-mono font-black tabular-nums text-white">
                     ${BTC_PRODUCTION_COST.toLocaleString()}
                   </p>
-                  <p className={`text-[9px] mt-1 font-semibold ${priceAboveCost ? 'text-red-400' : 'text-emerald-400'}`}>
+                  <p className={`text-sm mt-1 font-semibold ${priceAboveCost ? 'text-red-400' : 'text-emerald-400'}`}>
                     عجز تقديري: {priceAboveCost ? '-' : '+'}{Math.abs(parseFloat(priceVsCost))}%
                   </p>
                 </div>
@@ -185,36 +185,36 @@ export function NetworkMacroModal({
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3">
                   <div className="flex items-center gap-1.5 mb-1">
                     <Activity className="w-3 h-3 text-emerald-400" />
-                    <p className="text-[9px] text-white/40 font-mono">السعر اللحظي (Spot)</p>
+                    <p className="text-sm text-white/40 font-mono">السعر اللحظي (Spot)</p>
                   </div>
                   <p className="text-[17px] font-mono font-black tabular-nums text-white">
                     ${spotPrice > 0 ? spotPrice.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '---'}
                   </p>
-                  <p className="text-[9px] text-white/30 mt-1">تسعير السوق الخارجي</p>
+                  <p className="text-sm text-white/30 mt-1">تسعير السوق الخارجي</p>
                 </div>
               </div>
 
               {/* ── Mempool + Ribbons + Hashrate ───────────────────────── */}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-3">
                 {/* Mempool */}
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3 flex flex-col">
-                  <p className="text-[9px] text-white/40 mb-0.5">إزدحام</p>
-                  <p className="text-[8px] text-white/25 mb-2">(Mempool)</p>
-                  <p className="text-[14px] font-mono font-black tabular-nums text-white leading-none">
+                  <p className="text-sm text-white/40 mb-0.5">إزدحام</p>
+                  <p className="text-sm text-white/25 mb-2">(Mempool)</p>
+                  <p className="text-base font-mono font-black tabular-nums text-white leading-none">
                     {data!.mempoolTx > 0 ? data!.mempoolTx.toLocaleString() : '---'}
                   </p>
-                  <p className="text-[8px] text-white/30 mt-0.5">Tx</p>
-                  <p className={`text-[9px] font-bold mt-1 ${mStatusColor}`}>{mStatusAr}</p>
+                  <p className="text-sm text-white/30 mt-0.5">Tx</p>
+                  <p className={`text-sm font-bold mt-1 ${mStatusColor}`}>{mStatusAr}</p>
                 </div>
 
                 {/* Ribbons */}
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3 flex flex-col">
-                  <p className="text-[9px] text-white/40 mb-0.5">أشرطة الهاش</p>
-                  <p className="text-[8px] text-white/25 mb-2">(Ribbons)</p>
-                  <p className={`text-[12px] font-bold leading-tight mt-auto ${ribbonColor}`}>
+                  <p className="text-sm text-white/40 mb-0.5">أشرطة الهاش</p>
+                  <p className="text-sm text-white/25 mb-2">(Ribbons)</p>
+                  <p className={`text-sm font-bold leading-tight mt-auto ${ribbonColor}`}>
                     {ribbonSignal}
                   </p>
-                  <p className="text-[8px] text-white/25 mt-1">
+                  <p className="text-sm text-white/25 mt-1">
                     {data!.hashrateChange24h > 0 ? 'Recovery' : 'Sell Signal'}
                   </p>
                 </div>
@@ -223,21 +223,21 @@ export function NetworkMacroModal({
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3 flex flex-col">
                   <div className="flex items-center gap-1 mb-0.5">
                     <Cpu className="w-2.5 h-2.5 text-white/30" />
-                    <p className="text-[9px] text-white/40">القوة الحوسبية</p>
+                    <p className="text-sm text-white/40">القوة الحوسبية</p>
                   </div>
-                  <p className="text-[8px] text-white/25 mb-2"> </p>
-                  <p className="text-[14px] font-mono font-black tabular-nums text-white leading-none">
+                  <p className="text-sm text-white/25 mb-2"> </p>
+                  <p className="text-base font-mono font-black tabular-nums text-white leading-none">
                     {data!.hashrateEH > 0 ? data!.hashrateEH : '---'}
                   </p>
-                  <p className="text-[8px] text-white/30 mt-0.5">EH/s</p>
-                  <p className={`text-[9px] font-bold mt-1 ${data!.hashrateChange24h >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <p className="text-sm text-white/30 mt-0.5">EH/s</p>
+                  <p className={`text-sm font-bold mt-1 ${data!.hashrateChange24h >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                     {data!.hashrateChange24h >= 0 ? '+' : ''}{data!.hashrateChange24h}% (24h)
                   </p>
                 </div>
               </div>
 
               {/* ── Stats rows ─────────────────────────────────────────── */}
-              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-1">
+              <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] px-5 py-1">
                 <StatRow label="صعوبة التعدين التراكمية"
                   value={data!.difficulty > 0 ? `${data!.difficulty}T` : '---'}
                   valueColor="text-orange-400" />
@@ -250,9 +250,9 @@ export function NetworkMacroModal({
               </div>
 
               {/* Footer */}
-              <div className="flex items-center gap-2 px-1">
+              <div className="flex items-center gap-3 px-1">
                 <Layers className="w-3.5 h-3.5 text-white/20" />
-                <p className="text-[9px] text-white/25 font-mono">بيانات من mempool.space · تحديث فوري</p>
+                <p className="text-sm text-white/25 font-mono">بيانات من mempool.space · تحديث فوري</p>
               </div>
             </>
           )}

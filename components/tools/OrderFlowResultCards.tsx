@@ -23,13 +23,13 @@ function Header({ label, symbol, timeframe, badge, badgeColor }: {
   label: string; symbol: string; timeframe: string; badge: string; badgeColor: string;
 }) {
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.05] bg-[#0f0f0f]">
+    <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05] bg-[#0f0f0f]">
       <div>
-        <p className="text-[9px] text-white/25 uppercase tracking-widest font-mono">{label}</p>
-        <p className="text-white font-bold text-base font-mono">{symbol}</p>
-        <p className="text-[10px] text-white/30 font-mono">{timeframe}</p>
+        <p className="text-sm text-white/25 uppercase tracking-widest font-mono">{label}</p>
+        <p className="text-white font-bold text-lg font-mono">{symbol}</p>
+        <p className="text-sm text-white/30 font-mono">{timeframe}</p>
       </div>
-      <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border ${badgeColor}`}>
+      <span className={`text-sm font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border ${badgeColor}`}>
         {badge}
       </span>
     </div>
@@ -39,8 +39,8 @@ function Header({ label, symbol, timeframe, badge, badgeColor }: {
 function Verdict({ text }: { text: string }) {
   return (
     <div className="mx-4 mb-4" dir="rtl">
-      <div className="rounded-xl border border-white/[0.05] bg-[#0a0a0a] px-3 py-3 border-r-2 border-r-orange-500">
-        <p className="text-[11px] text-white/55 leading-relaxed text-right">{text}</p>
+      <div className="rounded-xl border border-white/[0.05] bg-[#0a0a0a] px-3 py-4 border-r-2 border-r-orange-500">
+        <p className="text-sm text-white/55 leading-relaxed text-right">{text}</p>
       </div>
     </div>
   );
@@ -48,8 +48,8 @@ function Verdict({ text }: { text: string }) {
 
 function EmptyState({ text }: { text: string }) {
   return (
-    <div className="mx-4 my-3 rounded-xl border border-white/[0.05] bg-[#0a0a0a] px-4 py-5 text-center">
-      <p className="text-white/50 text-sm">{text}</p>
+    <div className="mx-4 my-3 rounded-xl border border-white/[0.05] bg-[#0a0a0a] px-5 py-5 text-center">
+      <p className="text-white/50 text-base">{text}</p>
     </div>
   );
 }
@@ -83,9 +83,9 @@ export function FvgResultCard({ data, symbol, timeframe }: FvgProps) {
             { ar: 'الحد السفلي (Bottom)', val: `$${fmtPrice(data.bottom)}`,   color: isBull ? 'text-emerald-300' : 'text-red-300' },
             { ar: 'العمر (Age)',          val: `${data.age} شمعة`,            color: 'text-white/60' },
           ].map(({ ar, val, color }) => (
-            <div key={ar} className="flex items-center justify-between px-3 py-2.5">
-              <span className={`text-sm font-mono font-bold tabular-nums ${color}`}>{val}</span>
-              <span className="text-[10px] text-white/35">{ar}</span>
+            <div key={ar} className="flex items-center justify-between px-3 py-4.5">
+              <span className={`text-base font-mono font-bold tabular-nums ${color}`}>{val}</span>
+              <span className="text-sm text-white/35">{ar}</span>
             </div>
           ))}
         </div>
@@ -120,17 +120,17 @@ export function SweepResultCard({ data, symbol, timeframe }: SweepProps) {
       ) : (
         <div className="mx-4 my-3 space-y-2">
           {/* Sweep level — large prominent price */}
-          <div className={`rounded-xl border px-4 py-4 text-center ${isBull ? 'border-emerald-500/25 bg-emerald-500/[0.05]' : 'border-red-500/25 bg-red-500/[0.05]'}`}>
-            <p className="text-[9px] text-white/30 uppercase tracking-widest font-mono mb-1">مستوى المسح (Sweep Level)</p>
+          <div className={`rounded-xl border px-5 py-4 text-center ${isBull ? 'border-emerald-500/25 bg-emerald-500/[0.05]' : 'border-red-500/25 bg-red-500/[0.05]'}`}>
+            <p className="text-sm text-white/30 uppercase tracking-widest font-mono mb-1">مستوى المسح (Sweep Level)</p>
             <p className={`text-2xl font-black font-mono tabular-nums ${isBull ? 'text-emerald-400' : 'text-red-400'}`}>
               ${fmtPrice(data.sweepLevel)}
             </p>
           </div>
 
           {/* Wick stat */}
-          <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0a] px-3 py-2.5 flex justify-between items-center" dir="rtl">
-            <span className="text-[10px] text-white/35">حجم ذيل الرفض</span>
-            <span className="text-sm font-mono font-bold text-orange-300 tabular-nums">{data.wickPct}% من المدى</span>
+          <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0a] px-3 py-4.5 flex justify-between items-center" dir="rtl">
+            <span className="text-sm text-white/35">حجم ذيل الرفض</span>
+            <span className="text-base font-mono font-bold text-orange-300 tabular-nums">{data.wickPct}% من المدى</span>
           </div>
         </div>
       )}
@@ -166,24 +166,24 @@ export function CvdResultCard({ data, symbol, timeframe }: CvdProps) {
       <Header label="CVD Proxy · دلتا الحجم التراكمي" symbol={symbol} timeframe={timeframe} badge={trendLabel} badgeColor={trendBadge} />
 
       {/* Trend label prominent */}
-      <div className="px-4 py-4 text-center border-b border-white/[0.05]">
+      <div className="px-5 py-4 text-center border-b border-white/[0.05]">
         <p className={`text-xl font-black font-mono ${trendColor}`}>{trendAr}</p>
-        <p className="text-[10px] text-white/25 font-mono mt-1 tabular-nums">
+        <p className="text-sm text-white/25 font-mono mt-1 tabular-nums">
           Σ Delta: {data.rawDelta.toLocaleString('en-US', { maximumFractionDigits: 0 })}
         </p>
       </div>
 
       {/* Stats grid */}
-      <div className="mx-4 my-3 grid grid-cols-2 gap-2" dir="rtl">
-        <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0a] px-3 py-3 text-right">
-          <p className="text-[9px] text-white/25 mb-1">اتجاه السعر</p>
-          <p className={`text-base font-bold font-mono ${priceColor}`}>
+      <div className="mx-4 my-3 grid grid-cols-2 gap-3" dir="rtl">
+        <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0a] px-3 py-4 text-right">
+          <p className="text-sm text-white/25 mb-1">اتجاه السعر</p>
+          <p className={`text-lg font-bold font-mono ${priceColor}`}>
             {data.priceTrend === 'UP' ? '▲ صاعد' : data.priceTrend === 'DOWN' ? '▼ هابط' : '◎ مستقر'}
           </p>
         </div>
-        <div className={`rounded-xl border px-3 py-3 text-right ${data.divergenceDetected ? 'border-amber-500/30 bg-amber-500/[0.07]' : 'border-white/[0.06] bg-[#0a0a0a]'}`}>
-          <p className="text-[9px] text-white/25 mb-1">تباين الحجم</p>
-          <p className={`text-base font-bold font-mono ${data.divergenceDetected ? 'text-amber-400' : 'text-white/30'}`}>
+        <div className={`rounded-xl border px-3 py-4 text-right ${data.divergenceDetected ? 'border-amber-500/30 bg-amber-500/[0.07]' : 'border-white/[0.06] bg-[#0a0a0a]'}`}>
+          <p className="text-sm text-white/25 mb-1">تباين الحجم</p>
+          <p className={`text-lg font-bold font-mono ${data.divergenceDetected ? 'text-amber-400' : 'text-white/30'}`}>
             {data.divergenceDetected ? '⚠ مرصود' : '— لا يوجد'}
           </p>
         </div>
@@ -191,8 +191,8 @@ export function CvdResultCard({ data, symbol, timeframe }: CvdProps) {
 
       {/* Divergence alert banner */}
       {data.divergenceDetected && (
-        <div className="mx-4 mb-3 rounded-xl border border-amber-500/30 bg-amber-500/[0.07] px-3 py-2.5" dir="rtl">
-          <p className="text-[10px] text-amber-400 font-bold text-right">⚠ تحذير: تباين بين السعر ودلتا الحجم — انتبه للانعكاس.</p>
+        <div className="mx-4 mb-3 rounded-xl border border-amber-500/30 bg-amber-500/[0.07] px-3 py-4.5" dir="rtl">
+          <p className="text-sm text-amber-400 font-bold text-right">⚠ تحذير: تباين بين السعر ودلتا الحجم — انتبه للانعكاس.</p>
         </div>
       )}
 

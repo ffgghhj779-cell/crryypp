@@ -54,23 +54,23 @@ export default function FlowIndexPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-cyan-500/70 tracking-widest uppercase border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-cyan-500/70 tracking-widest uppercase border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <Droplets className="w-3 h-3" /> Volume
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">مؤشر التدفق</h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
           ميزان السيولة: هل الأموال تدخل إلى الأصل أم تخرج منه حالياً؟
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5 mt-4">
+      <div className="px-5 flex flex-col gap-5 mt-4">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-6">
             <RefreshCcw className="w-8 h-8 text-cyan-500 animate-spin" />
-            <p className="text-cyan-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري قياس التدفق...</p>
+            <p className="text-cyan-500/80 font-bold tracking-widest uppercase text-sm animate-pulse">جاري قياس التدفق...</p>
           </div>
         ) : (
           <motion.div 
@@ -82,7 +82,7 @@ export default function FlowIndexPage() {
               <span className={`text-2xl font-black ${textColor}`}>
                 {stateMessage}
               </span>
-              <span className="text-sm font-bold text-white/50 font-mono dir-ltr">
+              <span className="text-base font-bold text-white/50 font-mono dir-ltr">
                 {flowRatio.toFixed(1)}% Buying Flow
               </span>
             </div>
@@ -109,13 +109,13 @@ export default function FlowIndexPage() {
               </motion.div>
             </div>
 
-            <div className="flex justify-between text-[10px] text-white/40 font-bold uppercase tracking-widest px-2 -mt-4">
+            <div className="flex justify-between text-sm text-white/40 font-bold uppercase tracking-widest px-2 -mt-4">
               <span>سيولة تخرج (بيع)</span>
               <span>سيولة تدخل (شراء)</span>
             </div>
 
-            <div className="mt-2 p-4 rounded-xl border border-white/5 bg-white/[0.02] text-center">
-              <p className="text-[11px] text-white/40 leading-relaxed font-bold">
+            <div className="mt-2 p-6 rounded-xl border border-white/5 bg-white/[0.02] text-center">
+              <p className="text-sm text-white/40 leading-relaxed font-bold">
                 يقيس هذا المؤشر حجم التداول مضروباً بسعر الإغلاق لمعرفة ما إذا كان المتداولون يضخون أموالاً جديدة أم يسحبونها.
               </p>
             </div>

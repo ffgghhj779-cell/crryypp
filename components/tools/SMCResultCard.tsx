@@ -22,8 +22,8 @@ function ScoreBar({ label, value, maxValue, color }: ScoreBarProps) {
   return (
     <div className="space-y-1">
       <div className="flex justify-between items-center">
-        <span className="text-[10px] text-white/40 uppercase tracking-wider font-mono">{label}</span>
-        <span className="text-[10px] text-white/60 font-mono tabular-nums">{value}/{maxValue}</span>
+        <span className="text-sm text-white/40 uppercase tracking-wider font-mono">{label}</span>
+        <span className="text-sm text-white/60 font-mono tabular-nums">{value}/{maxValue}</span>
       </div>
       <div className="h-[3px] w-full rounded-full bg-white/[0.06]">
         <div
@@ -57,9 +57,9 @@ function SetupBox({ labelEn, labelAr, value, variant }: SetupBoxProps) {
   };
   return (
     <div className={`rounded-xl border p-3 text-center ${styles[variant]}`}>
-      <p className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${labelColors[variant]}`}>{labelEn}</p>
-      <p className="text-[9px] text-white/30 mb-2 font-medium">{labelAr}</p>
-      <p className="text-sm font-mono font-bold text-white tabular-nums leading-tight">{value}</p>
+      <p className={`text-sm font-bold uppercase tracking-widest mb-0.5 ${labelColors[variant]}`}>{labelEn}</p>
+      <p className="text-sm text-white/30 mb-2 font-medium">{labelAr}</p>
+      <p className="text-base font-mono font-bold text-white tabular-nums leading-tight">{value}</p>
     </div>
   );
 }
@@ -96,28 +96,28 @@ export function SMCResultCard({ data, symbol }: Props) {
       style={{ animation: 'slide-up 0.35s cubic-bezier(0.16,1,0.3,1) forwards' }}
     >
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.05] bg-[#111111]">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05] bg-[#111111]">
         <div>
-          <p className="text-[10px] text-white/30 uppercase tracking-widest font-mono">SMC · Order Block</p>
-          <p className="text-white font-bold text-base font-mono tabular-nums leading-tight">{symbol}</p>
-          <p className="text-[11px] text-white/40 font-mono tabular-nums">${fmt(data.lastClose)}</p>
+          <p className="text-sm text-white/30 uppercase tracking-widest font-mono">SMC · Order Block</p>
+          <p className="text-white font-bold text-lg font-mono tabular-nums leading-tight">{symbol}</p>
+          <p className="text-sm text-white/40 font-mono tabular-nums">${fmt(data.lastClose)}</p>
         </div>
         <div className="flex flex-col items-end gap-1.5">
-          <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${verdictBg}`}>
+          <span className={`text-sm font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${verdictBg}`}>
             {isBull ? '▲ BULLISH' : '▼ BEARISH'}
           </span>
-          <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border ${statusBg}`}>
+          <span className={`text-sm font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border ${statusBg}`}>
             {data.status}
           </span>
         </div>
       </div>
 
       {/* ── Quality Score ──────────────────────────────────────────────────── */}
-      <div className="px-4 py-3 border-b border-white/[0.05] space-y-3">
-        <div className="flex items-baseline gap-2">
+      <div className="px-5 py-4 border-b border-white/[0.05] space-y-3">
+        <div className="flex items-baseline gap-3">
           <span className={`text-3xl font-black tabular-nums font-mono ${scoreColor}`}>{data.score}</span>
           <span className="text-white/20 text-lg font-mono">/100</span>
-          <span className="text-[10px] text-white/30 uppercase tracking-widest ml-1">جودة الإشارة</span>
+          <span className="text-sm text-white/30 uppercase tracking-widest ml-1">جودة الإشارة</span>
         </div>
         <div className="space-y-2">
           <ScoreBar label="Displacement"  value={data.scoreBreakdown.displacement} maxValue={25} color="bg-orange-500" />
@@ -129,8 +129,8 @@ export function SMCResultCard({ data, symbol }: Props) {
       </div>
 
       {/* ── Data Grid (Arabic RTL) ─────────────────────────────────────────── */}
-      <div className="px-4 py-3 border-b border-white/[0.05]" dir="rtl">
-        <p className="text-[9px] text-white/25 uppercase tracking-widest mb-2 text-right font-mono">بيانات الكتلة</p>
+      <div className="px-5 py-4 border-b border-white/[0.05]" dir="rtl">
+        <p className="text-sm text-white/25 uppercase tracking-widest mb-2 text-right font-mono">بيانات الكتلة</p>
         <div className="space-y-2">
           {[
             { ar: 'المنطقة',          val: `${fmt(data.priceRange.low)} — ${fmt(data.priceRange.high)}` },
@@ -141,32 +141,32 @@ export function SMCResultCard({ data, symbol }: Props) {
             { ar: 'اللمسات',          val: String(data.touches)                                         },
           ].map(({ ar, val }) => (
             <div key={ar} className="flex justify-between items-center">
-              <span className="text-[11px] font-mono tabular-nums text-white/70">{val}</span>
-              <span className="text-[10px] text-white/35 font-medium">{ar}</span>
+              <span className="text-sm font-mono tabular-nums text-white/70">{val}</span>
+              <span className="text-sm text-white/35 font-medium">{ar}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* ── Trade Setup (4 Boxes) ─────────────────────────────────────────── */}
-      <div className="px-4 py-3 border-b border-white/[0.05]">
-        <p className="text-[9px] text-white/25 uppercase tracking-widest mb-2.5 font-mono">إعداد الصفقة</p>
-        <div className="grid grid-cols-2 gap-2">
+      <div className="px-5 py-4 border-b border-white/[0.05]">
+        <p className="text-sm text-white/25 uppercase tracking-widest mb-2.5 font-mono">إعداد الصفقة</p>
+        <div className="grid grid-cols-2 gap-3">
           <SetupBox labelEn="ENTRY"     labelAr="سعر الدخول"   value={`$${fmt(data.setup.entry)}`}  variant="entry"   />
           <SetupBox labelEn="STOP LOSS" labelAr="وقف الخسارة"  value={`$${fmt(data.setup.sl)}`}     variant="sl"      />
           <SetupBox labelEn="TP1"       labelAr="الهدف الأول"  value={`$${fmt(data.setup.tp1)}`}    variant="tp"      />
           <SetupBox labelEn="TP2"       labelAr="الهدف الثاني" value={`$${fmt(data.setup.tp2)}`}    variant="tp"      />
         </div>
         <div className="mt-2 text-center">
-          <span className="text-[10px] text-white/25 font-mono">نسبة المخاطرة / العائد · </span>
-          <span className="text-[10px] text-orange-400 font-bold font-mono">{data.setup.rr}</span>
+          <span className="text-sm text-white/25 font-mono">نسبة المخاطرة / العائد · </span>
+          <span className="text-sm text-orange-400 font-bold font-mono">{data.setup.rr}</span>
         </div>
       </div>
 
       {/* ── Verdict (Orange left-border) ──────────────────────────────────── */}
-      <div className="px-4 py-3" dir="rtl">
+      <div className="px-5 py-4" dir="rtl">
         <div className="border-r-2 border-orange-500 pr-3">
-          <p className="text-[11px] text-white/60 leading-relaxed text-right">{verdictAr}</p>
+          <p className="text-sm text-white/60 leading-relaxed text-right">{verdictAr}</p>
         </div>
       </div>
     </div>

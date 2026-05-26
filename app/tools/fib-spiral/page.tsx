@@ -37,23 +37,23 @@ export default function FibSpiralPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-emerald-500/70 tracking-widest uppercase border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-emerald-500/70 tracking-widest uppercase border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <Tornado className="w-3 h-3" /> Geometry
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">الحلزون الذهبي</h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
           يتوسع بناءً على النسبة الذهبية (1.618) لتوقع مناطق الانعكاس الزمنية والسعرية القادمة
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5 mt-4">
+      <div className="px-5 flex flex-col gap-5 mt-4">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-6">
             <RefreshCcw className="w-8 h-8 text-emerald-500 animate-spin" />
-            <p className="text-emerald-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري رسم الحلزون...</p>
+            <p className="text-emerald-500/80 font-bold tracking-widest uppercase text-sm animate-pulse">جاري رسم الحلزون...</p>
           </div>
         ) : (
           <motion.div 
@@ -87,9 +87,9 @@ export default function FibSpiralPage() {
             </div>
 
             {/* Explanation / Target Card */}
-            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-5 flex flex-col gap-4 backdrop-blur-sm relative z-10 -mt-10 mx-4 shadow-xl">
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-5 flex flex-col gap-6 backdrop-blur-sm relative z-10 -mt-10 mx-4 shadow-xl">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-emerald-400">الانعكاس السعري القادم</span>
+                <span className="text-base font-bold text-emerald-400">الانعكاس السعري القادم</span>
                 <Tornado className="w-5 h-5 text-emerald-400 opacity-50" />
               </div>
               
@@ -97,11 +97,11 @@ export default function FibSpiralPage() {
                 <span className="text-3xl font-black text-white font-mono dir-ltr text-right" style={{ textShadow: '0 0 20px rgba(52,211,153,0.5)' }}>
                   ${nextTarget.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 4 })}
                 </span>
-                <span className="text-[10px] text-white/50 font-bold uppercase tracking-widest">امتداد بنسبة 1.618 من المركز</span>
+                <span className="text-sm text-white/50 font-bold uppercase tracking-widest">امتداد بنسبة 1.618 من المركز</span>
               </div>
 
               <div className="pt-3 border-t border-emerald-500/20">
-                <p className="text-[11px] text-white/70 leading-relaxed font-bold">
+                <p className="text-sm text-white/70 leading-relaxed font-bold">
                   تتوسع الأسواق في دورات تشبه القوقعة. عندما يلمس السعر محيط الحلزون في المستقبل، يرتفع احتمال حدوث قمة أو قاع جديد بشكل كبير.
                 </p>
               </div>

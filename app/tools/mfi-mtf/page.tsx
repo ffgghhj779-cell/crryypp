@@ -39,23 +39,23 @@ export default function MfiMtfPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-cyan-500/70 tracking-widest uppercase border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-cyan-500/70 tracking-widest uppercase border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <Network className="w-3 h-3" /> Volume
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">محلل تدفق الأموال المتعدد</h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
           نظرة شاملة لتدفق السيولة على ثلاث فترات زمنية لتقييم قوة السوق
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5 mt-4">
+      <div className="px-5 flex flex-col gap-5 mt-4">
         {isLoading || frames.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-6">
             <RefreshCcw className="w-8 h-8 text-cyan-500 animate-spin" />
-            <p className="text-cyan-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري فحص السيولة المتعددة...</p>
+            <p className="text-cyan-500/80 font-bold tracking-widest uppercase text-sm animate-pulse">جاري فحص السيولة المتعددة...</p>
           </div>
         ) : (
           <motion.div 
@@ -64,12 +64,12 @@ export default function MfiMtfPage() {
             className="flex flex-col gap-6 rounded-3xl border border-white/[0.05] bg-[#0d0d0d] p-6 shadow-xl"
           >
             {/* Traffic Lights */}
-            <div className="flex justify-between items-center bg-[#111] border border-white/5 p-4 rounded-2xl">
+            <div className="flex justify-between items-center bg-[#111] border border-white/5 p-6 rounded-2xl">
               {frames.map((f, i) => (
                 <div key={i} className="flex flex-col items-center gap-3">
-                  <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">{f.tf}</span>
+                  <span className="text-sm text-white/40 font-bold uppercase tracking-widest">{f.tf}</span>
                   <div className={`w-8 h-8 rounded-full border-2 ${f.isPositive ? 'bg-emerald-500 border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'bg-red-500 border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]'}`} />
-                  <span className={`text-xs font-black ${f.isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
+                  <span className={`text-sm font-black ${f.isPositive ? 'text-emerald-400' : 'text-red-400'}`}>
                     {f.isPositive ? 'تدفق إيجابي' : 'تدفق سلبي'}
                   </span>
                 </div>
@@ -77,9 +77,9 @@ export default function MfiMtfPage() {
             </div>
 
             {/* Summary Message */}
-            <div className="text-center p-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5">
+            <div className="text-center p-6 rounded-xl border border-cyan-500/20 bg-cyan-500/5">
               <h2 className="text-lg font-black text-cyan-400 mb-1">الخلاصة:</h2>
-              <p className="text-sm font-bold text-white/80">{summary}</p>
+              <p className="text-base font-bold text-white/80">{summary}</p>
             </div>
           </motion.div>
         )}

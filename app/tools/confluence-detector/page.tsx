@@ -38,23 +38,23 @@ export default function ConfluenceDetectorPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-purple-500/70 tracking-widest uppercase border border-purple-500/20 bg-purple-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-purple-500/70 tracking-widest uppercase border border-purple-500/20 bg-purple-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <Crosshair className="w-3 h-3" /> Confluence
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">كاشف التوافق الدقيق</h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
           البحث عن أقوى نقطة سعرية تجتمع فيها عدة مؤشرات لدعم السعر
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5 mt-4">
+      <div className="px-5 flex flex-col gap-5 mt-4">
         {isLoading || !confluenceLevel ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-6">
             <RefreshCcw className="w-8 h-8 text-purple-500 animate-spin" />
-            <p className="text-purple-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري المسح المعمق...</p>
+            <p className="text-purple-500/80 font-bold tracking-widest uppercase text-sm animate-pulse">جاري المسح المعمق...</p>
           </div>
         ) : (
           <motion.div 
@@ -89,32 +89,32 @@ export default function ConfluenceDetectorPage() {
                 />
               </div>
 
-              <span className="text-[10px] text-white/50 font-bold uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full border border-white/10 mb-2">أقوى نقطة ارتداد حالية متوقعة</span>
+              <span className="text-sm text-white/50 font-bold uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full border border-white/10 mb-2">أقوى نقطة ارتداد حالية متوقعة</span>
               <span className="text-4xl font-black font-mono text-white dir-ltr text-shadow-glow">${formatPrice(confluenceLevel.price)}</span>
             </div>
 
             {/* Reasons List */}
             <div className="flex flex-col gap-3">
-              <h2 className="text-sm font-bold text-purple-400 pr-2 border-r-2 border-purple-500">لماذا هذا السعر قوي جداً؟</h2>
+              <h2 className="text-base font-bold text-purple-400 pr-2 border-r-2 border-purple-500">لماذا هذا السعر قوي جداً؟</h2>
               
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-3">
                 {confluenceLevel.reasons.map((reason, idx) => (
                   <motion.div 
                     key={idx}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.15 }}
-                    className="flex items-center gap-3 bg-[#111] border border-white/[0.05] p-4 rounded-xl"
+                    className="flex items-center gap-3 bg-[#111] border border-white/[0.05] p-6 rounded-xl"
                   >
                     <Shield className="w-5 h-5 text-emerald-400" />
-                    <span className="text-xs font-bold text-white/80">{reason}</span>
+                    <span className="text-sm font-bold text-white/80">{reason}</span>
                   </motion.div>
                 ))}
               </div>
             </div>
 
-            <div className="text-center px-4 bg-purple-500/10 border border-purple-500/20 rounded-xl p-4">
-              <p className="text-[11px] text-white/60 leading-relaxed font-bold">
+            <div className="text-center px-5 bg-purple-500/10 border border-purple-500/20 rounded-xl p-6">
+              <p className="text-sm text-white/60 leading-relaxed font-bold">
                 💡 عندما تجتمع عدة أسباب عند نفس السعر، يتشكل &quot;جدار حديدي&quot; يصعب كسره، وتعتبر فرصة ممتازة للدخول.
               </p>
             </div>

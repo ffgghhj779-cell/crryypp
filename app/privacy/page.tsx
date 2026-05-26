@@ -3,7 +3,7 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-black text-white p-6 max-w-2xl mx-auto" dir="rtl">
       <h1 className="text-2xl font-black text-orange-400 mb-2">سياسة الخصوصية</h1>
-      <p className="text-xs text-white/30 font-mono mb-8">آخر تحديث: مايو 2025 · Crypto Terminal 360</p>
+      <p className="text-sm text-white/30 font-mono mb-8">آخر تحديث: مايو 2025 · Crypto Terminal 360</p>
 
       {[
         { title: '1. البيانات التي نجمعها', body: 'نجمع فقط معرّف Telegram الخاص بك (User ID) لغرض التحقق من الاشتراك في القناة وحفظ تفضيلاتك. لا نجمع بيانات مالية أو بيانات شخصية حساسة.' },
@@ -13,8 +13,8 @@ export default function PrivacyPage() {
         { title: '5. حقوقك', body: 'يحق لك طلب حذف بياناتك في أي وقت بالتواصل معنا عبر القنوات الرسمية. سيتم تنفيذ طلب الحذف خلال 30 يوم عمل.' },
       ].map(s => (
         <section key={s.title} className="mb-6">
-          <h2 className="text-sm font-bold text-white/70 mb-2">{s.title}</h2>
-          <p className="text-sm text-white/40 leading-relaxed">{s.body}</p>
+          <h2 className="text-base font-bold text-white/70 mb-2">{s.title}</h2>
+          <p className="text-base text-white/40 leading-relaxed">{s.body}</p>
         </section>
       ))}
     </div>

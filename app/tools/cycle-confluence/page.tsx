@@ -31,23 +31,23 @@ export default function CycleConfluencePage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-orange-500/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-orange-500/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <Target className="w-3 h-3" /> Cycles
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">توافق الدورات (Confluence)</h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
           اكتشاف التواريخ والمناطق التي تتطابق فيها عدة مؤشرات زمنية وسعرية معاً
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5 mt-4">
+      <div className="px-5 flex flex-col gap-5 mt-4">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-6">
             <RefreshCcw className="w-8 h-8 text-orange-500 animate-spin" />
-            <p className="text-orange-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري فحص توافق الدورات...</p>
+            <p className="text-orange-500/80 font-bold tracking-widest uppercase text-sm animate-pulse">جاري فحص توافق الدورات...</p>
           </div>
         ) : (
           <motion.div 
@@ -59,20 +59,20 @@ export default function CycleConfluencePage() {
               <div className="rounded-3xl border border-orange-500/40 bg-orange-500/10 p-8 flex flex-col items-center text-center gap-6 shadow-[0_0_40px_rgba(249,115,22,0.2)] relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/20 blur-[50px] rounded-full pointer-events-none" />
                 
-                <div className="bg-orange-500/20 p-4 rounded-full border border-orange-500/40 relative">
+                <div className="bg-orange-500/20 p-6 rounded-full border border-orange-500/40 relative">
                   <div className="absolute inset-0 rounded-full border border-orange-400 animate-ping opacity-50" />
                   <BellRing className="w-12 h-12 text-orange-400" />
                 </div>
 
-                <div className="flex flex-col gap-2 z-10">
+                <div className="flex flex-col gap-3 z-10">
                   <h2 className="text-2xl font-black text-orange-400">{confluence.message}</h2>
-                  <p className="text-sm text-white/80 font-bold leading-relaxed">{confluence.details}</p>
+                  <p className="text-base text-white/80 font-bold leading-relaxed">{confluence.details}</p>
                 </div>
 
                 {/* Strength Meter */}
-                <div className="w-full mt-4 flex flex-col gap-2 z-10">
+                <div className="w-full mt-4 flex flex-col gap-3 z-10">
                   <div className="flex justify-between items-end">
-                    <span className="text-[10px] text-white/50 uppercase font-bold tracking-widest">قوة التوافق</span>
+                    <span className="text-sm text-white/50 uppercase font-bold tracking-widest">قوة التوافق</span>
                     <span className="text-lg font-black font-mono text-orange-400 dir-ltr">{confluence.score}%</span>
                   </div>
                   <div className="h-3 w-full bg-black/50 rounded-full overflow-hidden border border-white/10">
@@ -86,10 +86,10 @@ export default function CycleConfluencePage() {
                 </div>
               </div>
             ) : (
-              <div className="rounded-3xl border border-white/[0.05] bg-[#0d0d0d] p-8 flex flex-col items-center text-center gap-4">
+              <div className="rounded-3xl border border-white/[0.05] bg-[#0d0d0d] p-8 flex flex-col items-center text-center gap-6">
                 <Target className="w-12 h-12 text-white/20" />
                 <h2 className="text-lg font-bold text-white/50">لا يوجد توافق قوي حالياً</h2>
-                <p className="text-[11px] text-white/30 font-bold">السوق لا يظهر أي تداخل واضح بين الدورات الزمنية في الوقت الحالي.</p>
+                <p className="text-sm text-white/30 font-bold">السوق لا يظهر أي تداخل واضح بين الدورات الزمنية في الوقت الحالي.</p>
               </div>
             )}
           </motion.div>

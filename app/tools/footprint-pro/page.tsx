@@ -67,32 +67,32 @@ export default function FootprintProPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-indigo-500/70 tracking-widest uppercase border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-indigo-500/70 tracking-widest uppercase border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <Footprints className="w-3 h-3" /> OrderFlow
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">محلل بصمة الحجم (Footprint)</h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
           تحليل السيولة المتداولة داخل مستويات السعر للشمعة الحالية
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5 mt-4">
+      <div className="px-5 flex flex-col gap-5 mt-4">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-6">
             <RefreshCcw className="w-8 h-8 text-indigo-500 animate-spin" />
-            <p className="text-indigo-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري جلب بصمة الحجم...</p>
+            <p className="text-indigo-500/80 font-bold tracking-widest uppercase text-sm animate-pulse">جاري جلب بصمة الحجم...</p>
           </div>
         ) : (
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col gap-2 rounded-2xl border border-white/[0.05] bg-[#0d0d0d] p-4 shadow-xl"
+            className="flex flex-col gap-3 rounded-2xl border border-white/[0.05] bg-[#0d0d0d] p-6 shadow-xl"
           >
             {/* Legend */}
-            <div className="flex justify-between items-center text-[10px] font-bold tracking-widest uppercase text-white/40 mb-2 px-2 border-b border-white/[0.05] pb-2">
+            <div className="flex justify-between items-center text-sm font-bold tracking-widest uppercase text-white/40 mb-2 px-2 border-b border-white/[0.05] pb-2">
               <span>عقود البيع (Asks)</span>
               <span>السعر</span>
               <span>عقود الشراء (Bids)</span>
@@ -105,25 +105,25 @@ export default function FootprintProPage() {
                 const isPOC = c.isPOC;
                 
                 return (
-                  <div key={i} className="relative flex items-center justify-between py-2 px-2 rounded overflow-hidden group">
+                  <div key={i} className="relative flex items-center justify-between py-4 px-2 rounded overflow-hidden group">
                     {/* Background Bar */}
                     <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 bg-indigo-500/10 -z-10 transition-all" style={{ width: `${widthPct}%` }} />
                     
                     {isPOC && <div className="absolute inset-0 border border-indigo-400/50 rounded pointer-events-none -z-10 bg-indigo-500/5" />}
 
                     {/* Asks (Red) */}
-                    <div className="text-red-400/80 text-xs font-mono font-bold w-1/3 text-right">
+                    <div className="text-red-400/80 text-sm font-mono font-bold w-1/3 text-right">
                       {formatSize(c.askVol)}
                     </div>
 
                     {/* Price */}
-                    <div className={`text-xs font-mono font-black text-center w-1/3 ${isPOC ? 'text-indigo-400 shadow-indigo-400/50' : 'text-white/60'}`} style={{ textShadow: isPOC ? '0 0 10px currentColor' : 'none' }}>
+                    <div className={`text-sm font-mono font-black text-center w-1/3 ${isPOC ? 'text-indigo-400 shadow-indigo-400/50' : 'text-white/60'}`} style={{ textShadow: isPOC ? '0 0 10px currentColor' : 'none' }}>
                       {c.priceLevel.toLocaleString(undefined, { minimumFractionDigits: (currentPrice ?? 0) > 1000 ? 1 : 2, maximumFractionDigits: (currentPrice ?? 0) > 1000 ? 1 : 2 })}
-                      {isPOC && <div className="text-[8px] uppercase tracking-widest mt-0.5 text-indigo-400/80">نقطة الارتكاز</div>}
+                      {isPOC && <div className="text-sm uppercase tracking-widest mt-0.5 text-indigo-400/80">نقطة الارتكاز</div>}
                     </div>
 
                     {/* Bids (Green) */}
-                    <div className="text-emerald-400/80 text-xs font-mono font-bold w-1/3 text-left">
+                    <div className="text-emerald-400/80 text-sm font-mono font-bold w-1/3 text-left">
                       {formatSize(c.bidVol)}
                     </div>
                   </div>

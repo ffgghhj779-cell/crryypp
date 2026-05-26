@@ -49,22 +49,22 @@ function DisclaimerSheet({ onAccept }: { onAccept: () => void }) {
             </div>
             <div>
               <h2 className="text-white font-black text-lg tracking-tight">إخلاء مسؤولية هام</h2>
-              <p className="text-white/40 text-xs mt-0.5 font-mono tracking-widest uppercase">Important Disclaimer</p>
+              <p className="text-white/40 text-sm mt-0.5 font-mono tracking-widest uppercase">Important Disclaimer</p>
             </div>
           </div>
 
           {/* Disclaimer body */}
-          <div className="rounded-2xl border border-orange-500/15 bg-orange-500/[0.04] p-4 space-y-3 text-right" dir="rtl">
-            <p className="text-[13px] text-white/70 leading-relaxed">
+          <div className="rounded-2xl border border-orange-500/15 bg-orange-500/[0.04] p-6 space-y-3 text-right" dir="rtl">
+            <p className="text-base text-white/70 leading-relaxed">
               جميع التحليلات والمعلومات المقدمة في هذا التطبيق هي{' '}
               <span className="text-orange-400 font-bold">لأغراض تعليمية وإعلامية فقط</span>،
               ولا تُعدّ نصيحةً استثمارية أو توصيةً بالشراء أو البيع.
             </p>
-            <p className="text-[13px] text-white/70 leading-relaxed">
+            <p className="text-base text-white/70 leading-relaxed">
               أسواق العملات الرقمية <span className="text-red-400 font-bold">شديدة التقلب</span> وتنطوي
               على مخاطر عالية قد تؤدي إلى خسارة رأس المال. تحمّل مسؤولية قراراتك الاستثمارية بالكامل.
             </p>
-            <p className="text-[11px] text-white/35 leading-relaxed">
+            <p className="text-sm text-white/35 leading-relaxed">
               باستخدامك هذا التطبيق، فإنك تقرّ بأنك قرأت هذا الإخلاء وفهمته ووافقت عليه.
             </p>
           </div>
@@ -72,7 +72,7 @@ function DisclaimerSheet({ onAccept }: { onAccept: () => void }) {
           {/* Accept button */}
           <button
             onClick={onAccept}
-            className="w-full flex items-center justify-center gap-2.5 py-4 rounded-2xl font-black text-base text-white tracking-wide transition-all active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-3.5 py-4 rounded-2xl font-black text-lg text-white tracking-wide transition-all active:scale-[0.98]"
             style={{
               background: 'linear-gradient(135deg, #f97316, #ea580c)',
               boxShadow: '0 0 32px rgba(249,115,22,0.35)',
@@ -82,7 +82,7 @@ function DisclaimerSheet({ onAccept }: { onAccept: () => void }) {
             فهمت وأوافق — ابدأ التحليل
           </button>
 
-          <p className="text-center text-[10px] text-white/20 font-mono">
+          <p className="text-center text-sm text-white/20 font-mono">
             Crypto Terminal 360 · v3.0.0
           </p>
         </div>

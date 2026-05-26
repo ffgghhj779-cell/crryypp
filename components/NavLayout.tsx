@@ -13,7 +13,7 @@ export function TopBar() {
   return (
     <>
       <HistorySidebar open={historyOpen} onClose={() => setHistoryOpen(false)} />
-      <div className="sticky top-0 z-40 glass-dark border-b border-white/[0.06] px-4 py-3 flex items-center justify-between shrink-0">
+      <div className="sticky top-0 z-40 glass-dark border-b border-white/[0.06] px-5 py-4 flex items-center justify-between shrink-0">
         <div className="flex flex-col">
           <h1 className="text-white font-bold text-lg leading-none tracking-tighter">Crypto Terminal</h1>
           <div className="flex items-center space-x-2 mt-1">
@@ -27,7 +27,7 @@ export function TopBar() {
                                            'bg-red-500'
               }`} />
             </span>
-            <span className={`text-[10px] font-mono tracking-widest uppercase ${
+            <span className={`text-sm font-mono tracking-widest uppercase ${
               wsStatus === 'connected'  ? 'text-white/40' :
               wsStatus === 'connecting' ? 'text-yellow-400/70' :
                                          'text-red-400/80'
@@ -44,15 +44,15 @@ export function TopBar() {
             className="p-2 rounded-full text-white/50 hover:text-orange-400 hover:bg-orange-500/10 active:scale-95 transition-all duration-150"
             onClick={() => setHistoryOpen(true)}
           >
-            <History className="w-4 h-4" />
+            <History className="w-6 h-6" />
           </button>
 
           {[
-            { icon: <Star className="w-4 h-4" />,     modal: 'favorites'      as const, label: 'Favorites' },
-            { icon: <BarChart2 className="w-4 h-4" />, modal: 'market_cap'    as const, label: 'Market Cap' },
-            { icon: <Calendar className="w-4 h-4" />, modal: 'calendar'       as const, label: 'Calendar' },
-            { icon: <Activity className="w-4 h-4" />, modal: 'daily_briefing' as const, label: 'Briefing' },
-            { icon: <Clock className="w-4 h-4" />,    modal: 'sessions'       as const, label: 'Sessions' },
+            { icon: <Star className="w-6 h-6" />,     modal: 'favorites'      as const, label: 'Favorites' },
+            { icon: <BarChart2 className="w-6 h-6" />, modal: 'market_cap'    as const, label: 'Market Cap' },
+            { icon: <Calendar className="w-6 h-6" />, modal: 'calendar'       as const, label: 'Calendar' },
+            { icon: <Activity className="w-6 h-6" />, modal: 'daily_briefing' as const, label: 'Briefing' },
+            { icon: <Clock className="w-6 h-6" />,    modal: 'sessions'       as const, label: 'Sessions' },
           ].map(({ icon, modal, label }) => (
             <button
               key={modal}
@@ -141,7 +141,7 @@ function NavButton({
         <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-orange-500 rounded-b-full shadow-[0_0_8px_rgba(249,115,22,0.8)]" />
       )}
       {icon}
-      <span className="text-[9px] mt-1 font-bold tracking-wide" style={{ fontFamily: 'inherit' }}>{label}</span>
+      <span className="text-sm mt-1 font-bold tracking-wide" style={{ fontFamily: 'inherit' }}>{label}</span>
     </button>
   );
 }

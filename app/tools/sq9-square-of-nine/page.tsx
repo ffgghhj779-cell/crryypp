@@ -65,33 +65,33 @@ export default function GannSQ9Page() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-orange-400/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-orange-400/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full">
             Gann · SQ9
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">
           مربع التسعة
         </h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
           حاسبة جان للتربيع الزمني والسعري (Square of 9)
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5">
+      <div className="px-5 flex flex-col gap-5">
         {/* ── Input Form ─────────────────────────────────────────────────── */}
-        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-4">
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-6">
           
           {/* Symbol */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">رمز الأصل</label>
+            <label className="text-sm font-bold text-white/50 uppercase tracking-widest">رمز الأصل</label>
             <input
               type="text"
               value={symbol}
               onChange={e => setSymbol(e.target.value)}
               placeholder="BTCUSDT"
-              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-colors"
+              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-base px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-colors"
               dir="ltr"
             />
           </div>
@@ -99,25 +99,25 @@ export default function GannSQ9Page() {
           <div className="grid grid-cols-2 gap-3">
             {/* Pivot */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">سعر الارتكاز (المركز)</label>
+              <label className="text-sm font-bold text-white/50 uppercase tracking-widest">سعر الارتكاز (المركز)</label>
               <input
                 type="number"
                 value={pivot}
                 onChange={e => setPivot(e.target.value)}
                 placeholder="المركز"
-                className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 focus:outline-none focus:border-orange-500/40 transition-colors"
+                className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-base px-5 py-4 focus:outline-none focus:border-orange-500/40 transition-colors"
                 dir="ltr"
               />
             </div>
             {/* Step */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">خطوة الزيادة</label>
+              <label className="text-sm font-bold text-white/50 uppercase tracking-widest">خطوة الزيادة</label>
               <input
                 type="number"
                 value={step}
                 onChange={e => setStep(e.target.value)}
                 placeholder="1"
-                className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 focus:outline-none focus:border-orange-500/40 transition-colors"
+                className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-base px-5 py-4 focus:outline-none focus:border-orange-500/40 transition-colors"
                 dir="ltr"
               />
             </div>
@@ -126,12 +126,12 @@ export default function GannSQ9Page() {
           <div className="grid grid-cols-2 gap-3">
             {/* Size */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest flex items-center gap-1"><Grid3X3 className="w-3 h-3" /> حجم الشبكة</label>
+              <label className="text-sm font-bold text-white/50 uppercase tracking-widest flex items-center gap-1"><Grid3X3 className="w-3 h-3" /> حجم الشبكة</label>
               <div className="relative">
                 <select
                   value={size}
                   onChange={e => setSize(Number(e.target.value))}
-                  className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 appearance-none focus:outline-none focus:border-orange-500/40 transition-colors cursor-pointer"
+                  className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-base px-5 py-4 appearance-none focus:outline-none focus:border-orange-500/40 transition-colors cursor-pointer"
                   dir="ltr"
                 >
                   <option value={7}>7x7</option>
@@ -140,26 +140,26 @@ export default function GannSQ9Page() {
                   <option value={13}>13x13</option>
                 </select>
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <Settings2 className="w-4 h-4 text-white/40" />
+                  <Settings2 className="w-6 h-6 text-white/40" />
                 </div>
               </div>
             </div>
             
             {/* View Mode */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest flex items-center gap-1"><Eye className="w-3 h-3" /> طريقة العرض</label>
+              <label className="text-sm font-bold text-white/50 uppercase tracking-widest flex items-center gap-1"><Eye className="w-3 h-3" /> طريقة العرض</label>
               <div className="relative">
                 <select
                   value={viewMode}
                   onChange={e => setViewMode(e.target.value as 'price' | 'degree')}
-                  className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 appearance-none focus:outline-none focus:border-orange-500/40 transition-colors cursor-pointer"
+                  className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-base px-5 py-4 appearance-none focus:outline-none focus:border-orange-500/40 transition-colors cursor-pointer"
                   dir="rtl"
                 >
                   <option value="price">أسعار</option>
                   <option value="degree">درجات (زوايا)</option>
                 </select>
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <Settings2 className="w-4 h-4 text-white/40" />
+                  <Settings2 className="w-6 h-6 text-white/40" />
                 </div>
               </div>
             </div>
@@ -168,9 +168,9 @@ export default function GannSQ9Page() {
           <AnimatePresence>
             {error && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-2.5 mt-2">
-                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                  <p className="text-xs text-red-300">{error}</p>
+                <div className="flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-4.5 mt-2">
+                  <AlertCircle className="w-6 h-6 text-red-400 shrink-0" />
+                  <p className="text-sm text-red-300">{error}</p>
                 </div>
               </motion.div>
             )}
@@ -179,10 +179,10 @@ export default function GannSQ9Page() {
           <button
             onClick={handleCalculate}
             disabled={loading}
-            className="w-full mt-2 flex items-center justify-center gap-2.5 rounded-xl py-4 font-black text-sm text-black tracking-wide active:scale-[0.98] transition-all disabled:opacity-50"
+            className="w-full mt-2 flex items-center justify-center gap-3.5 rounded-xl py-4 font-black text-base text-black tracking-wide active:scale-[0.98] transition-all disabled:opacity-50"
             style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)' }}
           >
-            {loading ? <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            {loading ? <span className="w-6 h-6 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <Sparkles className="w-6 h-6" />}
             {loading ? 'جاري التوليد...' : 'توليد المربع'}
           </button>
         </div>
@@ -199,8 +199,8 @@ export default function GannSQ9Page() {
               className="flex flex-col gap-5"
             >
               {/* Matrix Display */}
-              <div className="rounded-2xl border border-white/[0.08] bg-[#050505] p-4 flex flex-col items-center overflow-x-auto relative shadow-2xl shadow-orange-500/5">
-                <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest mb-4">
+              <div className="rounded-2xl border border-white/[0.08] bg-[#050505] p-6 flex flex-col items-center overflow-x-auto relative shadow-2xl shadow-orange-500/5">
+                <p className="text-sm font-mono text-white/30 uppercase tracking-widest mb-4">
                   مصفوفة {result.input.size}x{result.input.size} — {result.input.symbol}
                 </p>
                 
@@ -222,20 +222,20 @@ export default function GannSQ9Page() {
                 </div>
 
                 {/* Legend */}
-                <div className="flex items-center gap-4 mt-6">
+                <div className="flex items-center gap-6 mt-6">
                   <div className="flex items-center gap-1.5">
                     <div className="w-2.5 h-2.5 rounded-sm bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
-                    <span className="text-[9px] text-white/40 font-mono">المركز</span>
+                    <span className="text-sm text-white/40 font-mono">المركز</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <div className="w-2.5 h-2.5 rounded-sm bg-amber-500/20 border border-amber-500/50" />
-                    <span className="text-[9px] text-white/40 font-mono">الزوايا الرئيسية</span>
+                    <span className="text-sm text-white/40 font-mono">الزوايا الرئيسية</span>
                   </div>
                 </div>
               </div>
 
               {/* Price Targets Cards */}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-3">
                 {result.targets.map((t, i) => (
                   <motion.div
                     key={i}
@@ -244,8 +244,8 @@ export default function GannSQ9Page() {
                     transition={{ delay: 0.5 + i * 0.1 }}
                     className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3 flex flex-col items-center justify-center gap-1"
                   >
-                    <span className="text-[9px] text-white/40 font-mono uppercase tracking-wider text-center">{t.label}</span>
-                    <span className="text-sm font-black text-orange-400 font-mono">{t.value}</span>
+                    <span className="text-sm text-white/40 font-mono uppercase tracking-wider text-center">{t.label}</span>
+                    <span className="text-base font-black text-orange-400 font-mono">{t.value}</span>
                   </motion.div>
                 ))}
               </div>
@@ -254,7 +254,7 @@ export default function GannSQ9Page() {
         </AnimatePresence>
 
         {/* ── Disclaimer ─────────────────────────────────────────────────── */}
-        <p className="text-[9px] text-white/25 text-center font-mono leading-relaxed pb-4 max-w-xs mx-auto" dir="rtl">
+        <p className="text-sm text-white/25 text-center font-mono leading-relaxed pb-4 max-w-xs mx-auto" dir="rtl">
           هذه الأداة تعتمد على الإسقاط الهندسي الرقمي لسيكولوجية السوق، ولا تقدم نصائح مالية.
         </p>
 
@@ -307,7 +307,7 @@ function SQ9CellComponent({ cell, animated, viewMode }: { cell: SQ9Cell, animate
         delay: animated ? cell.ring * 0.05 : 0 
       }}
       className={`
-        w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-md border text-[9px] sm:text-[10px] font-mono transition-colors
+        w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-md border text-sm sm:text-sm font-mono transition-colors
         ${bgClass} ${textClass} ${shadowClass}
       `}
       title={cell.angle !== null ? `${cell.angle}°` : ''}

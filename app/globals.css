@@ -19,8 +19,8 @@ body {
   height: var(--app-stable-height, 100dvh);
   overflow: hidden;
   overscroll-behavior: none;
-  /* PHASE 2 UI UPSCALING: Increase base font from default 14px to 16px */
-  font-size: 16px;
+  /* PHASE 3 UI UPSCALING: Increase base font to 18px for Arabic readability */
+  font-size: 18px;
   /* Prevent text size inflation on mobile */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -317,14 +317,14 @@ input[type="range"]::-moz-range-thumb {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  /* PHASE 2: bumped from 16×16 to 20×20 */
-  width: 20px;
-  height: 20px;
-  border-radius: 5px;
+  /* PHASE 3: bumped to 26×26 */
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.08);
-  /* PHASE 2: bumped from 8px to 10px */
-  font-size: 10px;
+  /* PHASE 3: bumped to 12px */
+  font-size: 12px;
   font-weight: 800;
   color: rgba(255,255,255,0.3);
   font-family: monospace;

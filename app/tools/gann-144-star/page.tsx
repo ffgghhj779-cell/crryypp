@@ -203,7 +203,7 @@ function NodeCard({ node, index, isBottom }: { node: Gann144Node; index: number;
       initial={{ opacity: 0, x: 30 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.05, type: 'spring', stiffness: 180, damping: 22 }}
-      className={`relative rounded-xl border p-4 overflow-hidden ${
+      className={`relative rounded-xl border p-6 overflow-hidden ${
         isMaster
           ? 'bg-orange-500/10 border-orange-500/30'
           : isQuarter
@@ -219,33 +219,33 @@ function NodeCard({ node, index, isBottom }: { node: Gann144Node; index: number;
       <div className="relative flex items-start justify-between gap-3">
         {/* Left: date + cycle label */}
         <div className="flex flex-col gap-1 min-w-0" dir="rtl">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-3 flex-wrap">
             {isMaster && (
-              <span className="inline-flex items-center gap-1 text-[9px] font-black text-orange-400 bg-orange-500/15 border border-orange-500/30 px-2 py-0.5 rounded-full uppercase tracking-widest">
+              <span className="inline-flex items-center gap-1 text-sm font-black text-orange-400 bg-orange-500/15 border border-orange-500/30 px-2 py-0.5 rounded-full uppercase tracking-widest">
                 <Star className="w-2.5 h-2.5" />
                 النقطة الرئيسية
               </span>
             )}
             {node.isSquaringNode && !isMaster && (
-              <span className="text-[9px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full tracking-wide">
+              <span className="text-sm font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full tracking-wide">
                 توافق عالي الاحتمال
               </span>
             )}
             {isPast && (
-              <span className="text-[9px] text-white/30 font-mono border border-white/10 px-2 py-0.5 rounded-full">مكتملة</span>
+              <span className="text-sm text-white/30 font-mono border border-white/10 px-2 py-0.5 rounded-full">مكتملة</span>
             )}
           </div>
 
-          <h4 className="text-sm font-bold text-white/90 mt-1">{node.cycleLabel}</h4>
-          <p className="text-[10px] text-white/40 font-mono">{node.label}</p>
+          <h4 className="text-base font-bold text-white/90 mt-1">{node.cycleLabel}</h4>
+          <p className="text-sm text-white/40 font-mono">{node.label}</p>
 
-          <div className="flex items-center gap-2 mt-2">
+          <div className="flex items-center gap-3 mt-2">
             <CalendarDays className="w-3.5 h-3.5 text-orange-400/60" />
-            <span className="text-xs font-mono text-orange-300/80">
+            <span className="text-sm font-mono text-orange-300/80">
               {formatGannDate(node.targetDate)}
             </span>
           </div>
-          <p className="text-[10px] text-white/30 font-mono">
+          <p className="text-sm text-white/30 font-mono">
             +{node.daysFromAnchor} يوم من نقطة الارتكاز
           </p>
         </div>
@@ -257,7 +257,7 @@ function NodeCard({ node, index, isBottom }: { node: Gann144Node; index: number;
               ? <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
               : <TrendingDown className="w-3.5 h-3.5 text-red-400" />
             }
-            <span className={`text-[10px] font-bold ${isBottom ? 'text-emerald-400' : 'text-red-400'}`}>
+            <span className={`text-sm font-bold ${isBottom ? 'text-emerald-400' : 'text-red-400'}`}>
               {isBottom ? '+' : '-'}{node.priceChangePct}%
             </span>
           </div>
@@ -269,7 +269,7 @@ function NodeCard({ node, index, isBottom }: { node: Gann144Node; index: number;
               maximumFractionDigits: node.targetPrice < 10 ? 4 : node.targetPrice < 1000 ? 2 : 0,
             })}
           </span>
-          <span className="text-[9px] text-white/30 font-mono">
+          <span className="text-sm text-white/30 font-mono">
             {node.angleOnWheel}° على العجلة
           </span>
         </div>
@@ -309,14 +309,14 @@ function GannStarGuide() {
     <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden" dir="rtl">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-3.5 active:bg-white/[0.03] transition-colors"
+        className="w-full flex items-center justify-between px-5 py-4.5 active:bg-white/[0.03] transition-colors"
       >
-        <div className="flex items-center gap-2.5">
-          <Info className="w-4 h-4 text-orange-400/70" />
-          <span className="text-sm font-bold text-white/70">الدليل الإرشادي لتطبيق ١٤٤</span>
+        <div className="flex items-center gap-3.5">
+          <Info className="w-6 h-6 text-orange-400/70" />
+          <span className="text-base font-bold text-white/70">الدليل الإرشادي لتطبيق ١٤٤</span>
         </div>
         <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.25 }}>
-          <ChevronDown className="w-4 h-4 text-white/30" />
+          <ChevronDown className="w-6 h-6 text-white/30" />
         </motion.div>
       </button>
 
@@ -331,9 +331,9 @@ function GannStarGuide() {
           >
             <div className="border-t border-white/[0.05] divide-y divide-white/[0.04]">
               {sections.map((s, i) => (
-                <div key={i} className="px-4 py-3.5">
-                  <p className="text-[11px] font-bold text-orange-400/80 mb-1.5">{s.title}</p>
-                  <p className="text-[12px] text-white/55 leading-relaxed">{s.content}</p>
+                <div key={i} className="px-5 py-4.5">
+                  <p className="text-sm font-bold text-orange-400/80 mb-1.5">{s.title}</p>
+                  <p className="text-sm text-white/55 leading-relaxed">{s.content}</p>
                 </div>
               ))}
             </div>
@@ -400,28 +400,28 @@ export default function Gann144StarPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Page Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-orange-400/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-orange-400/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full">
             Gann · 144
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">
           نجمة جان ١٤٤
         </h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
           حاسبة التوافق الزمني والسعري — عامل الزمن الرئيسي (١٢×١٢)
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5">
+      <div className="px-5 flex flex-col gap-5">
 
         {/* ── Glassmorphism Input Form ─────────────────────────────────────── */}
-        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-4">
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-6">
 
           {/* Symbol */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
+            <label className="text-sm font-bold text-white/50 uppercase tracking-widest">
               رمز الأصل / العملة
             </label>
             <input
@@ -429,25 +429,25 @@ export default function Gann144StarPage() {
               value={symbol}
               onChange={e => setSymbol(e.target.value)}
               placeholder="BTCUSDT"
-              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-colors"
+              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-base px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-colors"
               dir="ltr"
             />
           </div>
 
           {/* Anchor Type */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
+            <label className="text-sm font-bold text-white/50 uppercase tracking-widest">
               نوع الارتكاز
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               {([
-                { value: 'bottom', labelAr: 'قاع رئيسي', icon: <TrendingUp className="w-4 h-4" /> },
-                { value: 'top',    labelAr: 'قمة رئيسية', icon: <TrendingDown className="w-4 h-4" /> },
+                { value: 'bottom', labelAr: 'قاع رئيسي', icon: <TrendingUp className="w-6 h-6" /> },
+                { value: 'top',    labelAr: 'قمة رئيسية', icon: <TrendingDown className="w-6 h-6" /> },
               ] as { value: AnchorType; labelAr: string; icon: React.ReactNode }[]).map(({ value, labelAr, icon }) => (
                 <button
                   key={value}
                   onClick={() => setAnchorType(value)}
-                  className={`flex items-center justify-center gap-2 py-3 rounded-xl border text-sm font-bold transition-all active:scale-95 ${
+                  className={`flex items-center justify-center gap-3 py-4 rounded-xl border text-base font-bold transition-all active:scale-95 ${
                     anchorType === value
                       ? value === 'bottom'
                         ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
@@ -464,21 +464,21 @@ export default function Gann144StarPage() {
 
           {/* Anchor Date */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
+            <label className="text-sm font-bold text-white/50 uppercase tracking-widest">
               تاريخ الارتكاز
             </label>
             <input
               type="date"
               value={anchorDate}
               onChange={e => setAnchorDate(e.target.value)}
-              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 focus:outline-none focus:border-orange-500/40 transition-colors [color-scheme:dark]"
+              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-base px-5 py-4 focus:outline-none focus:border-orange-500/40 transition-colors [color-scheme:dark]"
               dir="ltr"
             />
           </div>
 
           {/* Anchor Price */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">
+            <label className="text-sm font-bold text-white/50 uppercase tracking-widest">
               سعر الارتكاز
             </label>
             <input
@@ -488,7 +488,7 @@ export default function Gann144StarPage() {
               placeholder="مثال: 60000"
               min="0"
               step="any"
-              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-colors"
+              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-base px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-colors"
               dir="ltr"
             />
           </div>
@@ -500,10 +500,10 @@ export default function Gann144StarPage() {
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
-                className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-2.5"
+                className="flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-4.5"
               >
-                <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                <p className="text-xs text-red-300">{error}</p>
+                <AlertCircle className="w-6 h-6 text-red-400 shrink-0" />
+                <p className="text-sm text-red-300">{error}</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -512,12 +512,12 @@ export default function Gann144StarPage() {
           <button
             onClick={handleCalculate}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2.5 rounded-xl py-4 font-black text-sm text-black tracking-wide active:scale-[0.98] transition-all disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3.5 rounded-xl py-4 font-black text-base text-black tracking-wide active:scale-[0.98] transition-all disabled:opacity-50"
             style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)' }}
           >
             {loading
-              ? <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-              : <Sparkles className="w-4 h-4" />
+              ? <span className="w-6 h-6 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+              : <Sparkles className="w-6 h-6" />
             }
             {loading ? 'جاري الحساب...' : 'احسب نقاط التوافق'}
           </button>
@@ -535,65 +535,65 @@ export default function Gann144StarPage() {
               className="flex flex-col gap-5"
             >
               {/* Summary Banner */}
-              <div className="rounded-2xl border border-orange-500/20 bg-orange-500/5 px-4 py-4">
+              <div className="rounded-2xl border border-orange-500/20 bg-orange-500/5 px-5 py-4">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <p className="text-[10px] text-orange-400/70 font-mono tracking-widest uppercase mb-0.5">
+                    <p className="text-sm text-orange-400/70 font-mono tracking-widest uppercase mb-0.5">
                       {result.input.symbol} · نجمة جان ١٤٤
                     </p>
-                    <h2 className="text-base font-black text-white">
+                    <h2 className="text-lg font-black text-white">
                       {result.summary.squaringNodeCount} نقاط توافق · {result.summary.direction}
                     </h2>
                   </div>
                   <div className="flex flex-col items-end gap-1">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                    <span className={`text-sm font-bold px-2 py-0.5 rounded-full border ${
                       isBottom
                         ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
                         : 'bg-red-500/10 border-red-500/20 text-red-400'
                     }`}>
                       {isBottom ? 'قاع رئيسي' : 'قمة رئيسية'}
                     </span>
-                    <span className="text-[10px] text-white/30 font-mono">
+                    <span className="text-sm text-white/30 font-mono">
                       {formatGannDateShort(result.input.anchorDate)}
                     </span>
                   </div>
                 </div>
 
                 {/* Next node countdown */}
-                <div className="rounded-xl bg-black/30 border border-white/[0.05] px-3 py-2.5 flex items-center justify-between">
-                  <p className="text-[10px] text-white/40 font-mono">النقطة القادمة</p>
+                <div className="rounded-xl bg-black/30 border border-white/[0.05] px-3 py-4.5 flex items-center justify-between">
+                  <p className="text-sm text-white/40 font-mono">النقطة القادمة</p>
                   <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-mono text-orange-400">
+                    <span className="text-sm font-mono text-orange-400">
                       {formatGannDateShort(result.summary.nextNode.targetDate)}
                     </span>
-                    <span className="text-xs font-black text-white">
+                    <span className="text-sm font-black text-white">
                       {result.summary.nextNodeDaysAway}
-                      <span className="text-white/40 font-normal text-[10px] mr-1">يوم</span>
+                      <span className="text-white/40 font-normal text-sm mr-1">يوم</span>
                     </span>
                   </div>
                 </div>
               </div>
 
               {/* Gann Star Visual */}
-              <div className="relative rounded-2xl border border-white/[0.06] bg-[#0a0f1e] p-6 flex flex-col items-center gap-2">
-                <p className="text-[9px] font-mono text-white/25 tracking-widest uppercase mb-2">
+              <div className="relative rounded-2xl border border-white/[0.06] bg-[#0a0f1e] p-6 flex flex-col items-center gap-3">
+                <p className="text-sm font-mono text-white/25 tracking-widest uppercase mb-2">
                   نجمة التوافق — {result.input.symbol}
                 </p>
                 <div className="w-full max-w-[300px]">
                   <GannStarSvg result={result} animated={animated} />
                 </div>
-                <p className="text-[9px] text-white/20 font-mono mt-2 text-center">
+                <p className="text-sm text-white/20 font-mono mt-2 text-center">
                   كل نقطة تمثل دورة ١٤٤ يوماً · الأرقام تمثل رقم الدورة
                 </p>
               </div>
 
               {/* Node Cards */}
-              <div className="flex flex-col gap-2.5">
+              <div className="flex flex-col gap-3.5">
                 <div className="flex items-center justify-between px-1">
-                  <h3 className="text-[11px] font-bold text-white/50 uppercase tracking-widest">
+                  <h3 className="text-sm font-bold text-white/50 uppercase tracking-widest">
                     نقاط التوافق الزمني والسعري
                   </h3>
-                  <span className="text-[10px] text-white/25 font-mono">
+                  <span className="text-sm text-white/25 font-mono">
                     {result.nodes.length} نقطة
                   </span>
                 </div>
@@ -615,7 +615,7 @@ export default function Gann144StarPage() {
         <GannStarGuide />
 
         {/* ── Disclaimer ─────────────────────────────────────────────────────── */}
-        <p className="text-[9px] text-white/25 text-center font-mono leading-relaxed pb-4 max-w-xs mx-auto" dir="rtl">
+        <p className="text-sm text-white/25 text-center font-mono leading-relaxed pb-4 max-w-xs mx-auto" dir="rtl">
           هذه الأداة تستند إلى الدورات الإحصائية التاريخية والهندسة الرياضية لمدرسة غان.
           جميع المخرجات ذات احتمالية عالية جداً وليست ضماناً أو يقيناً.
           للأغراض التعليمية والتحليلية فقط.

@@ -59,32 +59,32 @@ export default function FibMatrixPage() {
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
       <ToolPageHeader tool={tool} />
 
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-amber-500/70 tracking-widest uppercase border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 rounded-full flex items-center gap-1">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-amber-500/70 tracking-widest uppercase border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 rounded-full flex items-center gap-1">
             <Grid className="w-3 h-3" /> Matrix Projections
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">
           مصفوفة فيبوناتشي (زمن وسعر)
         </h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
           إسقاط تقاطعات السعر والزمن لتحديد مناطق القتل (Kill Zones)
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5">
+      <div className="px-5 flex flex-col gap-5">
         
         {/* Control Panel */}
-        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-4 shadow-xl shadow-black/50">
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-6 shadow-xl shadow-black/50">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">رمز الأصل المالي</label>
+            <label className="text-sm font-bold text-white/50 uppercase tracking-widest">رمز الأصل المالي</label>
             <input
               type="text"
               value={symbol}
               onChange={e => setSymbol(e.target.value)}
               placeholder="BTCUSDT"
-              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 placeholder:text-white/20 focus:outline-none focus:border-amber-500/40 transition-colors"
+              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-base px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-amber-500/40 transition-colors"
               dir="ltr"
             />
           </div>
@@ -92,9 +92,9 @@ export default function FibMatrixPage() {
           <AnimatePresence>
             {error && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-2.5 mt-2">
-                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                  <p className="text-xs text-red-300">{error}</p>
+                <div className="flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-4.5 mt-2">
+                  <AlertCircle className="w-6 h-6 text-red-400 shrink-0" />
+                  <p className="text-sm text-red-300">{error}</p>
                 </div>
               </motion.div>
             )}
@@ -103,13 +103,13 @@ export default function FibMatrixPage() {
           <button
             onClick={handleCalculate}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2.5 rounded-xl py-4 font-black text-sm tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
+            className="w-full flex items-center justify-center gap-3.5 rounded-xl py-4 font-black text-base tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
             style={{
               background: loading ? 'linear-gradient(135deg, #78350f, #451a03)' : 'linear-gradient(135deg, #f59e0b, #b45309)',
               boxShadow: !loading ? '0 0 20px rgba(245, 158, 11, 0.25)' : 'none'
             }}
           >
-            {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-4 h-4" />}
+            {loading ? <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-6 h-6" />}
             {loading ? 'جاري بناء المصفوفة...' : 'تشغيل مصفوفة فيبوناتشي'}
           </button>
         </div>
@@ -123,12 +123,12 @@ export default function FibMatrixPage() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ type: 'spring', stiffness: 100, damping: 18 }}
-              className="flex flex-col gap-4"
+              className="flex flex-col gap-6"
             >
               
               {/* Visual Matrix Chart (Core Feature) */}
-              <div className="rounded-2xl border border-amber-500/20 bg-[#111] p-4 flex flex-col shadow-[0_0_30px_rgba(245,158,11,0.08)] relative overflow-hidden h-80">
-                <p className="text-[10px] font-bold text-amber-500/50 uppercase tracking-widest mb-2 z-10">Time & Price Matrix Intersection</p>
+              <div className="rounded-2xl border border-amber-500/20 bg-[#111] p-6 flex flex-col shadow-[0_0_30px_rgba(245,158,11,0.08)] relative overflow-hidden h-[440px]">
+                <p className="text-sm font-bold text-amber-500/50 uppercase tracking-widest mb-2 z-10">Time & Price Matrix Intersection</p>
                 
                 <FibMatrixSVGChart result={result} animated={animated} />
               </div>
@@ -138,40 +138,40 @@ export default function FibMatrixPage() {
                 {/* 1. Nearest Time Target */}
                 <motion.div 
                   initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-                  className="flex flex-col p-4 rounded-xl border border-white/[0.05] bg-black/40"
+                  className="flex flex-col p-6 rounded-xl border border-white/[0.05] bg-black/40"
                 >
-                  <span className="text-[10px] font-bold text-white/50 mb-2 flex items-center gap-1.5">
+                  <span className="text-sm font-bold text-white/50 mb-2 flex items-center gap-1.5">
                     <Clock className="w-3 h-3 text-cyan-400" /> نافذة زمنية قادمة
                   </span>
                   <span className="text-xl font-black text-cyan-400 font-mono tracking-tighter">
                     شمعة {result.nearestTimeWindow}
                   </span>
-                  <span className="text-[9px] text-white/40 mt-1">ترقب الانعكاس حول هذا النطاق</span>
+                  <span className="text-sm text-white/40 mt-1">ترقب الانعكاس حول هذا النطاق</span>
                 </motion.div>
 
                 {/* 2. Nearest Price Target */}
                 <motion.div 
                   initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-                  className="flex flex-col p-4 rounded-xl border border-white/[0.05] bg-black/40"
+                  className="flex flex-col p-6 rounded-xl border border-white/[0.05] bg-black/40"
                 >
-                  <span className="text-[10px] font-bold text-white/50 mb-2 flex items-center gap-1.5">
+                  <span className="text-sm font-bold text-white/50 mb-2 flex items-center gap-1.5">
                     <Target className="w-3 h-3 text-amber-400" /> هدف سعري قادم
                   </span>
                   <span className="text-xl font-black text-amber-400 font-mono tracking-tighter">
                     ${priceStr(result.nearestPriceTarget)}
                   </span>
-                  <span className="text-[9px] text-white/40 mt-1">الهدف الذهبي (0.618)</span>
+                  <span className="text-sm text-white/40 mt-1">الهدف الذهبي (0.618)</span>
                 </motion.div>
               </div>
 
               <motion.div 
                   initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-                  className="flex items-center gap-3 p-4 rounded-xl border border-rose-500/20 bg-rose-500/5"
+                  className="flex items-center gap-3 p-6 rounded-xl border border-rose-500/20 bg-rose-500/5"
                 >
                   <Focus className="w-8 h-8 text-rose-500/80" />
                   <div className="flex flex-col">
-                    <span className="text-[11px] font-bold text-rose-500/80 mb-0.5">مناطق القتل (Kill Zones) المكتشفة</span>
-                    <span className="text-[13px] font-black text-rose-300">
+                    <span className="text-sm font-bold text-rose-500/80 mb-0.5">مناطق القتل (Kill Zones) المكتشفة</span>
+                    <span className="text-base font-black text-rose-300">
                       يوجد {result.killZones.length} مناطق تقاطع زمنية وسعرية خطرة في المصفوفة.
                     </span>
                   </div>

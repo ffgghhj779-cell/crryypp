@@ -51,32 +51,32 @@ export default function MomentumIntelligencePage() {
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
       <ToolPageHeader tool={tool} />
 
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-rose-500/70 tracking-widest uppercase border border-rose-500/20 bg-rose-500/10 px-2.5 py-1 rounded-full flex items-center gap-1">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-rose-500/70 tracking-widest uppercase border border-rose-500/20 bg-rose-500/10 px-2.5 py-1 rounded-full flex items-center gap-1">
             <Gauge className="w-3 h-3" /> Kinetic Engine
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">
           ذكاء الزخم والمحركات
         </h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
           قياس سرعة وطاقة حركة السعر بدمج (RSI, MACD, Stochastic)
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5">
+      <div className="px-5 flex flex-col gap-5">
         
         {/* Control Panel */}
-        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-4 shadow-xl shadow-black/50">
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-6 shadow-xl shadow-black/50">
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">رمز الأصل المالي</label>
+            <label className="text-sm font-bold text-white/50 uppercase tracking-widest">رمز الأصل المالي</label>
             <input
               type="text"
               value={symbol}
               onChange={e => setSymbol(e.target.value)}
               placeholder="BTCUSDT"
-              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 placeholder:text-white/20 focus:outline-none focus:border-rose-500/40 transition-colors"
+              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-base px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-rose-500/40 transition-colors"
               dir="ltr"
             />
           </div>
@@ -84,9 +84,9 @@ export default function MomentumIntelligencePage() {
           <AnimatePresence>
             {error && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-2.5 mt-2">
-                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                  <p className="text-xs text-red-300">{error}</p>
+                <div className="flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-4.5 mt-2">
+                  <AlertCircle className="w-6 h-6 text-red-400 shrink-0" />
+                  <p className="text-sm text-red-300">{error}</p>
                 </div>
               </motion.div>
             )}
@@ -95,13 +95,13 @@ export default function MomentumIntelligencePage() {
           <button
             onClick={handleCalculate}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2.5 rounded-xl py-4 font-black text-sm tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
+            className="w-full flex items-center justify-center gap-3.5 rounded-xl py-4 font-black text-base tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
             style={{
               background: loading ? 'linear-gradient(135deg, #881337, #4c0519)' : 'linear-gradient(135deg, #f43f5e, #be123c)',
               boxShadow: !loading ? '0 0 20px rgba(244, 63, 94, 0.25)' : 'none'
             }}
           >
-            {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-4 h-4" />}
+            {loading ? <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-6 h-6" />}
             {loading ? 'جاري تقييم الزخم...' : 'تشغيل محرك الزخم'}
           </button>
         </div>
@@ -115,11 +115,11 @@ export default function MomentumIntelligencePage() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ type: 'spring', stiffness: 100, damping: 18 }}
-              className="flex flex-col gap-4"
+              className="flex flex-col gap-6"
             >
               
               {/* Visual Energy Gauge (Core Output) & State */}
-              <div className="flex items-center gap-4 bg-[#111] border border-white/[0.05] rounded-2xl p-5 shadow-xl shadow-rose-900/10 relative overflow-hidden">
+              <div className="flex items-center gap-6 bg-[#111] border border-white/[0.05] rounded-2xl p-5 shadow-xl shadow-rose-900/10 relative overflow-hidden">
                 {/* Background glow based on score */}
                 <div 
                   className="absolute inset-0 opacity-20 pointer-events-none blur-3xl transition-colors duration-1000"
@@ -139,7 +139,7 @@ export default function MomentumIntelligencePage() {
                     }}
                   />
                   {/* Gauge markings */}
-                  <div className="absolute inset-0 flex flex-col justify-between py-2 items-center pointer-events-none opacity-30">
+                  <div className="absolute inset-0 flex flex-col justify-between py-4 items-center pointer-events-none opacity-30">
                     <div className="w-4 h-0.5 bg-white" />
                     <div className="w-2 h-0.5 bg-white" />
                     <div className="w-4 h-0.5 bg-white" />
@@ -148,17 +148,17 @@ export default function MomentumIntelligencePage() {
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2 z-10 flex-1">
-                  <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest flex items-center gap-1.5">
+                <div className="flex flex-col gap-3 z-10 flex-1">
+                  <span className="text-sm font-bold text-white/40 uppercase tracking-widest flex items-center gap-1.5">
                     <Zap className="w-3 h-3 text-yellow-500" /> Global Momentum
                   </span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-5xl font-black text-white font-mono tracking-tighter">
                       {result.globalScore}
                     </span>
-                    <span className="text-sm font-bold text-white/30">%</span>
+                    <span className="text-base font-bold text-white/30">%</span>
                   </div>
-                  <span className="text-base font-black mt-1 tracking-wide" style={{ color: getGaugeColor(result.globalScore) }}>
+                  <span className="text-lg font-black mt-1 tracking-wide" style={{ color: getGaugeColor(result.globalScore) }}>
                     {result.momentumStateAr}
                   </span>
                 </div>
@@ -168,31 +168,31 @@ export default function MomentumIntelligencePage() {
               <div className="grid grid-cols-3 gap-3">
                 {/* RSI */}
                 <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="flex flex-col p-3 rounded-xl border border-white/[0.05] bg-white/[0.02] items-center text-center gap-1.5">
-                  <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">RSI (14)</span>
+                  <span className="text-sm font-bold text-white/50 uppercase tracking-wider">RSI (14)</span>
                   <span className="text-xl font-black text-white font-mono">{result.indicators.rsi.value}</span>
                   <div className="flex items-center gap-1">
                     <div className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(result.indicators.rsi.status)}`} />
-                    <span className="text-[9px] text-white/60 font-bold">{result.indicators.rsi.statusAr}</span>
+                    <span className="text-sm text-white/60 font-bold">{result.indicators.rsi.statusAr}</span>
                   </div>
                 </motion.div>
 
                 {/* MACD */}
                 <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex flex-col p-3 rounded-xl border border-white/[0.05] bg-white/[0.02] items-center text-center gap-1.5">
-                  <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">MACD Hist</span>
+                  <span className="text-sm font-bold text-white/50 uppercase tracking-wider">MACD Hist</span>
                   <span className="text-xl font-black text-white font-mono">{result.indicators.macd.hist}</span>
                   <div className="flex items-center gap-1">
                     <div className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(result.indicators.macd.status)}`} />
-                    <span className="text-[9px] text-white/60 font-bold">{result.indicators.macd.statusAr}</span>
+                    <span className="text-sm text-white/60 font-bold">{result.indicators.macd.statusAr}</span>
                   </div>
                 </motion.div>
 
                 {/* Stochastic */}
                 <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex flex-col p-3 rounded-xl border border-white/[0.05] bg-white/[0.02] items-center text-center gap-1.5">
-                  <span className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Stoch %K</span>
+                  <span className="text-sm font-bold text-white/50 uppercase tracking-wider">Stoch %K</span>
                   <span className="text-xl font-black text-white font-mono">{result.indicators.stoch.k}</span>
                   <div className="flex items-center gap-1">
                     <div className={`w-1.5 h-1.5 rounded-full ${getStatusDotColor(result.indicators.stoch.status)}`} />
-                    <span className="text-[9px] text-white/60 font-bold">{result.indicators.stoch.statusAr}</span>
+                    <span className="text-sm text-white/60 font-bold">{result.indicators.stoch.statusAr}</span>
                   </div>
                 </motion.div>
               </div>
@@ -200,12 +200,12 @@ export default function MomentumIntelligencePage() {
               {/* Actionable Insight Box */}
               <motion.div 
                 initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-                className="flex items-start gap-3 p-4 rounded-xl border border-rose-500/20 bg-rose-500/5 mt-1"
+                className="flex items-start gap-3 p-6 rounded-xl border border-rose-500/20 bg-rose-500/5 mt-1"
               >
                 <Info className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
                 <div className="flex flex-col">
-                  <span className="text-[11px] font-bold text-rose-500/80 mb-1">خلاصة طاقة الزخم</span>
-                  <span className="text-[13px] font-bold text-white/90 leading-relaxed">
+                  <span className="text-sm font-bold text-rose-500/80 mb-1">خلاصة طاقة الزخم</span>
+                  <span className="text-base font-bold text-white/90 leading-relaxed">
                     {result.insightAr}
                   </span>
                 </div>

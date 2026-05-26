@@ -71,28 +71,28 @@ export default function FearAndGreedPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-amber-500/70 tracking-widest uppercase border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-amber-500/70 tracking-widest uppercase border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <Gauge className="w-3 h-3" /> Sentiment
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">مؤشر الخوف والطمع</h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
           قياس المشاعر العامة لمتداولي العملات الرقمية
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5 mt-4">
+      <div className="px-5 flex flex-col gap-5 mt-4">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-6">
             <RefreshCcw className="w-8 h-8 text-amber-500 animate-spin" />
-            <p className="text-amber-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري قياس المشاعر...</p>
+            <p className="text-amber-500/80 font-bold tracking-widest uppercase text-sm animate-pulse">جاري قياس المشاعر...</p>
           </div>
         ) : error ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4 bg-red-500/5 rounded-3xl border border-red-500/10">
+          <div className="flex flex-col items-center justify-center py-20 gap-6 bg-red-500/5 rounded-3xl border border-red-500/10">
             <AlertTriangle className="w-8 h-8 text-red-500" />
-            <p className="text-red-500/80 font-bold tracking-widest uppercase text-xs">تعذر جلب البيانات</p>
+            <p className="text-red-500/80 font-bold tracking-widest uppercase text-sm">تعذر جلب البيانات</p>
           </div>
         ) : (
           <motion.div 
@@ -103,7 +103,7 @@ export default function FearAndGreedPage() {
             {/* Speedometer Gauge UI */}
             <div className="relative w-64 h-32 overflow-hidden flex items-end justify-center pt-8">
               {/* Arc background */}
-              <div className="absolute w-64 h-64 border-[30px] border-white/10 rounded-full box-border border-b-transparent border-l-transparent -rotate-45" />
+              <div className="absolute w-64 h-96 border-[30px] border-white/10 rounded-full box-border border-b-transparent border-l-transparent -rotate-45" />
               
               {/* Colored Arc overlay - CSS conic gradient is tricky for semi-circle, let's use an SVG for a perfect half-ring gradient */}
               <svg className="absolute w-64 h-32 top-0 left-0" viewBox="0 0 200 100">
@@ -134,7 +134,7 @@ export default function FearAndGreedPage() {
               <div className="absolute bottom-[-10px] w-6 h-6 bg-white rounded-full z-20 shadow-[0_0_15px_rgba(255,255,255,0.8)]" />
             </div>
 
-            <div className="flex flex-col items-center gap-2 z-10 mt-2">
+            <div className="flex flex-col items-center gap-3 z-10 mt-2">
               <span className="text-6xl font-black font-mono tracking-tighter" style={{ color, textShadow: `0 0 30px ${color}80` }}>
                 {val}
               </span>
@@ -143,7 +143,7 @@ export default function FearAndGreedPage() {
               </span>
             </div>
             
-            <div className="flex justify-between w-full px-4 text-[10px] text-white/30 font-bold uppercase tracking-widest mt-4">
+            <div className="flex justify-between w-full px-5 text-sm text-white/30 font-bold uppercase tracking-widest mt-4">
               <span>خوف شديد (0)</span>
               <span>طمع شديد (100)</span>
             </div>

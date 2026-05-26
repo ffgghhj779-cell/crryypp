@@ -55,8 +55,8 @@ function ScoreBar({
   return (
     <div className="space-y-1">
       <div className="flex justify-between items-center">
-        <span className="text-[10px] text-white/40 uppercase tracking-wider font-mono">{label}</span>
-        <span className="text-[10px] text-white/60 font-mono tabular-nums">{value}/{maxValue}</span>
+        <span className="text-sm text-white/40 uppercase tracking-wider font-mono">{label}</span>
+        <span className="text-sm text-white/60 font-mono tabular-nums">{value}/{maxValue}</span>
       </div>
       <div className="h-[3px] w-full rounded-full bg-white/[0.06]">
         <div
@@ -80,19 +80,19 @@ function RuleBadge({ id, passed, detail }: { id: string; passed: boolean; detail
           : 'border-red-500/30 bg-red-500/[0.05] hover:bg-red-500/[0.08]'
       }`}
     >
-      <div className="flex items-center gap-2">
-        <span className={`text-base ${passed ? 'text-emerald-400' : 'text-red-400'}`}>
+      <div className="flex items-center gap-3">
+        <span className={`text-lg ${passed ? 'text-emerald-400' : 'text-red-400'}`}>
           {passed ? '✓' : '✗'}
         </span>
-        <span className={`text-[10px] font-bold font-mono uppercase tracking-wider ${
+        <span className={`text-sm font-bold font-mono uppercase tracking-wider ${
           passed ? 'text-emerald-400' : 'text-red-400'
         }`}>{id}</span>
-        <span className="text-[10px] text-white/30 font-mono ml-auto">
+        <span className="text-sm text-white/30 font-mono ml-auto">
           {open ? '▲' : '▼'}
         </span>
       </div>
       {open && (
-        <p className="mt-1.5 text-[10px] text-white/50 leading-relaxed font-mono">
+        <p className="mt-1.5 text-sm text-white/50 leading-relaxed font-mono">
           {detail}
         </p>
       )}
@@ -110,12 +110,12 @@ function MTFBadge({ alignment, score }: { alignment: string; score: number }) {
   };
   const c = config[alignment] ?? config.weak;
   return (
-    <div className={`flex items-center justify-between rounded-xl border px-3 py-2 ${c.bg}`}>
-      <div className="flex items-center gap-2">
+    <div className={`flex items-center justify-between rounded-xl border px-3 py-4 ${c.bg}`}>
+      <div className="flex items-center gap-3">
         <span className={`w-1.5 h-1.5 rounded-full ${c.dot} animate-pulse`} />
-        <span className="text-[11px] font-bold">{c.label}</span>
+        <span className="text-sm font-bold">{c.label}</span>
       </div>
-      <span className="text-[11px] font-mono font-bold">{score}/10</span>
+      <span className="text-sm font-mono font-bold">{score}/10</span>
     </div>
   );
 }
@@ -140,9 +140,9 @@ function SetupBox({
   };
   return (
     <div className={`rounded-xl border p-3 text-center ${styles[variant]}`}>
-      <p className={`text-[9px] font-bold uppercase tracking-widest mb-0.5 ${lc[variant]}`}>{labelEn}</p>
-      <p className="text-[9px] text-white/30 mb-1.5 font-medium">{labelAr}</p>
-      <p className="text-sm font-mono font-bold text-white tabular-nums leading-tight">{value}</p>
+      <p className={`text-sm font-bold uppercase tracking-widest mb-0.5 ${lc[variant]}`}>{labelEn}</p>
+      <p className="text-sm text-white/30 mb-1.5 font-medium">{labelAr}</p>
+      <p className="text-base font-mono font-bold text-white tabular-nums leading-tight">{value}</p>
     </div>
   );
 }
@@ -275,33 +275,33 @@ export function EWAResultCard({ data, symbol }: EWAResultCardProps) {
       style={{ animation: 'slide-up 0.35s cubic-bezier(0.16,1,0.3,1) forwards' }}
     >
       {/* ── Header ───────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.05] bg-[#111111]">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05] bg-[#111111]">
         <div>
-          <p className="text-[10px] text-white/30 uppercase tracking-widest font-mono">
+          <p className="text-sm text-white/30 uppercase tracking-widest font-mono">
             EWA · Elliott Wave Analysis
           </p>
-          <p className="text-white font-bold text-base font-mono tabular-nums leading-tight">{symbol}</p>
-          <p className="text-[11px] text-white/40 font-mono">
+          <p className="text-white font-bold text-lg font-mono tabular-nums leading-tight">{symbol}</p>
+          <p className="text-sm text-white/40 font-mono">
             {data.macro_timeframe} → {data.micro_timeframe}
           </p>
         </div>
         <div className="flex flex-col items-end gap-1.5">
           {/* Direction badge */}
-          <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
+          <span className={`text-sm font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg ${
             isBull ? 'bg-emerald-400 text-black' : 'bg-red-400 text-black'
           }`}>
             {isBull ? '▲ BULLISH' : '▼ BEARISH'}
           </span>
           {/* Pattern badge */}
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border border-white/[0.10] text-white/60">
+          <span className="text-sm font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border border-white/[0.10] text-white/60">
             {data.pattern_label}
           </span>
         </div>
       </div>
 
       {/* ── Arabic Pattern Name + Confidence ──────────────────────────────── */}
-      <div className="px-4 py-3 border-b border-white/[0.05]">
-        <div className="flex items-baseline gap-2 mb-1">
+      <div className="px-5 py-4 border-b border-white/[0.05]">
+        <div className="flex items-baseline gap-3 mb-1">
           <span
             className="text-3xl font-black tabular-nums font-mono"
             style={{ color: confColor }}
@@ -309,17 +309,17 @@ export function EWAResultCard({ data, symbol }: EWAResultCardProps) {
             {confidence}
           </span>
           <span className="text-white/20 text-lg font-mono">/100</span>
-          <span className="text-[10px] text-white/30 uppercase tracking-widest ml-1">
+          <span className="text-sm text-white/30 uppercase tracking-widest ml-1">
             ثقة · {confidenceLabel}
           </span>
         </div>
-        <p className="text-[12px] text-white/70 font-medium" dir="rtl">{data.pattern_name_ar}</p>
+        <p className="text-sm text-white/70 font-medium" dir="rtl">{data.pattern_name_ar}</p>
       </div>
 
       {/* ── Wave SVG Diagram ──────────────────────────────────────────────── */}
       {data.pivots.length >= 2 && (
-        <div className="px-4 py-3 border-b border-white/[0.05]">
-          <p className="text-[9px] text-white/25 uppercase tracking-widest mb-2 font-mono">
+        <div className="px-5 py-4 border-b border-white/[0.05]">
+          <p className="text-sm text-white/25 uppercase tracking-widest mb-2 font-mono">
             هيكل الموجات
           </p>
           <WaveSVG pivots={data.pivots} direction={data.direction} />
@@ -327,8 +327,8 @@ export function EWAResultCard({ data, symbol }: EWAResultCardProps) {
       )}
 
       {/* ── Scoring Matrix ─────────────────────────────────────────────────── */}
-      <div className="px-4 py-3 border-b border-white/[0.05] space-y-2.5">
-        <p className="text-[9px] text-white/25 uppercase tracking-widest font-mono">مصفوفة التقييم</p>
+      <div className="px-5 py-4 border-b border-white/[0.05] space-y-2.5">
+        <p className="text-sm text-white/25 uppercase tracking-widest font-mono">مصفوفة التقييم</p>
         <ScoreBar label="Elliott Rules 40%"  value={sm.elliott_rules.score}  maxValue={40} color="bg-orange-500"  delay={0}   />
         <ScoreBar label="Fibonacci 25%"      value={sm.fibonacci.score}      maxValue={25} color="bg-violet-500" delay={80}  />
         <ScoreBar label="Structure 20%"      value={sm.structure.score}      maxValue={20} color="bg-sky-500"    delay={160} />
@@ -337,12 +337,12 @@ export function EWAResultCard({ data, symbol }: EWAResultCardProps) {
       </div>
 
       {/* ── Elliott Rules ─────────────────────────────────────────────────── */}
-      <div className="px-4 py-3 border-b border-white/[0.05]">
+      <div className="px-5 py-4 border-b border-white/[0.05]">
         <div className="flex items-center justify-between mb-2.5">
-          <p className="text-[9px] text-white/25 uppercase tracking-widest font-mono">
+          <p className="text-sm text-white/25 uppercase tracking-widest font-mono">
             القواعد الإلزامية
           </p>
-          <span className={`text-[9px] font-bold font-mono px-2 py-0.5 rounded-full ${
+          <span className={`text-sm font-bold font-mono px-2 py-0.5 rounded-full ${
             data.elliott_rules.all_pass
               ? 'text-emerald-400 bg-emerald-500/10'
               : 'text-red-400 bg-red-500/10'
@@ -357,7 +357,7 @@ export function EWAResultCard({ data, symbol }: EWAResultCardProps) {
         </div>
         {data.elliott_rules.is_diagonal && (
           <div className="mt-2 rounded-lg border border-amber-500/20 bg-amber-500/[0.05] px-3 py-1.5">
-            <p className="text-[10px] text-amber-400 font-mono">
+            <p className="text-sm text-amber-400 font-mono">
               ⚠ مثلث قُطري — تداخل الموجة 4/1 مقبول مع خصم في التقييم
             </p>
           </div>
@@ -365,45 +365,45 @@ export function EWAResultCard({ data, symbol }: EWAResultCardProps) {
       </div>
 
       {/* ── Fibonacci Relations ────────────────────────────────────────────── */}
-      <div className="px-4 py-3 border-b border-white/[0.05]" dir="rtl">
+      <div className="px-5 py-4 border-b border-white/[0.05]" dir="rtl">
         <div className="flex items-center justify-between mb-2.5">
-          <p className="text-[9px] text-white/25 uppercase tracking-widest font-mono text-right">
+          <p className="text-sm text-white/25 uppercase tracking-widest font-mono text-right">
             علاقات فيبوناتشي
           </p>
-          <span className="text-[10px] text-white/40 font-mono">{data.fibonacci.fib_score}/25</span>
+          <span className="text-sm text-white/40 font-mono">{data.fibonacci.fib_score}/25</span>
         </div>
         <div className="space-y-2">
           {data.fibonacci.relations.map(rel => (
             <div key={rel.waves} className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
                   rel.passes ? 'bg-emerald-400' : 'bg-red-400'
                 }`} />
-                <span className="text-[11px] font-mono tabular-nums text-white/70">
+                <span className="text-sm font-mono tabular-nums text-white/70">
                   {rel.actual_ratio.toFixed(3)}
-                  <span className="text-white/30 text-[10px] ml-1">
+                  <span className="text-white/30 text-sm ml-1">
                     ≈ {rel.near_level.toFixed(3)}
                   </span>
                 </span>
               </div>
-              <span className="text-[10px] text-white/35 font-medium">{rel.waves}</span>
+              <span className="text-sm text-white/35 font-medium">{rel.waves}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* ── MTF Alignment ─────────────────────────────────────────────────── */}
-      <div className="px-4 py-3 border-b border-white/[0.05]">
-        <p className="text-[9px] text-white/25 uppercase tracking-widest mb-2 font-mono">
+      <div className="px-5 py-4 border-b border-white/[0.05]">
+        <p className="text-sm text-white/25 uppercase tracking-widest mb-2 font-mono">
           التوافق متعدد الأطر
         </p>
         <MTFBadge alignment={data.mtf_alignment.alignment} score={data.mtf_alignment.mtf_score} />
-        <p className="mt-2 text-[10px] text-white/40 leading-relaxed" dir="rtl">
+        <p className="mt-2 text-sm text-white/40 leading-relaxed" dir="rtl">
           {data.mtf_alignment.bias_description_ar}
         </p>
         {isContradiction && data.mtf_alignment.contradiction_reason && (
-          <div className="mt-2 rounded-lg border border-red-500/20 bg-red-500/[0.05] px-3 py-2">
-            <p className="text-[10px] text-red-400 font-mono leading-relaxed">
+          <div className="mt-2 rounded-lg border border-red-500/20 bg-red-500/[0.05] px-3 py-4">
+            <p className="text-sm text-red-400 font-mono leading-relaxed">
               ⚠ لا توجد إشارة تداول — يجب انتظار وضوح الاتجاه
             </p>
           </div>
@@ -411,11 +411,11 @@ export function EWAResultCard({ data, symbol }: EWAResultCardProps) {
       </div>
 
       {/* ── Price Targets ─────────────────────────────────────────────────── */}
-      <div className="px-4 py-3 border-b border-white/[0.05]">
-        <p className="text-[9px] text-white/25 uppercase tracking-widest mb-2.5 font-mono">
+      <div className="px-5 py-4 border-b border-white/[0.05]">
+        <p className="text-sm text-white/25 uppercase tracking-widest mb-2.5 font-mono">
           مستويات التداول
         </p>
-        <div className={`grid gap-2 ${tgt.extended_target ? 'grid-cols-2' : 'grid-cols-2'}`}>
+        <div className={`grid gap-3 ${tgt.extended_target ? 'grid-cols-2' : 'grid-cols-2'}`}>
           <SetupBox
             labelEn="TARGET"
             labelAr="الهدف الأساسي"
@@ -445,8 +445,8 @@ export function EWAResultCard({ data, symbol }: EWAResultCardProps) {
         </div>
         {/* Move percentage */}
         <div className="mt-2 flex items-center justify-between px-1">
-          <span className="text-[10px] text-white/25 font-mono">الحركة المتوقعة ·</span>
-          <span className={`text-[11px] font-bold font-mono tabular-nums ${
+          <span className="text-sm text-white/25 font-mono">الحركة المتوقعة ·</span>
+          <span className={`text-sm font-bold font-mono tabular-nums ${
             isBull ? 'text-emerald-400' : 'text-red-400'
           }`}>
             {tgt.target_pct_move}
@@ -455,29 +455,29 @@ export function EWAResultCard({ data, symbol }: EWAResultCardProps) {
       </div>
 
       {/* ── Algorithmic Verdict ────────────────────────────────────────────── */}
-      <div className="px-4 py-3" dir="rtl">
+      <div className="px-5 py-4" dir="rtl">
         <div className="border-r-2 border-orange-500 pr-3">
-          <p className="text-[11px] text-white/60 leading-relaxed text-right">
+          <p className="text-sm text-white/60 leading-relaxed text-right">
             {data.verdict_ar}
           </p>
         </div>
       </div>
 
       {/* ── Meta Strip ─────────────────────────────────────────────────────── */}
-      <div className="px-4 py-2 bg-[#0a0a0a] border-t border-white/[0.04]">
+      <div className="px-5 py-4 bg-[#0a0a0a] border-t border-white/[0.04]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-[9px] text-white/20 font-mono">INV</span>
-            <span className="text-[10px] text-red-400/70 font-mono tabular-nums">{data.meta.inv}</span>
+            <span className="text-sm text-white/20 font-mono">INV</span>
+            <span className="text-sm text-red-400/70 font-mono tabular-nums">{data.meta.inv}</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className={`text-[9px] font-bold font-mono px-1.5 py-0.5 rounded ${
+          <div className="flex items-center gap-3">
+            <span className={`text-sm font-bold font-mono px-1.5 py-0.5 rounded ${
               isBull ? 'text-emerald-400 bg-emerald-500/10' : 'text-red-400 bg-red-500/10'
             }`}>
               {data.meta.dir}
             </span>
-            <span className="text-[9px] text-white/20 font-mono">{data.meta.pattern}</span>
-            <span className="text-[9px] text-white/30 font-mono tabular-nums">{data.meta.price}</span>
+            <span className="text-sm text-white/20 font-mono">{data.meta.pattern}</span>
+            <span className="text-sm text-white/30 font-mono tabular-nums">{data.meta.price}</span>
           </div>
         </div>
       </div>

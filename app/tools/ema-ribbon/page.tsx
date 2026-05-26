@@ -57,42 +57,42 @@ export default function EmaRibbonPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-emerald-400/70 tracking-widest uppercase border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 rounded-full">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-emerald-400/70 tracking-widest uppercase border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 rounded-full">
             Trend Strength
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">
           شريط المتوسطات (EMA Ribbon)
         </h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
           تحليل قوة الاتجاه بناءً على 8 متوسطات أسية (أرقام فيبوناتشي)
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5">
+      <div className="px-5 flex flex-col gap-5">
         {/* ── Input Form ─────────────────────────────────────────────────── */}
-        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-4 shadow-xl shadow-black/50">
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-6 shadow-xl shadow-black/50">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">رمز الأصل</label>
+              <label className="text-sm font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">رمز الأصل</label>
               <input
                 type="text"
                 value={symbol}
                 onChange={e => setSymbol(e.target.value)}
                 placeholder="BTCUSDT"
-                className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 placeholder:text-white/20 focus:outline-none focus:border-emerald-500/40 transition-colors"
+                className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-base px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-emerald-500/40 transition-colors"
                 dir="ltr"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">الإطار الزمني</label>
+              <label className="text-sm font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">الإطار الزمني</label>
               <div className="relative">
                 <select
                   value={timeframe}
                   onChange={e => setTimeframe(e.target.value)}
-                  className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 appearance-none focus:outline-none focus:border-emerald-500/40 transition-colors cursor-pointer"
+                  className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-base px-5 py-4 appearance-none focus:outline-none focus:border-emerald-500/40 transition-colors cursor-pointer"
                   dir="ltr"
                 >
                   <option value="15m">15m</option>
@@ -101,7 +101,7 @@ export default function EmaRibbonPage() {
                   <option value="1d">1D</option>
                 </select>
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <ChevronDown className="w-4 h-4 text-white/40" />
+                  <ChevronDown className="w-6 h-6 text-white/40" />
                 </div>
               </div>
             </div>
@@ -110,9 +110,9 @@ export default function EmaRibbonPage() {
           <AnimatePresence>
             {error && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                <div className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-2.5 mt-2">
-                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-                  <p className="text-xs text-red-300">{error}</p>
+                <div className="flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-4.5 mt-2">
+                  <AlertCircle className="w-6 h-6 text-red-400 shrink-0" />
+                  <p className="text-sm text-red-300">{error}</p>
                 </div>
               </motion.div>
             )}
@@ -121,13 +121,13 @@ export default function EmaRibbonPage() {
           <button
             onClick={handleCalculate}
             disabled={loading}
-            className="w-full mt-2 flex items-center justify-center gap-2.5 rounded-xl py-4 font-black text-sm tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
+            className="w-full mt-2 flex items-center justify-center gap-3.5 rounded-xl py-4 font-black text-base tracking-wide active:scale-[0.98] transition-all disabled:opacity-50 text-white"
             style={{
               background: loading ? 'linear-gradient(135deg, #0f766e, #064e3b)' : 'linear-gradient(135deg, #10b981, #047857)',
               boxShadow: !loading ? '0 0 20px rgba(16, 185, 129, 0.2)' : 'none'
             }}
           >
-            {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-4 h-4" />}
+            {loading ? <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-6 h-6" />}
             {loading ? 'جارٍ التحليل...' : 'تشغيل شريط المتوسطات'}
           </button>
         </div>
@@ -141,7 +141,7 @@ export default function EmaRibbonPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ type: 'spring', stiffness: 100, damping: 18 }}
-              className="flex flex-col gap-4"
+              className="flex flex-col gap-6"
             >
               {/* Top Banner */}
               <div className="rounded-2xl border border-white/[0.08] bg-[#111] p-5 flex flex-col items-center justify-center shadow-lg relative overflow-hidden">
@@ -154,7 +154,7 @@ export default function EmaRibbonPage() {
                   }}
                 />
                 
-                <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1 z-10">حالة الشريط (Ribbon State)</p>
+                <p className="text-sm font-bold text-white/40 uppercase tracking-widest mb-1 z-10">حالة الشريط (Ribbon State)</p>
                 
                 <h2 className={`text-2xl font-black tracking-widest z-10 mt-1 mb-2 ${
                   result.status === 'Expanding Bullish' ? 'text-emerald-500' : result.status === 'Expanding Bearish' ? 'text-red-500' : 'text-gray-400'
@@ -164,9 +164,9 @@ export default function EmaRibbonPage() {
 
                 <div className="flex flex-col items-center gap-1 w-full mt-2">
                   <div className="flex justify-between w-full px-2 mb-1">
-                    <span className="text-[10px] font-mono text-white/30 uppercase">Weak</span>
-                    <span className="text-[11px] font-black text-white/80">{result.trendStrengthLabelAr} ({result.trendStrengthPct}%)</span>
-                    <span className="text-[10px] font-mono text-white/30 uppercase">Strong</span>
+                    <span className="text-sm font-mono text-white/30 uppercase">Weak</span>
+                    <span className="text-sm font-black text-white/80">{result.trendStrengthLabelAr} ({result.trendStrengthPct}%)</span>
+                    <span className="text-sm font-mono text-white/30 uppercase">Strong</span>
                   </div>
                   {/* Gauge Progress */}
                   <div className="h-1.5 w-full bg-black/50 rounded-full border border-white/[0.05] overflow-hidden">
@@ -188,13 +188,13 @@ export default function EmaRibbonPage() {
               <RibbonVisualizer result={result} animated={animated} />
 
               {/* EMAs Data List */}
-              <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0c] p-4 flex flex-col shadow-xl">
-                <div className="flex items-center gap-2 mb-3 px-1">
-                  <Activity className="w-4 h-4 text-emerald-500/70" />
-                  <span className="text-[10px] font-bold text-white/50 uppercase tracking-widest">المتوسطات الأسية (EMAs)</span>
+              <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0c] p-6 flex flex-col shadow-xl">
+                <div className="flex items-center gap-3 mb-3 px-1">
+                  <Activity className="w-6 h-6 text-emerald-500/70" />
+                  <span className="text-sm font-bold text-white/50 uppercase tracking-widest">المتوسطات الأسية (EMAs)</span>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   {result.emas.map((ema, i) => {
                     const isBullish = result.status === 'Expanding Bullish';
                     const isBearish = result.status === 'Expanding Bearish';
@@ -211,8 +211,8 @@ export default function EmaRibbonPage() {
                         className="flex items-center justify-between p-2.5 rounded-xl border border-white/[0.03] bg-white/[0.02]"
                         style={{ borderLeftColor: color, borderLeftWidth: '3px' }}
                       >
-                        <span className="text-[11px] font-bold text-white/60 uppercase">EMA {ema.length}</span>
-                        <span className="text-[11px] font-mono text-white/90">
+                        <span className="text-sm font-bold text-white/60 uppercase">EMA {ema.length}</span>
+                        <span className="text-sm font-mono text-white/90">
                           {ema.value >= 1000 ? ema.value.toLocaleString(undefined, { maximumFractionDigits: 1 }) : ema.value.toLocaleString(undefined, { maximumFractionDigits: 4 })}
                         </span>
                       </motion.div>
@@ -301,7 +301,7 @@ function RibbonVisualizer({ result, animated }: { result: EmaRibbonResult, anima
   };
 
   return (
-    <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0c] flex items-center justify-center p-4 shadow-xl overflow-hidden relative">
+    <div className="rounded-2xl border border-white/[0.08] bg-[#0c0c0c] flex items-center justify-center p-6 shadow-xl overflow-hidden relative">
       {/* Background grid lines for charting feel */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
            style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />

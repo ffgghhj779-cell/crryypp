@@ -114,46 +114,46 @@ function FearGreedModal({ value, classification, history, globalData, onClose }:
           <div className="flex items-start justify-between gap-3">
             <div>
               <h2 className="text-xl font-black text-orange-400">نبض السوق والمشاعر</h2>
-              <p className="text-[11px] text-white/40 mt-0.5 leading-relaxed">تحليل شامل يربط بين سيكولوجية المتداولين والمعطيات الفنية</p>
+              <p className="text-sm text-white/40 mt-0.5 leading-relaxed">تحليل شامل يربط بين سيكولوجية المتداولين والمعطيات الفنية</p>
             </div>
-            <button onClick={onClose} className="p-1.5 rounded-full bg-white/[0.06] text-white/40 hover:text-white shrink-0"><X className="w-4 h-4" /></button>
+            <button onClick={onClose} className="p-1.5 rounded-full bg-white/[0.06] text-white/40 hover:text-white shrink-0"><X className="w-6 h-6" /></button>
           </div>
           {/* Full gauge */}
-          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4 flex flex-col items-center">
-            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">مؤشر الخوف والطمع الحالي</p>
+          <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 flex flex-col items-center">
+            <p className="text-sm font-bold text-white/40 uppercase tracking-widest mb-3">مؤشر الخوف والطمع الحالي</p>
             <div className="w-52"><Gauge value={value} label={classification} size="full" /></div>
-            <p className="text-sm font-black mt-2" style={{ color }}>{arLabel(classification)}</p>
+            <p className="text-base font-black mt-2" style={{ color }}>{arLabel(classification)}</p>
           </div>
           {/* Market stats */}
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-              <p className="text-[9px] text-white/30 font-mono mb-1">حجم التداول (24h)</p>
-              <p className="text-base font-mono font-black tabular-nums text-white">${globalData.totalMarketCap}</p>
-              <p className="text-[9px] text-white/25 mt-1">إجمالي تداولات السوق</p>
+              <p className="text-sm text-white/30 font-mono mb-1">حجم التداول (24h)</p>
+              <p className="text-lg font-mono font-black tabular-nums text-white">${globalData.totalMarketCap}</p>
+              <p className="text-sm text-white/25 mt-1">إجمالي تداولات السوق</p>
             </div>
             <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-              <p className="text-[9px] text-white/30 font-mono mb-1">القيمة السوقية الكلية</p>
-              <p className="text-base font-mono font-black tabular-nums text-orange-400">{globalData.btcDominance}</p>
+              <p className="text-sm text-white/30 font-mono mb-1">القيمة السوقية الكلية</p>
+              <p className="text-lg font-mono font-black tabular-nums text-orange-400">{globalData.btcDominance}</p>
             </div>
           </div>
           {/* Historical table */}
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.06]">
-              <TrendingUp className="w-4 h-4 text-orange-500" />
-              <p className="text-[11px] font-bold text-orange-400">السجل التاريخي للمشاعر</p>
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.06]">
+              <TrendingUp className="w-6 h-6 text-orange-500" />
+              <p className="text-sm font-bold text-orange-400">السجل التاريخي للمشاعر</p>
             </div>
-            <div className="grid grid-cols-3 px-4 py-2 border-b border-white/[0.04]">
+            <div className="grid grid-cols-3 px-5 py-4 border-b border-white/[0.04]">
               {['الفترة','القراءة','الحالة'].map(h => (
-                <p key={h} className="text-[9px] font-bold text-white/30 text-center">{h}</p>
+                <p key={h} className="text-sm font-bold text-white/30 text-center">{h}</p>
               ))}
             </div>
             {history.slice(0,3).map((e,i) => {
               const v = parseInt(e.value,10);
               return (
-                <div key={i} className={`grid grid-cols-3 px-4 py-3 ${i<2?'border-b border-white/[0.04]':''}`}>
-                  <p className="text-[11px] text-white/70 text-center">{PERIOD_AR[i]}</p>
-                  <p className="text-[11px] font-mono font-black tabular-nums text-center" style={{color:gaugeColor(v)}}>{v}</p>
-                  <p className="text-[10px] text-white/60 text-center">{e.value_classification}</p>
+                <div key={i} className={`grid grid-cols-3 px-5 py-4 ${i<2?'border-b border-white/[0.04]':''}`}>
+                  <p className="text-sm text-white/70 text-center">{PERIOD_AR[i]}</p>
+                  <p className="text-sm font-mono font-black tabular-nums text-center" style={{color:gaugeColor(v)}}>{v}</p>
+                  <p className="text-sm text-white/60 text-center">{e.value_classification}</p>
                 </div>
               );
             })}
@@ -198,15 +198,15 @@ export function FearGreedWidget({ globalData = { totalMarketCap:'---', btcDomina
         className="rounded-2xl border border-white/[0.05] bg-white/[0.02] p-3 flex flex-col items-center w-full active:scale-[0.97] transition-transform hover:border-orange-500/20 h-[148px]"
         dir="rtl"
       >
-        <p className="text-[10px] font-bold text-orange-400 mb-1 self-end">الخوف والطمع</p>
+        <p className="text-sm font-bold text-orange-400 mb-1 self-end">الخوف والطمع</p>
         {loading ? (
           <div className="flex-1 flex items-center justify-center">
-            <span className="w-4 h-4 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
+            <span className="w-6 h-6 rounded-full border-2 border-orange-500 border-t-transparent animate-spin" />
           </div>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center w-full">
             <Gauge value={value} label={classification} size="compact" />
-            <p className="text-[11px] font-black mt-0.5" style={{ color }}>{arLabel(classification)}</p>
+            <p className="text-sm font-black mt-0.5" style={{ color }}>{arLabel(classification)}</p>
           </div>
         )}
       </button>

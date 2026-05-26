@@ -27,13 +27,13 @@ function CardHeader({ label, symbol, timeframe, badge, badgeColor }: {
   badge: string; badgeColor: string;
 }) {
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.05] bg-[#0f0f0f]">
+    <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05] bg-[#0f0f0f]">
       <div>
-        <p className="text-[9px] text-white/25 uppercase tracking-widest font-mono">{label}</p>
-        <p className="text-white font-bold text-base font-mono">{symbol}</p>
-        <p className="text-[10px] text-white/30 font-mono">{timeframe}</p>
+        <p className="text-sm text-white/25 uppercase tracking-widest font-mono">{label}</p>
+        <p className="text-white font-bold text-lg font-mono">{symbol}</p>
+        <p className="text-sm text-white/30 font-mono">{timeframe}</p>
       </div>
-      <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border ${badgeColor}`}>
+      <span className={`text-sm font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border ${badgeColor}`}>
         {badge}
       </span>
     </div>
@@ -43,8 +43,8 @@ function CardHeader({ label, symbol, timeframe, badge, badgeColor }: {
 function VerdictBox({ text }: { text: string }) {
   return (
     <div className="mx-4 mb-4" dir="rtl">
-      <div className="rounded-xl border border-white/[0.05] bg-[#0a0a0a] px-3 py-3 border-r-2 border-r-orange-500">
-        <p className="text-[11px] text-white/55 leading-relaxed text-right">{text}</p>
+      <div className="rounded-xl border border-white/[0.05] bg-[#0a0a0a] px-3 py-4 border-r-2 border-r-orange-500">
+        <p className="text-sm text-white/55 leading-relaxed text-right">{text}</p>
       </div>
     </div>
   );
@@ -75,13 +75,13 @@ export function RsiResultCard({ data, symbol, timeframe }: RsiProps) {
       <CardHeader label="RSI · مؤشر القوة النسبية" symbol={symbol} timeframe={timeframe} badge={badgeLabel} badgeColor={badgeColor} />
 
       {/* Big RSI number */}
-      <div className="px-4 py-5 text-center border-b border-white/[0.05]">
+      <div className="px-5 py-5 text-center border-b border-white/[0.05]">
         <p className={`text-6xl font-black tabular-nums font-mono leading-none ${valColor}`}>{data.value}</p>
-        <p className="text-[10px] text-white/25 uppercase tracking-widest mt-2 font-mono">RSI (14)</p>
+        <p className="text-sm text-white/25 uppercase tracking-widest mt-2 font-mono">RSI (14)</p>
       </div>
 
       {/* Visual gauge */}
-      <div className="px-4 py-3 border-b border-white/[0.05]">
+      <div className="px-5 py-4 border-b border-white/[0.05]">
         <div className="relative h-[6px] w-full rounded-full bg-white/[0.06] overflow-hidden">
           {/* Zone fills */}
           <div className="absolute left-0 top-0 h-full bg-emerald-500/30 rounded-l-full" style={{ width: '30%' }} />
@@ -93,9 +93,9 @@ export function RsiResultCard({ data, symbol, timeframe }: RsiProps) {
           />
         </div>
         <div className="flex justify-between mt-1.5">
-          <span className="text-[9px] text-emerald-400/60 font-mono">30 · ذروة بيع</span>
-          <span className="text-[9px] text-white/20 font-mono">50</span>
-          <span className="text-[9px] text-red-400/60 font-mono">70 · ذروة شراء</span>
+          <span className="text-sm text-emerald-400/60 font-mono">30 · ذروة بيع</span>
+          <span className="text-sm text-white/20 font-mono">50</span>
+          <span className="text-sm text-red-400/60 font-mono">70 · ذروة شراء</span>
         </div>
       </div>
 
@@ -138,16 +138,16 @@ export function MacdResultCard({ data, symbol, timeframe }: MacdProps) {
           { ar: 'خط MACD',    val: fmtP(data.macdLine),   color: isBull ? 'text-emerald-300' : 'text-red-300' },
           { ar: 'خط الإشارة', val: fmtP(data.signalLine), color: 'text-orange-300' },
         ].map(({ ar, val, color }) => (
-          <div key={ar} className="flex items-center justify-between px-3 py-2.5">
-            <span className={`text-sm font-mono font-bold tabular-nums ${color}`}>{val}</span>
-            <span className="text-[10px] text-white/35">{ar}</span>
+          <div key={ar} className="flex items-center justify-between px-3 py-4.5">
+            <span className={`text-base font-mono font-bold tabular-nums ${color}`}>{val}</span>
+            <span className="text-sm text-white/35">{ar}</span>
           </div>
         ))}
         {/* Histogram with visual bar */}
-        <div className="px-3 py-3">
+        <div className="px-3 py-4">
           <div className="flex items-center justify-between mb-2">
-            <span className={`text-sm font-mono font-bold tabular-nums ${histColor}`}>{fmtP(data.histogram)}</span>
-            <span className="text-[10px] text-white/35">الهستوغرام</span>
+            <span className={`text-base font-mono font-bold tabular-nums ${histColor}`}>{fmtP(data.histogram)}</span>
+            <span className="text-sm text-white/35">الهستوغرام</span>
           </div>
           <div className="h-[4px] w-full rounded-full bg-white/[0.06]">
             <div
@@ -185,31 +185,31 @@ export function BollingerResultCard({ data, symbol, timeframe }: BollingerProps)
       <div className="mx-4 my-3 rounded-xl border border-white/[0.07] bg-[#0a0a0a] divide-y divide-white/[0.05]" dir="rtl">
 
         {/* Upper band */}
-        <div className="flex items-center justify-between px-3 py-3">
-          <span className="text-[10px] text-white/40 text-right">الحد العلوي<br /><span className="text-white/20">(Upper Band)</span></span>
-          <p className="text-sm font-mono font-bold text-red-300 tabular-nums">${fmtP(data.upper)}</p>
+        <div className="flex items-center justify-between px-3 py-4">
+          <span className="text-sm text-white/40 text-right">الحد العلوي<br /><span className="text-white/20">(Upper Band)</span></span>
+          <p className="text-base font-mono font-bold text-red-300 tabular-nums">${fmtP(data.upper)}</p>
         </div>
 
         {/* Middle — SMA with white right-border accent */}
-        <div className="flex items-center justify-between px-3 py-3 relative">
+        <div className="flex items-center justify-between px-3 py-4 relative">
           <span className="absolute right-0 top-2 bottom-2 w-[3px] bg-white rounded-full" />
-          <span className="text-[10px] text-white/40 pr-4 text-right">المتوسط المتحرك (SMA-20)</span>
-          <p className="text-base font-mono font-bold text-white tabular-nums">${fmtP(data.middle)}</p>
+          <span className="text-sm text-white/40 pr-4 text-right">المتوسط المتحرك (SMA-20)</span>
+          <p className="text-lg font-mono font-bold text-white tabular-nums">${fmtP(data.middle)}</p>
         </div>
 
         {/* Lower band */}
-        <div className="flex items-center justify-between px-3 py-3">
-          <span className="text-[10px] text-white/40 text-right">الحد السفلي<br /><span className="text-white/20">(Lower Band)</span></span>
-          <p className="text-sm font-mono font-bold text-emerald-300 tabular-nums">${fmtP(data.lower)}</p>
+        <div className="flex items-center justify-between px-3 py-4">
+          <span className="text-sm text-white/40 text-right">الحد السفلي<br /><span className="text-white/20">(Lower Band)</span></span>
+          <p className="text-base font-mono font-bold text-emerald-300 tabular-nums">${fmtP(data.lower)}</p>
         </div>
       </div>
 
       {/* Bandwidth + state badge */}
       <div className="mx-4 mb-3 flex items-center justify-between" dir="rtl">
-        <span className={`text-[10px] font-bold px-2.5 py-1.5 rounded-lg border ${stateBadge}`}>{stateAr}</span>
+        <span className={`text-sm font-bold px-2.5 py-1.5 rounded-lg border ${stateBadge}`}>{stateAr}</span>
         <div className="text-right">
-          <p className="text-[9px] text-white/25 font-mono">عرض النطاق</p>
-          <p className="text-sm font-mono font-bold text-orange-300 tabular-nums">{data.bandwidth}%</p>
+          <p className="text-sm text-white/25 font-mono">عرض النطاق</p>
+          <p className="text-base font-mono font-bold text-orange-300 tabular-nums">{data.bandwidth}%</p>
         </div>
       </div>
 

@@ -119,7 +119,7 @@ function AssetToggle({ asset, onChange }: { asset: Asset; onChange: (a: Asset) =
         <button
           key={a}
           onClick={() => onChange(a)}
-          className={`flex-1 py-2.5 rounded-xl text-sm font-black tracking-wide transition-all duration-200 ${
+          className={`flex-1 py-4.5 rounded-xl text-base font-black tracking-wide transition-all duration-200 ${
             asset === a
               ? a === 'BTC'
                 ? 'bg-orange-500 text-white shadow-[0_0_20px_rgba(249,115,22,0.4)]'
@@ -307,16 +307,16 @@ function DayCard({ day, asset }: { day: DayAnalytics; asset: Asset }) {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 flex flex-col gap-2"
+      className="bg-white/[0.03] border border-white/[0.08] rounded-xl p-3 flex flex-col gap-3"
       dir="rtl"
     >
       {/* Header row */}
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-white/80">{day.date}</span>
+        <span className="text-sm font-bold text-white/80">{day.date}</span>
         <div className="flex items-center gap-1.5">
           {/* Status badge */}
           {day.status !== 'عادي' && (
-            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${day.statusColor}`}>
+            <span className={`text-sm font-black px-2 py-0.5 rounded-full border ${day.statusColor}`}>
               {day.status === 'قمة' ? '▲ قمة' : '▼ قاع'}
             </span>
           )}
@@ -329,9 +329,9 @@ function DayCard({ day, asset }: { day: DayAnalytics; asset: Asset }) {
       </div>
 
       {/* Price magnitude */}
-      <div className="bg-white/[0.04] rounded-lg px-3 py-2 text-center">
-        <p className="text-[9px] text-white/40 uppercase tracking-widest mb-0.5">حركة السعر</p>
-        <p className={`text-sm font-black ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
+      <div className="bg-white/[0.04] rounded-lg px-3 py-4 text-center">
+        <p className="text-sm text-white/40 uppercase tracking-widest mb-0.5">حركة السعر</p>
+        <p className={`text-base font-black ${isUp ? 'text-emerald-400' : 'text-red-400'}`}>
           {fmt(day.priceMagnitude)} دولار
         </p>
       </div>
@@ -345,8 +345,8 @@ function DayCard({ day, asset }: { day: DayAnalytics; asset: Asset }) {
           { label: 'إغلاق', value: fmt(day.close), color: isUp ? 'text-emerald-400' : 'text-red-400' },
         ].map(item => (
           <div key={item.label} className="flex flex-col">
-            <span className="text-[8px] text-white/30 uppercase">{item.label}</span>
-            <span className={`text-[9px] font-bold ${item.color}`}>{item.value}</span>
+            <span className="text-sm text-white/30 uppercase">{item.label}</span>
+            <span className={`text-sm font-bold ${item.color}`}>{item.value}</span>
           </div>
         ))}
       </div>
@@ -394,35 +394,35 @@ function MonthDrilldown({
     : `$${avgMove.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
-    <div className="flex flex-col gap-4 w-full" dir="rtl">
+    <div className="flex flex-col gap-6 w-full" dir="rtl">
       {/* Header */}
       <div className="flex items-center gap-3">
         <button
           onClick={onBack}
           className="p-2 bg-white/5 border border-white/10 rounded-xl text-white/60 hover:text-white hover:bg-white/10 transition-colors active:scale-95"
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-6 h-6" />
         </button>
         <div>
-          <h3 className="text-base font-black text-white">{MONTHS_AR[monthIndex]} {year}</h3>
-          <p className="text-[10px] text-white/40 font-mono">التحليل اليومي — {asset === 'BTC' ? 'بيتكوين' : 'ذهب'}</p>
+          <h3 className="text-lg font-black text-white">{MONTHS_AR[monthIndex]} {year}</h3>
+          <p className="text-sm text-white/40 font-mono">التحليل اليومي — {asset === 'BTC' ? 'بيتكوين' : 'ذهب'}</p>
         </div>
       </div>
 
       {/* Summary stats */}
       {!loading && days.length > 0 && (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-3">
           <div className="bg-emerald-500/[0.08] border border-emerald-500/20 rounded-xl p-3 text-center">
-            <p className="text-xs font-black text-emerald-400">{peakCount}</p>
-            <p className="text-[9px] text-white/40 mt-0.5">قمم</p>
+            <p className="text-sm font-black text-emerald-400">{peakCount}</p>
+            <p className="text-sm text-white/40 mt-0.5">قمم</p>
           </div>
           <div className="bg-red-500/[0.08] border border-red-500/20 rounded-xl p-3 text-center">
-            <p className="text-xs font-black text-red-400">{troughCount}</p>
-            <p className="text-[9px] text-white/40 mt-0.5">قيعان</p>
+            <p className="text-sm font-black text-red-400">{troughCount}</p>
+            <p className="text-sm text-white/40 mt-0.5">قيعان</p>
           </div>
           <div className="bg-white/[0.04] border border-white/10 rounded-xl p-3 text-center">
-            <p className="text-[10px] font-black text-white/80 truncate">{fmtAvg}</p>
-            <p className="text-[9px] text-white/40 mt-0.5">متوسط الحركة</p>
+            <p className="text-sm font-black text-white/80 truncate">{fmtAvg}</p>
+            <p className="text-sm text-white/40 mt-0.5">متوسط الحركة</p>
           </div>
         </div>
       )}
@@ -431,12 +431,12 @@ function MonthDrilldown({
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="w-6 h-6 border-2 border-orange-500/40 border-t-orange-500 rounded-full animate-spin" />
-          <span className="text-white/40 text-xs mr-3">جاري التحميل...</span>
+          <span className="text-white/40 text-sm mr-3">جاري التحميل...</span>
         </div>
       ) : days.length === 0 ? (
-        <div className="text-center py-8 text-white/30 text-sm">لا توجد بيانات لهذا الشهر</div>
+        <div className="text-center py-8 text-white/30 text-base">لا توجد بيانات لهذا الشهر</div>
       ) : (
-        <div className="flex flex-col gap-2 max-h-[55vh] overflow-y-auto overscroll-contain pb-4 pr-1">
+        <div className="flex flex-col gap-3 max-h-[55vh] overflow-y-auto overscroll-contain pb-4 pr-1">
           {days.map((day, i) => (
             <DayCard key={i} day={day} asset={asset} />
           ))}
@@ -483,7 +483,7 @@ export default function GannWheelPage() {
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-8">
       <ToolPageHeader tool={tool} />
 
-      <div className="flex-1 px-4 pt-4 flex flex-col items-center max-w-lg mx-auto w-full gap-5">
+      <div className="flex-1 px-5 pt-4 flex flex-col items-center max-w-lg mx-auto w-full gap-5">
 
         {/* Asset Toggle */}
         <motion.div
@@ -499,7 +499,7 @@ export default function GannWheelPage() {
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`w-full rounded-2xl border p-4 flex items-center gap-4 shadow-lg ${
+            className={`w-full rounded-2xl border p-6 flex items-center gap-6 shadow-lg ${
               result.status === 'CRITICAL' ? 'bg-red-500/10 border-red-500/30 shadow-red-500/10'
               : result.status === 'WARNING' ? 'bg-amber-500/10 border-amber-500/30 shadow-amber-500/10'
               : 'bg-emerald-500/10 border-emerald-500/30 shadow-emerald-500/10'
@@ -516,7 +516,7 @@ export default function GannWheelPage() {
               : <Minus className="w-5 h-5" />}
             </div>
             <div className="flex flex-col">
-              <p className="text-[9px] font-mono text-white/40 uppercase tracking-widest">حالة الدورة الحالية</p>
+              <p className="text-sm font-mono text-white/40 uppercase tracking-widest">حالة الدورة الحالية</p>
               <h2 className={`text-lg font-black ${
                 result.status === 'CRITICAL' ? 'text-red-400'
                 : result.status === 'WARNING' ? 'text-amber-400'
@@ -526,14 +526,14 @@ export default function GannWheelPage() {
                 : result.status === 'WARNING'  ? 'تنبيه'
                 : 'مستقر'}
               </h2>
-              <p className="text-[10px] text-white/50 mt-0.5">{result.advisoryAr.slice(0, 80)}...</p>
+              <p className="text-sm text-white/50 mt-0.5">{result.advisoryAr.slice(0, 80)}...</p>
             </div>
           </motion.div>
         )}
 
         {/* Instruction hint for wheel */}
         {viewMode === 'wheel' && result && (
-          <p className="text-[9px] text-white/30 text-center font-mono flex items-center gap-1">
+          <p className="text-sm text-white/30 text-center font-mono flex items-center gap-1">
             <ArrowRight className="w-3 h-3 inline" />
             انقر على أي شهر في العجلة لعرض التحليل اليومي
           </p>
@@ -586,27 +586,27 @@ export default function GannWheelPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="w-full rounded-2xl bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20 p-4"
+            className="w-full rounded-2xl bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20 p-6"
             dir="rtl"
           >
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-[9px] font-mono text-orange-400/80 uppercase tracking-widest">النقطة الدورية القادمة</p>
-                <p className="text-xs font-bold text-white/80 mt-0.5">{result.nextPoint.eventAr}</p>
+                <p className="text-sm font-mono text-orange-400/80 uppercase tracking-widest">النقطة الدورية القادمة</p>
+                <p className="text-sm font-bold text-white/80 mt-0.5">{result.nextPoint.eventAr}</p>
               </div>
-              <span className="text-xs text-white/60 font-mono">{result.nextPointDate}</span>
+              <span className="text-sm text-white/60 font-mono">{result.nextPointDate}</span>
             </div>
-            <div className="flex items-baseline gap-2 justify-center py-1">
+            <div className="flex items-baseline gap-3 justify-center py-1">
               <span className="text-4xl font-black font-mono text-white tracking-tighter">
                 {result.daysToNext}
               </span>
-              <span className="text-white/40 font-mono text-sm">يوم</span>
+              <span className="text-white/40 font-mono text-base">يوم</span>
             </div>
           </motion.div>
         )}
 
         {/* Disclaimer */}
-        <p className="text-[9px] text-white/20 text-center font-mono leading-relaxed max-w-xs mx-auto">
+        <p className="text-sm text-white/20 text-center font-mono leading-relaxed max-w-xs mx-auto">
           هذه الأداة مبنية على دورات رياضية وتاريخية. للأغراض التعليمية فقط.
         </p>
       </div>

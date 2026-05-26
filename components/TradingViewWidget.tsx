@@ -168,13 +168,13 @@ const TradingViewWidget = memo(function TradingViewWidget({
   return (
     <div className="flex flex-col h-full">
       {/* ── Interval Selector ── */}
-      <div className="flex items-center gap-1.5 px-4 pt-3 pb-2 shrink-0">
-        <span className="text-[10px] text-white/30 uppercase tracking-widest mr-1">Interval</span>
+      <div className="flex items-center gap-1.5 px-5 pt-3 pb-2 shrink-0">
+        <span className="text-sm text-white/30 uppercase tracking-widest mr-1">Interval</span>
         {INTERVALS.map(iv => (
           <button
             key={iv.value}
             onClick={() => setInterval(iv.value)}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all active:scale-95 ${
+            className={`px-3 py-1 rounded-lg text-sm font-bold transition-all active:scale-95 ${
               interval === iv.value
                 ? 'bg-orange-500 text-white shadow-[0_0_12px_rgba(249,115,22,0.4)]'
                 : 'bg-white/[0.05] text-white/40 hover:text-white hover:bg-white/10'

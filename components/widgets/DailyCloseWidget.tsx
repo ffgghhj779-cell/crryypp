@@ -79,21 +79,21 @@ function DailyCloseModal({ onClose }: { onClose: () => void }) {
           <div className="flex items-start justify-between gap-3">
             <div>
               <h2 className="text-xl font-black text-white">إحصاءات الإغلاق اليومي</h2>
-              <p className="text-[11px] text-white/40 mt-0.5">
+              <p className="text-sm text-white/40 mt-0.5">
                 سجل الإغلاقات التاريخية لآخر 7 أيام (توقيت UTC)
               </p>
             </div>
             <button onClick={onClose} className="p-1.5 rounded-full bg-white/[0.06] text-white/40 hover:text-white active:scale-95">
-              <X className="w-4 h-4" />
+              <X className="w-6 h-6" />
             </button>
           </div>
 
           {/* Table */}
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
             {/* Table header */}
-            <div className="grid grid-cols-2 px-4 py-2.5 border-b border-white/[0.06] bg-white/[0.02]">
-              <p className="text-[10px] font-bold text-white/40 tracking-wider text-right">اليوم والتاريخ</p>
-              <p className="text-[10px] font-bold text-white/40 tracking-wider text-left">سعر الإغلاق</p>
+            <div className="grid grid-cols-2 px-5 py-4.5 border-b border-white/[0.06] bg-white/[0.02]">
+              <p className="text-sm font-bold text-white/40 tracking-wider text-right">اليوم والتاريخ</p>
+              <p className="text-sm font-bold text-white/40 tracking-wider text-left">سعر الإغلاق</p>
             </div>
 
             {loading ? (
@@ -104,19 +104,19 @@ function DailyCloseModal({ onClose }: { onClose: () => void }) {
               rows.map((row, i) => (
                 <div
                   key={i}
-                  className={`grid grid-cols-2 px-4 py-3.5 ${i < rows.length - 1 ? 'border-b border-white/[0.04]' : ''}`}
+                  className={`grid grid-cols-2 px-5 py-4.5 ${i < rows.length - 1 ? 'border-b border-white/[0.04]' : ''}`}
                 >
-                  <p className="text-[13px] font-semibold text-white/70 text-right">{row.label}</p>
-                  <p className="text-[13px] font-mono font-black tabular-nums text-white text-left">{row.price}</p>
+                  <p className="text-base font-semibold text-white/70 text-right">{row.label}</p>
+                  <p className="text-base font-mono font-black tabular-nums text-white text-left">{row.price}</p>
                 </div>
               ))
             )}
           </div>
 
           {/* Footer note */}
-          <div className="flex items-center gap-2 px-1">
+          <div className="flex items-center gap-3 px-1">
             <BarChart2 className="w-3.5 h-3.5 text-white/20" />
-            <p className="text-[9px] text-white/25 font-mono">بيانات من Binance · BTCUSDT · Daily (1D)</p>
+            <p className="text-sm text-white/25 font-mono">بيانات من Binance · BTCUSDT · Daily (1D)</p>
           </div>
         </div>
       </div>
@@ -154,7 +154,7 @@ export function DailyCloseWidget() {
         dir="rtl"
         aria-label="الإغلاق اليومي للبيتكوين — اضغط للتفاصيل"
       >
-        <p className="text-[10px] font-bold text-orange-400 mb-2">الإغلاق اليومي للبيتكوين</p>
+        <p className="text-sm font-bold text-orange-400 mb-2">الإغلاق اليومي للبيتكوين</p>
 
         <div className="flex-1 flex items-center justify-center py-1">
           <span className="font-mono font-black tabular-nums text-white tracking-tight"
@@ -168,7 +168,7 @@ export function DailyCloseWidget() {
           </span>
         </div>
 
-        <p className="text-[9px] text-white/30 mt-2">متبقي على إغلاق شمعة اليوم</p>
+        <p className="text-sm text-white/30 mt-2">متبقي على إغلاق شمعة اليوم</p>
       </button>
 
       {/* Modal */}

@@ -84,33 +84,33 @@ export default function FibAngleClusterPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-emerald-500/70 tracking-widest uppercase border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-emerald-500/70 tracking-widest uppercase border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <Network className="w-3 h-3" /> Confluence
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">تطابق الفيبو والزوايا (كلاستر)</h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
           البحث عن أقوى مناطق الارتداد حيث تتطابق مستويات الفيبوناتشي مع الزوايا الهندسية
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5 mt-4">
+      <div className="px-5 flex flex-col gap-5 mt-4">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-6">
             <RefreshCcw className="w-8 h-8 text-emerald-500 animate-spin" />
-            <p className="text-emerald-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري تحليل الكلاسترات...</p>
+            <p className="text-emerald-500/80 font-bold tracking-widest uppercase text-sm animate-pulse">جاري تحليل الكلاسترات...</p>
           </div>
         ) : (
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col gap-4"
+            className="flex flex-col gap-6"
           >
-            <div className="flex items-center gap-2 px-1">
+            <div className="flex items-center gap-3 px-1">
               <Target className="w-5 h-5 text-emerald-500" />
-              <h2 className="text-sm font-bold text-white/80">أقوى مناطق الارتداد (Reversal Zones):</h2>
+              <h2 className="text-base font-bold text-white/80">أقوى مناطق الارتداد (Reversal Zones):</h2>
             </div>
 
             <div className="flex flex-col gap-3">
@@ -121,26 +121,26 @@ export default function FibAngleClusterPage() {
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex flex-col gap-1">
                       <span className="text-2xl font-black text-emerald-400 font-mono dir-ltr text-right">${formatPrice(c.price)}</span>
-                      <span className="text-[10px] text-emerald-500/70 font-bold uppercase tracking-widest">{c.strength}</span>
+                      <span className="text-sm text-emerald-500/70 font-bold uppercase tracking-widest">{c.strength}</span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 mt-2 pt-4 border-t border-emerald-500/10">
+                  <div className="grid grid-cols-2 gap-3 mt-2 pt-4 border-t border-emerald-500/10">
                     <div className="flex flex-col gap-1">
-                      <span className="text-[10px] text-white/40">المستوى الذهبي</span>
-                      <span className="text-xs font-bold text-white/90">{c.fibName}</span>
+                      <span className="text-sm text-white/40">المستوى الذهبي</span>
+                      <span className="text-sm font-bold text-white/90">{c.fibName}</span>
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="text-[10px] text-white/40">الزاوية الهندسية</span>
-                      <span className="text-xs font-bold text-white/90">{c.angleName}</span>
+                      <span className="text-sm text-white/40">الزاوية الهندسية</span>
+                      <span className="text-sm font-bold text-white/90">{c.angleName}</span>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="mt-4 p-4 rounded-xl border border-white/5 bg-white/[0.02]">
-              <p className="text-[11px] text-white/40 leading-relaxed font-bold text-center">
+            <div className="mt-4 p-6 rounded-xl border border-white/5 bg-white/[0.02]">
+              <p className="text-sm text-white/40 leading-relaxed font-bold text-center">
                 عندما يتطابق مستوى فيبوناتشي مع زاوية هندسية في نفس السعر، يتشكل &quot;كلاستر&quot; قوي يعمل كدعم أو مقاومة حديدية تصعب كسرها.
               </p>
             </div>

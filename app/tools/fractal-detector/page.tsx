@@ -46,23 +46,23 @@ export default function FractalDetectorPage() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-fuchsia-500/70 tracking-widest uppercase border border-fuchsia-500/20 bg-fuchsia-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-fuchsia-500/70 tracking-widest uppercase border border-fuchsia-500/20 bg-fuchsia-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <Search className="w-3 h-3" /> Pattern
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">كاشف الفراكتل</h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
           البحث عن القمم والقيعان الانعكاسية المؤكدة باستخدام نمط الفراكتل الخماسي
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5 mt-4">
+      <div className="px-5 flex flex-col gap-5 mt-4">
         {isLoading || !fractalState ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-6">
             <RefreshCcw className="w-8 h-8 text-fuchsia-500 animate-spin" />
-            <p className="text-fuchsia-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري فحص الشموع...</p>
+            <p className="text-fuchsia-500/80 font-bold tracking-widest uppercase text-sm animate-pulse">جاري فحص الشموع...</p>
           </div>
         ) : (
           <motion.div 
@@ -80,7 +80,7 @@ export default function FractalDetectorPage() {
                   initial={{ y: -20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ type: "spring", stiffness: 200, damping: 10 }}
-                  className="bg-red-500/20 p-4 rounded-full border border-red-500/30"
+                  className="bg-red-500/20 p-6 rounded-full border border-red-500/30"
                 >
                   <ArrowDown className="w-16 h-16 text-red-400 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]" />
                 </motion.div>
@@ -90,13 +90,13 @@ export default function FractalDetectorPage() {
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ type: "spring", stiffness: 200, damping: 10 }}
-                  className="bg-emerald-500/20 p-4 rounded-full border border-emerald-500/30"
+                  className="bg-emerald-500/20 p-6 rounded-full border border-emerald-500/30"
                 >
                   <ArrowUp className="w-16 h-16 text-emerald-400 drop-shadow-[0_0_15px_rgba(16,185,129,0.8)]" />
                 </motion.div>
               )}
               {fractalState.type === 'neutral' && (
-                <div className="bg-white/5 p-4 rounded-full border border-white/10">
+                <div className="bg-white/5 p-6 rounded-full border border-white/10">
                   <Search className="w-12 h-12 text-white/20" />
                 </div>
               )}
@@ -107,11 +107,11 @@ export default function FractalDetectorPage() {
                 {fractalState.message}
               </h2>
               {fractalState.type !== 'neutral' ? (
-                <p className="text-[12px] text-white/60 font-bold leading-relaxed max-w-[250px]">
+                <p className="text-sm text-white/60 font-bold leading-relaxed max-w-[250px]">
                   هذا النموذج يشير إلى احتمال كبير لانتهاء الموجة الحالية وبدء انعكاس في الاتجاه المعاكس.
                 </p>
               ) : (
-                <p className="text-[11px] text-white/40 font-bold leading-relaxed max-w-[250px]">
+                <p className="text-sm text-white/40 font-bold leading-relaxed max-w-[250px]">
                   لا يوجد قمة أو قاع مؤكد في الشموع الخمسة الأخيرة. الاتجاه الحالي لا يزال مستمراً.
                 </p>
               )}

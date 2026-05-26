@@ -58,29 +58,29 @@ export default function PowerOf3Page() {
       <ToolPageHeader tool={tool} />
 
       {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[9px] font-black text-yellow-500/70 tracking-widest uppercase border border-yellow-500/20 bg-yellow-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-yellow-500/70 tracking-widest uppercase border border-yellow-500/20 bg-yellow-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
             <Zap className="w-3 h-3" /> Pattern
           </span>
         </div>
         <h1 className="text-xl font-black text-white tracking-tight mt-1">التجميع الثلاثي (AMD)</h1>
-        <p className="text-[12px] text-white/40 font-mono leading-relaxed">
+        <p className="text-sm text-white/40 font-mono leading-relaxed">
           كشف خطوات صانع السوق الثلاثية داخل شمعة اليوم الواحد
         </p>
       </div>
 
-      <div className="px-4 flex flex-col gap-5 mt-4">
+      <div className="px-5 flex flex-col gap-5 mt-4">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="flex flex-col items-center justify-center py-20 gap-6">
             <RefreshCcw className="w-8 h-8 text-yellow-500 animate-spin" />
-            <p className="text-yellow-500/80 font-bold tracking-widest uppercase text-xs animate-pulse">جاري تحديد المرحلة الحالية...</p>
+            <p className="text-yellow-500/80 font-bold tracking-widest uppercase text-sm animate-pulse">جاري تحديد المرحلة الحالية...</p>
           </div>
         ) : (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col gap-4"
+            className="flex flex-col gap-6"
           >
             {phases.map((phase) => {
               const isActive = phase.id === currentPhaseIndex;
@@ -96,26 +96,26 @@ export default function PowerOf3Page() {
                       <div className={`p-2 rounded-full ${isActive ? 'bg-black/30' : 'bg-white/5'}`}>
                         <Icon className={`w-5 h-5 ${isActive ? phase.color : 'text-white/40'}`} />
                       </div>
-                      <span className={`text-sm font-black ${isActive ? phase.color : 'text-white/60'}`}>
+                      <span className={`text-base font-black ${isActive ? phase.color : 'text-white/60'}`}>
                         {phase.title}
                       </span>
                     </div>
                     {isActive && (
-                      <span className="text-[9px] bg-white/10 px-2 py-1 rounded-full font-bold text-white uppercase tracking-widest animate-pulse">
+                      <span className="text-sm bg-white/10 px-2 py-1 rounded-full font-bold text-white uppercase tracking-widest animate-pulse">
                         الآن
                       </span>
                     )}
                   </div>
                   
-                  <p className={`text-[11px] font-bold leading-relaxed ${isActive ? 'text-white/90' : 'text-white/30'}`}>
+                  <p className={`text-sm font-bold leading-relaxed ${isActive ? 'text-white/90' : 'text-white/30'}`}>
                     {phase.desc}
                   </p>
                 </div>
               );
             })}
 
-            <div className="mt-4 text-center px-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4">
-              <p className="text-[11px] text-yellow-500/80 leading-relaxed font-bold">
+            <div className="mt-4 text-center px-5 bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-6">
+              <p className="text-sm text-yellow-500/80 leading-relaxed font-bold">
                 تنبيه: لا تقم بالدخول أثناء مرحلة &quot;ضرب الستوبات&quot; لأنها حركة خادعة ومصيدة للمتداولين.
               </p>
             </div>
