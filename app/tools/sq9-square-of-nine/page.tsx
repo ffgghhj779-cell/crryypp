@@ -253,11 +253,6 @@ export default function GannSQ9Page() {
           )}
         </AnimatePresence>
 
-        {/* ── Disclaimer ─────────────────────────────────────────────────── */}
-        <p className="text-sm text-white/25 text-center font-mono leading-relaxed pb-4 max-w-xs mx-auto" dir="rtl">
-          هذه الأداة تعتمد على الإسقاط الهندسي الرقمي لسيكولوجية السوق، ولا تقدم نصائح مالية.
-        </p>
-
       </div>
     </div>
   );

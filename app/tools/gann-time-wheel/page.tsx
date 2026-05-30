@@ -648,11 +648,6 @@ export default function GannWheelPage() {
             </div>
           </motion.div>
         )}
-
-        {/* Disclaimer */}
-        <p className="text-sm text-white/20 text-center font-mono leading-relaxed max-w-xs mx-auto">
-          هذه الأداة مبنية على دورات رياضية وتاريخية. للأغراض التعليمية فقط.
-        </p>
       </div>
     </div>
   );

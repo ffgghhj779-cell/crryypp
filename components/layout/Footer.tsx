@@ -1,6 +1,6 @@
 'use client';
 
-import { Send, Twitter, Link2, BookOpen, AlertTriangle, Heart } from 'lucide-react';
+import { Send, Heart } from 'lucide-react';
 
 const CHANNELS = [
   {
@@ -53,20 +53,6 @@ export function Footer() {
         </div>
       </div>
 
-      {/* ── Disclaimer ───────────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-orange-500/25 bg-orange-500/[0.04] p-6 mb-4">
-        <div className="flex items-start gap-3.5 mb-2">
-          <AlertTriangle className="w-6 h-6 text-orange-500 shrink-0 mt-0.5" />
-          <p className="text-sm font-bold text-orange-400 uppercase tracking-wider">
-            إخلاء مسؤولية · Disclaimer
-          </p>
-        </div>
-        <p className="text-sm text-white/45 leading-relaxed text-right">
-          جميع التحليلات والمعلومات المقدمة في هذا التطبيق هي{' '}
-          <span className="text-orange-400 font-bold">لأغراض تعليمية وإعلامية فقط</span>، ولا تُعدّ نصيحةً استثمارية أو توصيةً بالشراء أو البيع.
-          أسواق العملات الرقمية شديدة التقلب وتنطوي على مخاطر عالية. تحمّل مسؤولية قراراتك الاستثمارية بالكامل وتشاور مع مستشار مالي مرخّص قبل اتخاذ أي قرار.
-        </p>
-      </div>
 
       {/* ── Divider ──────────────────────────────────────────────────────── */}
       <div className="border-t border-white/[0.05] pt-4">

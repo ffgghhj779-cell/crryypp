@@ -240,12 +240,7 @@ export function VIPResultCard({ symbol }: Props) {
               </div>
             </div>
 
-            {/* Footer disclaimer */}
-            <div className="mx-4 mb-4 rounded-xl bg-white/[0.02] border border-white/[0.04] px-3 py-4" dir="rtl">
-              <p className="text-sm text-white/25 leading-relaxed text-right">
-                يعتمد هذا الإجماع على خمس أدوات خوارزمية: توافق الاتجاه متعدد الأطر (EMA-50)، زخم التقاطع (EMA-9/21)، البنية بالنسبة لـ SMA-200، تأكيد الحجم، وجودة الشمعة — مع تطبيق صارم لإدارة المخاطر بحد أقصى 1.4% خسارة من المحفظة لكل صفقة.
-              </p>
-            </div>
+
           </div>
         );
       })()}
