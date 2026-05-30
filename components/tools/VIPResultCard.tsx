@@ -5,13 +5,17 @@ import { fetchKlines }   from '@/lib/binance/fetcher';
 import { calculateVIP }  from '@/lib/algorithms/vip';
 import type { VIPResult } from '@/lib/algorithms/vip';
 import { AlertTriangle } from 'lucide-react';
+import { getAssetInfo } from '@/lib/assetInfo';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function fmtPrice(n: number): string {
-  if (n >= 10_000) return n.toLocaleString('en-US', { maximumFractionDigits: 1 });
-  if (n >= 1)      return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-  return               n.toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 6 });
+function fmtPrice(n: number, symbol: string): string {
+  const info = getAssetInfo(symbol);
+  const formatted = n.toLocaleString('en-US', {
+    minimumFractionDigits: info.precision,
+    maximumFractionDigits: Math.max(info.precision, n >= 10_000 ? 1 : n >= 1 ? 4 : 6),
+  });
+  return info.prefix ? `${info.prefix}${formatted}` : `${formatted} ${info.unit}`;
 }
 
 const inputCls =
@@ -79,7 +83,7 @@ export function VIPResultCard({ symbol }: Props) {
           {/* Portfolio size */}
           <div>
             <label className="text-sm text-white/30 uppercase tracking-widest block mb-1.5">
-              إجمالي المحفظة (USDT)
+              إجمالي المحفظة
             </label>
             <input
               type="number"
@@ -189,7 +193,7 @@ export function VIPResultCard({ symbol }: Props) {
             {/* Entry price */}
             <div className="px-5 py-4 border-b border-white/[0.05] text-center">
               <p className="text-sm text-white/30 uppercase tracking-widest font-mono mb-1">سعر الدخول المرجح</p>
-              <p className="text-2xl font-black text-white font-mono tabular-nums">${fmtPrice(setup.entry)}</p>
+              <p className="text-2xl font-black text-white font-mono tabular-nums">{fmtPrice(setup.entry, symbol)}</p>
             </div>
 
             {/* TP 1/2/3 */}
@@ -201,7 +205,7 @@ export function VIPResultCard({ symbol }: Props) {
               ] as const).map(t => (
                 <div key={t.label} className="py-4 px-2 text-center">
                   <p className="text-sm text-white/25 font-medium mb-1 leading-tight">{t.label}</p>
-                  <p className="text-sm font-mono font-bold text-white tabular-nums">${fmtPrice(t.price)}</p>
+                  <p className="text-sm font-mono font-bold text-white tabular-nums">{fmtPrice(t.price, symbol)}</p>
                   <p className="text-sm font-mono font-bold text-emerald-400 tabular-nums">
                     +{t.pct.toFixed(2)}%
                   </p>
@@ -218,7 +222,7 @@ export function VIPResultCard({ symbol }: Props) {
                 </p>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-white/30 font-mono">-{setup.slDropPct.toFixed(2)}%</span>
-                  <span className="text-lg font-mono font-bold text-orange-400 tabular-nums">${fmtPrice(setup.sl)}</span>
+                  <span className="text-lg font-mono font-bold text-orange-400 tabular-nums">{fmtPrice(setup.sl, symbol)}</span>
                 </div>
               </div>
             </div>
@@ -232,7 +236,7 @@ export function VIPResultCard({ symbol }: Props) {
               <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] px-3 py-4 text-right">
                 <p className="text-sm text-white/30 mb-1">حجم الدخول المسموح</p>
                 <p className="text-lg font-mono font-bold text-orange-300 tabular-nums">{setup.positionSizePct.toFixed(1)}%</p>
-                <p className="text-sm text-white/20 tabular-nums">≈ ${fmtPrice(setup.positionUSDT)} · أقصى 20%</p>
+                <p className="text-sm text-white/20 tabular-nums">≈ {fmtPrice(setup.positionUSDT, symbol)} · أقصى 20%</p>
               </div>
             </div>
 

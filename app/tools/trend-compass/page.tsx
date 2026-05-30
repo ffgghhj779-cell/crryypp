@@ -14,6 +14,7 @@ import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
 import { slugToTool } from '@/lib/tools/registry';
 import { calculateTrendCompass, TrendCompassResult } from '@/lib/algorithms/trendCompass';
 import { fetchLiveCandles, BinanceKline } from '@/lib/api/binance';
+import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
 import { notFound } from 'next/navigation';
 
 export default function TrendCompassPage() {
@@ -30,19 +31,19 @@ export default function TrendCompassPage() {
 
   const tool = slugToTool('trend-compass');
 
-  // 1. Fetch initial live data on mount
+  // 1. Fetch initial live data on mount AND when symbol/timeframe changes
   useEffect(() => {
     let mounted = true;
     const fetchInitial = async () => {
       setIsLoading(true);
       setError('');
       try {
-        const klines = await fetchLiveCandles('BTCUSDT', '1d', 200);
+        const klines = await fetchLiveCandles(symbol, timeframe.toLowerCase(), 200);
         if (mounted) {
           setLiveData(klines);
           if (klines.length > 0) {
-            // Optionally auto-calculate on mount
-            const res = calculateTrendCompass('BTCUSDT', '1D', klines as any);
+            // Auto-calculate when symbol/timeframe changes
+            const res = calculateTrendCompass(symbol.toUpperCase().trim(), timeframe.toUpperCase(), klines as any);
             setResult(res);
             setTimeout(() => setAnimated(true), 100);
           }
@@ -55,7 +56,8 @@ export default function TrendCompassPage() {
     };
     fetchInitial();
     return () => { mounted = false; };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [symbol, timeframe]);
 
   // 2. Fetch new data when user explicitly clicks the button
   const handleCalculate = async () => {
@@ -133,18 +135,11 @@ export default function TrendCompassPage() {
         {/* Input */}
         <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-6 shadow-xl shadow-black/50">
           <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 col-span-2">
               <label className="text-sm font-bold text-white/50 uppercase tracking-widest">رمز الأصل المالي</label>
-              <input
-                type="text"
-                value={symbol}
-                onChange={e => setSymbol(e.target.value)}
-                placeholder="BTCUSDT"
-                className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-base px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-colors"
-                dir="ltr"
-              />
+              <SymbolDropdown value={symbol} onChange={setSymbol} />
             </div>
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 col-span-2">
               <label className="text-sm font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5">الإطار الزمني</label>
               <div className="relative">
                 <select

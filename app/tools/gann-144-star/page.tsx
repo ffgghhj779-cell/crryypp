@@ -33,6 +33,8 @@ import type {
   AnchorType,
 } from '@/lib/algorithms/gann144';
 import { notFound } from 'next/navigation';
+import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
+
 
 // ─── Polar helpers ─────────────────────────────────────────────────────────────
 function polar(cx: number, cy: number, r: number, angleDeg: number) {
@@ -424,14 +426,7 @@ export default function Gann144StarPage() {
             <label className="text-sm font-bold text-white/50 uppercase tracking-widest">
               رمز الأصل / العملة
             </label>
-            <input
-              type="text"
-              value={symbol}
-              onChange={e => setSymbol(e.target.value)}
-              placeholder="BTCUSDT"
-              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-base px-5 py-4 placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 transition-colors"
-              dir="ltr"
-            />
+            <SymbolDropdown value={symbol} onChange={setSymbol} />
           </div>
 
           {/* Anchor Type */}

@@ -1,90 +1,90 @@
 /**
  * scripts/add-symbol-dropdown.mjs
- *
- * Updates all manual/fetch tool pages to replace the plain symbol <input>
- * with the SymbolDropdown component.
- *
- * Run with: node scripts/add-symbol-dropdown.mjs
+ * Adds SymbolDropdown to tool pages that still have a plain text input for symbol.
+ * Targets tools with `placeholder="BTCUSDT"` text input.
  */
 
 import { readFileSync, writeFileSync } from 'fs';
-import { join, dirname } from 'path';
+import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = join(__dirname, '..');
+const __dir = dirname(fileURLToPath(import.meta.url));
+const root  = resolve(__dir, '..');
 
-// ── Tools that have a symbol text input + fetchKlines ────────────────────────
-const TOOL_FILES = [
-  'app/tools/atr-volatility/page.tsx',
-  'app/tools/ema-ribbon/page.tsx',
-  'app/tools/matrix-4x4/page.tsx',
-  'app/tools/momentum-intelligence/page.tsx',
-  'app/tools/trading-vip-1/page.tsx',
-  'app/tools/trading-vip-2/page.tsx',
-  'app/tools/triple-lens/page.tsx',
-  'app/tools/unified-decision-6-tools/page.tsx',
+const TARGETS = [
+  'app/tools/harmonic-scanner/page.tsx',
+  'app/tools/pattern-scanner/page.tsx',
+  'app/tools/fibonacci-matrix/page.tsx',
+  'app/tools/gann-144-star/page.tsx',
 ];
 
-const IMPORT_LINE = `import { SymbolDropdown } from '@/components/tools/SymbolDropdown';`;
+const IMPORT_LINE = `import { SymbolDropdown } from '@/components/tools/SymbolDropdown';\n`;
 
-// Matches any <input block with value={symbol} (the symbol text input)
-// We replace the ENTIRE <input ... /> element with <SymbolDropdown value={symbol} onChange={setSymbol} />
-const INPUT_PATTERN = /<input[\s\S]*?value=\{symbol\}[\s\S]*?\/>/g;
-const DROPDOWN_REPLACEMENT = `<SymbolDropdown value={symbol} onChange={setSymbol} />`;
+// Regex that matches the text input block used for symbol entry
+const TEXT_INPUT_RE = /(\s*<input[\s\S]*?placeholder=["']BTCUSDT["'][\s\S]*?(?:\/>|<\/input>))/g;
 
-let totalFixed = 0;
+// Replacement: SymbolDropdown (the value/onChange are already wired to the symbol state)
+const DROPDOWN_REPLACEMENT = `
+              <SymbolDropdown value={symbol} onChange={setSymbol} />`;
 
-for (const relPath of TOOL_FILES) {
-  const filePath = join(ROOT, relPath);
-  let content;
+let updatedCount = 0;
+let skippedCount = 0;
 
+for (const rel of TARGETS) {
+  const filePath = resolve(root, rel);
+  let src;
   try {
-    content = readFileSync(filePath, 'utf-8');
-  } catch (e) {
-    console.error(`❌ Cannot read ${relPath}: ${e.message}`);
+    src = readFileSync(filePath, 'utf8');
+  } catch {
+    console.log(`❓ Not found: ${rel}`);
+    skippedCount++;
     continue;
   }
 
-  let changed = false;
-
-  // 1. Add import if not already present
-  if (!content.includes('SymbolDropdown')) {
-    // Insert after the last existing import line
-    const lastImportIdx = content.lastIndexOf("\nimport ");
-    const insertAfter = content.indexOf('\n', lastImportIdx + 1);
-    if (insertAfter !== -1) {
-      content = content.slice(0, insertAfter + 1) + IMPORT_LINE + '\n' + content.slice(insertAfter + 1);
-      changed = true;
-    }
+  // Already has SymbolDropdown?
+  if (src.includes('SymbolDropdown')) {
+    console.log(`⏭️  Already has SymbolDropdown: ${rel}`);
+    skippedCount++;
+    continue;
   }
 
-  // 2. Replace symbol <input ... /> with <SymbolDropdown ... />
-  const before = content;
-  content = content.replace(INPUT_PATTERN, (match) => {
-    // Only replace if this input is clearly the symbol input
-    if (match.includes('value={symbol}') && (
-      match.includes('placeholder="BTCUSDT"') ||
-      match.includes("placeholder='BTCUSDT'") ||
-      match.includes('placeholder="BTC"') ||
-      match.includes('dir="ltr"') ||
-      match.includes("dir='ltr'")
-    )) {
-      changed = true;
-      return DROPDOWN_REPLACEMENT;
-    }
-    return match; // leave non-symbol inputs untouched
-  });
-
-  if (content !== before) changed = true;
-
-  if (changed) {
-    writeFileSync(filePath, content, 'utf-8');
-    console.log(`✅ Updated: ${relPath}`);
-    totalFixed++;
-  } else {
-    console.log(`⏭️  No change needed: ${relPath}`);
+  // Must have placeholder="BTCUSDT" text input
+  if (!src.includes('placeholder="BTCUSDT"') && !src.includes("placeholder='BTCUSDT'")) {
+    console.log(`⏭️  No BTCUSDT placeholder found: ${rel}`);
+    skippedCount++;
+    continue;
   }
+
+  // 1. Add import after last existing import line
+  const importInsertIdx = (() => {
+    // Find the position after the last import statement
+    const lines = src.split('\n');
+    let lastImport = 0;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].trim().startsWith('import ')) lastImport = i;
+    }
+    // Return character offset of end of that line
+    return lines.slice(0, lastImport + 1).join('\n').length;
+  })();
+
+  src = src.slice(0, importInsertIdx) + '\n' + IMPORT_LINE + src.slice(importInsertIdx);
+
+  // 2. Replace the text input block for symbol
+  // Strategy: find the <input> with placeholder="BTCUSDT" and replace up to its closing
+  // Use a targeted approach that works with the indentation of each file
+
+  // Pattern 1: self-closing <input ... placeholder="BTCUSDT" ... />
+  src = src.replace(
+    /<input[\s\S]*?placeholder=["']BTCUSDT["'][\s\S]*?\/>/g,
+    '<SymbolDropdown value={symbol} onChange={setSymbol} />'
+  );
+
+  // 3. Remove unused onSymbolChange if it only fed the old text input
+  // (safe to leave — won't break anything if present)
+
+  writeFileSync(filePath, src, 'utf8');
+  console.log(`✅ Updated: ${rel}`);
+  updatedCount++;
 }
 
-console.log(`\n🎉 Done! Updated ${totalFixed} / ${TOOL_FILES.length} tool pages.`);
+console.log(`\n🎉 Done! ${updatedCount} tools updated, ${skippedCount} skipped.`);
