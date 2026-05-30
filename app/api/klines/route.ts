@@ -40,11 +40,23 @@ function toTDInterval(interval: string): string {
 }
 
 // ── Twelve Data fetcher ───────────────────────────────────────────────────────
+async function fetchTwelveDataOnce(params: URLSearchParams): Promise<Response | null> {
+  try {
+    return await fetch(
+      `https://api.twelvedata.com/time_series?${params}`,
+      { next: { revalidate: 3600 } },
+    );
+  } catch (err: any) {
+    console.error('[Twelve Data] fetch error:', err.message);
+    return null;
+  }
+}
+
 async function fetchTwelveData(
   symbol: string, interval: string, limit: number,
 ): Promise<KlineBar[] | null> {
   const apiKey = process.env.TWELVEDATA_API_KEY;
-  if (!apiKey) return null;                          // no key → skip to fallback
+  if (!apiKey) return null;
 
   const tdSymbol = TD_SYMBOL[symbol.toUpperCase()];
   if (!tdSymbol) return null;
@@ -58,23 +70,26 @@ async function fetchTwelveData(
     order:      'ASC',
   });
 
-  try {
-    const res = await fetch(
-      `https://api.twelvedata.com/time_series?${params}`,
-      { next: { revalidate: 3600 } },
-    );
-    if (!res.ok) {
-      console.warn(`[Twelve Data] HTTP ${res.status} for ${tdSymbol}`);
-      return null;
-    }
-    const json = await res.json();
+  let res = await fetchTwelveDataOnce(params);
 
-    // API returns { code: 400, message: "..." } on errors
+  // 429 Rate limit — wait 2 seconds and retry once
+  if (res && res.status === 429) {
+    console.warn('[Twelve Data] Rate limited — retrying in 2s...');
+    await new Promise(r => setTimeout(r, 2000));
+    res = await fetchTwelveDataOnce(params);
+  }
+
+  if (!res || !res.ok) {
+    console.warn(`[Twelve Data] HTTP ${res?.status ?? 'null'} for ${tdSymbol}`);
+    return null;
+  }
+
+  try {
+    const json = await res.json();
     if (json.status === 'error' || json.code) {
       console.warn(`[Twelve Data] API error: ${json.message}`);
       return null;
     }
-
     const values: Array<{
       datetime: string;
       open: string; high: string; low: string; close: string; volume?: string;
@@ -91,7 +106,7 @@ async function fetchTwelveData(
       volume: v.volume ? parseFloat(v.volume) : 1000,
     }));
   } catch (err: any) {
-    console.error('[Twelve Data] Exception:', err.message);
+    console.error('[Twelve Data] parse error:', err.message);
     return null;
   }
 }

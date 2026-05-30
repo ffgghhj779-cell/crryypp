@@ -54,6 +54,27 @@ export function getAssetInfo(symbol: string): AssetInfo {
 }
 
 /**
+ * Returns the Arabic display name for a symbol.
+ * Examples:
+ *   assetLabelAr('XAUUSD')  → 'ذهب عالمي'
+ *   assetLabelAr('EGYXAU')  → 'ذهب مصري'
+ *   assetLabelAr('BTCUSDT') → 'بيتكوين'
+ *   assetLabelAr('UNKNOWN') → 'UNKNOWN'
+ */
+export function assetLabelAr(symbol: string): string {
+  return (ASSET_MAP[symbol.toUpperCase().trim()] ?? DEFAULT_ASSET).labelAr || symbol;
+}
+
+/**
+ * Returns just the currency prefix for a symbol.
+ * Use this to prefix price strings: `${currencyPrefix(symbol)}${price}`
+ * For EGP assets it returns '' (suffix style — use formatAssetPrice instead).
+ */
+export function currencyPrefix(symbol: string): string {
+  return getAssetInfo(symbol).prefix;
+}
+
+/**
  * Formats a price number according to its asset's convention.
  * Examples:
  *   formatAssetPrice(3340.25, 'XAUUSD')  → '$3,340.25'

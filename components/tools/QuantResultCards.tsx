@@ -3,6 +3,7 @@
 import type {
   MonteCarloResult, LinearRegressionResult, MarkovResult, FourierResult,
 } from '@/lib/algorithms/advancedQuant';
+import { formatAssetPrice } from '@/lib/assetInfo';
 
 function fmtPrice(n: number): string {
   if (Math.abs(n) >= 10_000) return n.toLocaleString('en-US', { maximumFractionDigits: 1 });
@@ -113,9 +114,9 @@ export function LinearRegressionCard({ data, symbol, timeframe }: LRProps) {
 
       <div className="mx-4 my-3 rounded-xl border border-white/[0.07] bg-[#0a0a0a] divide-y divide-white/[0.05]" dir="rtl">
         {[
-          { ar: 'القناة العلوية (+2σ)',  val: `$${fmtPrice(data.upperChannel)}`, color: 'text-red-300'     },
-          { ar: 'قيمة الانحدار الحالية', val: `$${fmtPrice(data.currentFit)}`,   color: 'text-orange-300'  },
-          { ar: 'القناة السفلية (-2σ)',  val: `$${fmtPrice(data.lowerChannel)}`, color: 'text-emerald-300' },
+          { ar: 'القناة العلوية (+2σ)',  val: formatAssetPrice(data.upperChannel, symbol), color: 'text-red-300'     },
+          { ar: 'قيمة الانحدار الحالية', val: formatAssetPrice(data.currentFit, symbol),   color: 'text-orange-300'  },
+          { ar: 'القناة السفلية (-2σ)',  val: formatAssetPrice(data.lowerChannel, symbol), color: 'text-emerald-300' },
         ].map(({ ar, val, color }) => (
           <div key={ar} className="flex items-center justify-between px-3 py-4.5">
             <span className={`text-base font-mono font-bold tabular-nums ${color}`}>{val}</span>

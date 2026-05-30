@@ -1,6 +1,7 @@
 'use client';
 
 import type { SMCResult } from '@/lib/algorithms/smc';
+import { formatAssetPrice } from '@/lib/assetInfo';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -152,10 +153,10 @@ export function SMCResultCard({ data, symbol }: Props) {
       <div className="px-5 py-4 border-b border-white/[0.05]">
         <p className="text-sm text-white/25 uppercase tracking-widest mb-2.5 font-mono">إعداد الصفقة</p>
         <div className="grid grid-cols-2 gap-3">
-          <SetupBox labelEn="ENTRY"     labelAr="سعر الدخول"   value={`$${fmt(data.setup.entry)}`}  variant="entry"   />
-          <SetupBox labelEn="STOP LOSS" labelAr="وقف الخسارة"  value={`$${fmt(data.setup.sl)}`}     variant="sl"      />
-          <SetupBox labelEn="TP1"       labelAr="الهدف الأول"  value={`$${fmt(data.setup.tp1)}`}    variant="tp"      />
-          <SetupBox labelEn="TP2"       labelAr="الهدف الثاني" value={`$${fmt(data.setup.tp2)}`}    variant="tp"      />
+          <SetupBox labelEn="ENTRY"     labelAr="سعر الدخول"   value={formatAssetPrice(data.setup.entry, symbol)}  variant="entry"   />
+          <SetupBox labelEn="STOP LOSS" labelAr="وقف الخسارة"  value={formatAssetPrice(data.setup.sl, symbol)}     variant="sl"      />
+          <SetupBox labelEn="TP1"       labelAr="الهدف الأول"  value={formatAssetPrice(data.setup.tp1, symbol)}    variant="tp"      />
+          <SetupBox labelEn="TP2"       labelAr="الهدف الثاني" value={formatAssetPrice(data.setup.tp2, symbol)}    variant="tp"      />
         </div>
         <div className="mt-2 text-center">
           <span className="text-sm text-white/25 font-mono">نسبة المخاطرة / العائد · </span>

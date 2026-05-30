@@ -4,6 +4,7 @@ import type {
   DoublePatternResult, CupHandleResult, HSResult,
   TriangleResult, MarketStructureResult,
 } from '@/lib/algorithms/classicPatterns';
+import { formatAssetPrice } from '@/lib/assetInfo';
 
 function fmtPrice(n: number): string {
   if (!n) return '—';
@@ -88,10 +89,10 @@ export function DoublePatternCard({ data, symbol, timeframe }: DoubleProps) {
       {!data.detected ? <EmptyState text="لم يُرصد نموذج قمتين أو قاعين." /> : (
         <>
           <div className="mx-4 my-3 rounded-xl border border-white/[0.06] bg-[#0a0a0a] divide-y divide-white/[0.05]">
-            <PriceRow label="النقطة الأولى"  value={`$${fmtPrice(data.level1)}`}   color={isTop ? 'text-red-300' : 'text-emerald-300'} />
-            <PriceRow label="النقطة الثانية" value={`$${fmtPrice(data.level2)}`}   color={isTop ? 'text-red-300' : 'text-emerald-300'} />
-            <PriceRow label="خط العنق"        value={`$${fmtPrice(data.neckline)}`} color="text-orange-300" />
-            <PriceRow label="الهدف المتوقع"   value={`$${fmtPrice(data.target)}`}   color={isTop ? 'text-red-400' : 'text-emerald-400'} />
+            <PriceRow label="النقطة الأولى"  value={formatAssetPrice(data.level1, symbol)}   color={isTop ? 'text-red-300' : 'text-emerald-300'} />
+            <PriceRow label="النقطة الثانية" value={formatAssetPrice(data.level2, symbol)}   color={isTop ? 'text-red-300' : 'text-emerald-300'} />
+            <PriceRow label="خط العنق"        value={formatAssetPrice(data.neckline, symbol)} color="text-orange-300" />
+            <PriceRow label="الهدف المتوقع"   value={formatAssetPrice(data.target, symbol)}   color={isTop ? 'text-red-400' : 'text-emerald-400'} />
           </div>
           <div className="mx-4 mb-3 flex justify-between items-center" dir="rtl">
             <span className="text-sm text-white/25">الثقة</span>
@@ -125,8 +126,8 @@ export function CupHandleCard({ data, symbol, timeframe }: CupProps) {
             {[
               { label: 'عمق الكوب',    value: `${data.cupDepthPct}%`,    color: 'text-sky-300' },
               { label: 'عمق المقبض',   value: `${data.handleDepthPct}%`, color: 'text-violet-300' },
-              { label: 'مستوى الحافة', value: `$${fmtPrice(data.rimLevel)}`, color: 'text-orange-300' },
-              { label: 'الهدف',        value: `$${fmtPrice(data.target)}`,   color: 'text-emerald-300' },
+              { label: 'مستوى الحافة', value: formatAssetPrice(data.rimLevel, symbol), color: 'text-orange-300' },
+              { label: 'الهدف',        value: formatAssetPrice(data.target, symbol),   color: 'text-emerald-300' },
             ].map(({ label, value, color }) => (
               <div key={label} className="rounded-xl bg-white/[0.03] border border-white/[0.05] px-3 py-4 text-right">
                 <p className="text-sm text-white/30 mb-1">{label}</p>
@@ -166,11 +167,11 @@ export function HeadShouldersCard({ data, symbol, timeframe }: HSProps) {
       {!data.detected ? <EmptyState text="لم يُرصد نموذج الرأس والكتفين." /> : (
         <>
           <div className="mx-4 my-3 rounded-xl border border-white/[0.06] bg-[#0a0a0a] divide-y divide-white/[0.05]">
-            <PriceRow label="الكتف الأيسر"  value={`$${fmtPrice(data.leftShoulder)}`}  color="text-white/60" />
-            <PriceRow label="الرأس"          value={`$${fmtPrice(data.head)}`}           color={isInverse ? 'text-emerald-300' : 'text-red-300'} />
-            <PriceRow label="الكتف الأيمن"  value={`$${fmtPrice(data.rightShoulder)}`}  color="text-white/60" />
-            <PriceRow label="خط العنق"       value={`$${fmtPrice(data.neckline)}`}       color="text-orange-300" />
-            <PriceRow label="الهدف المتوقع"  value={`$${fmtPrice(data.target)}`}         color={isInverse ? 'text-emerald-400' : 'text-red-400'} />
+            <PriceRow label="الكتف الأيسر"  value={formatAssetPrice(data.leftShoulder, symbol)}  color="text-white/60" />
+            <PriceRow label="الرأس"          value={formatAssetPrice(data.head, symbol)}           color={isInverse ? 'text-emerald-300' : 'text-red-300'} />
+            <PriceRow label="الكتف الأيمن"  value={formatAssetPrice(data.rightShoulder, symbol)}  color="text-white/60" />
+            <PriceRow label="خط العنق"       value={formatAssetPrice(data.neckline, symbol)}       color="text-orange-300" />
+            <PriceRow label="الهدف المتوقع"  value={formatAssetPrice(data.target, symbol)}         color={isInverse ? 'text-emerald-400' : 'text-red-400'} />
           </div>
           <div className="mx-4 mb-3 flex justify-between items-center" dir="rtl">
             <span className="text-sm text-white/25">الثقة</span>
@@ -256,8 +257,8 @@ export function MarketStructureCard({ data, symbol, timeframe }: MSProps) {
 
       {/* Swing levels */}
       <div className="mx-4 my-3 rounded-xl border border-white/[0.06] bg-[#0a0a0a] divide-y divide-white/[0.05]">
-        <PriceRow label="قمة الأمد القريب (Swing High)" value={`$${fmtPrice(data.swingHigh)}`} color="text-red-300" />
-        <PriceRow label="قاع الأمد القريب (Swing Low)"  value={`$${fmtPrice(data.swingLow)}`}  color="text-emerald-300" />
+        <PriceRow label="قمة الأمد القريب (Swing High)" value={formatAssetPrice(data.swingHigh, symbol)} color="text-red-300" />
+        <PriceRow label="قاع الأمد القريب (Swing Low)"  value={formatAssetPrice(data.swingLow, symbol)}  color="text-emerald-300" />
       </div>
 
       <Verdict text={data.verdict} />

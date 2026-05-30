@@ -1,7 +1,7 @@
 // ─── Binance Public Klines Fetcher ────────────────────────────────────────────
 // Thick-client engine: runs entirely in the browser, zero server latency.
 // Endpoint: GET https://api.binance.com/api/v3/klines
-// Commodities: routed via /api/klines proxy (Yahoo Finance)
+// Commodities: routed via /api/klines proxy (Twelve Data / GBM fallback)
 
 export interface Kline {
   time:   number; // Unix seconds (open time)
@@ -28,6 +28,44 @@ type RawKline = [
   string,  // 11 ignore
 ];
 
+// ─── In-Memory Candle Cache ────────────────────────────────────────────────────
+// Prevents hammering Twelve Data (800 req/day, 8 req/min) when multiple tools
+// open the same asset. Lives for the lifetime of the browser tab.
+
+interface CacheEntry { bars: Kline[]; expiresAt: number }
+const _cache = new Map<string, CacheEntry>();
+
+/** Cache TTL per interval (ms). Shorter intervals = fresher data needed. */
+const INTERVAL_TTL_MS: Record<string, number> = {
+  '1m':  60_000,         // 1 minute
+  '5m':  2 * 60_000,     // 2 minutes
+  '15m': 5 * 60_000,     // 5 minutes
+  '30m': 10 * 60_000,    // 10 minutes
+  '1h':  20 * 60_000,    // 20 minutes
+  '2h':  30 * 60_000,    // 30 minutes
+  '4h':  60 * 60_000,    // 1 hour
+  '1d':  4 * 60 * 60_000, // 4 hours
+  '1w':  24 * 60 * 60_000, // 24 hours
+};
+
+function cacheKey(symbol: string, interval: string, limit: number): string {
+  return `${symbol}|${interval}|${limit}`;
+}
+
+function fromCache(key: string): Kline[] | null {
+  const e = _cache.get(key);
+  if (!e) return null;
+  if (Date.now() > e.expiresAt) { _cache.delete(key); return null; }
+  return e.bars;
+}
+
+function toCache(key: string, bars: Kline[], interval: string): void {
+  const ttl = INTERVAL_TTL_MS[interval.toLowerCase()] ?? 20 * 60_000;
+  _cache.set(key, { bars, expiresAt: Date.now() + ttl });
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 /** Commodity symbols — routed to /api/klines proxy instead of Binance */
 const COMMODITY_SYMBOLS = new Set(['XAUUSD', 'WTIUSD', 'USDEGP', 'EGYXAU', 'BRENTUSD']);
 
@@ -40,10 +78,16 @@ function normaliseInterval(interval: string): string {
   return interval.toLowerCase();
 }
 
+// ─── Main Fetch Function ───────────────────────────────────────────────────────
+
 /**
- * Fetches OHLCV kline data.
+ * Fetches OHLCV kline data with in-memory caching.
  * - Crypto symbols → Binance REST API (direct browser fetch)
  * - Commodity symbols (XAUUSD, WTIUSD, USDEGP, EGYXAU) → /api/klines proxy
+ *   (Twelve Data real data → GBM fallback)
+ *
+ * Results are cached per (symbol, interval, limit) to avoid hitting
+ * Twelve Data rate limits (800 req/day, 8 req/min) across multiple tools.
  */
 export async function fetchKlines(
   symbol:   string,
@@ -54,7 +98,12 @@ export async function fetchKlines(
   const clampedLimit = Math.min(Math.max(1, limit), 1000);
   const normInterval = normaliseInterval(interval);
 
-  // ── Commodity path ─────────────────────────────────────────────────────
+  // ── Cache lookup ──────────────────────────────────────────────────────────
+  const key    = cacheKey(upperSymbol, normInterval, clampedLimit);
+  const cached = fromCache(key);
+  if (cached) return cached;
+
+  // ── Commodity path ─────────────────────────────────────────────────────────
   if (COMMODITY_SYMBOLS.has(upperSymbol)) {
     const params = new URLSearchParams({
       symbol:   upperSymbol,
@@ -63,7 +112,8 @@ export async function fetchKlines(
     });
     let res: Response;
     try {
-      res = await fetch(`/api/klines?${params}`, { cache: 'no-store' });
+      // Use default caching so Vercel edge cache serves repeated requests
+      res = await fetch(`/api/klines?${params}`);
     } catch {
       throw new Error('Network error — check your connection and try again.');
     }
@@ -72,10 +122,11 @@ export async function fetchKlines(
     if (!Array.isArray(bars) || bars.length === 0) {
       throw new Error(`No commodity data for "${upperSymbol}".`);
     }
+    toCache(key, bars, normInterval);
     return bars;
   }
 
-  // ── Crypto path (original Binance logic) ───────────────────────────────
+  // ── Crypto path (original Binance logic) ───────────────────────────────────
   const url = [
     'https://api.binance.com/api/v3/klines',
     `?symbol=${encodeURIComponent(upperSymbol)}`,
@@ -105,7 +156,7 @@ export async function fetchKlines(
     throw new Error(`No data returned for symbol "${symbol}". Verify the pair is listed on Binance.`);
   }
 
-  return raw.map((k): Kline => ({
+  const bars = raw.map((k): Kline => ({
     time:   Math.floor(k[0] / 1000),
     open:   parseFloat(k[1]),
     high:   parseFloat(k[2]),
@@ -113,4 +164,18 @@ export async function fetchKlines(
     close:  parseFloat(k[4]),
     volume: parseFloat(k[5]),
   }));
+
+  toCache(key, bars, normInterval);
+  return bars;
+}
+
+/**
+ * Invalidates cache for a specific symbol (all intervals/limits).
+ * Call when the user forces a refresh.
+ */
+export function invalidateCache(symbol: string): void {
+  const prefix = symbol.toUpperCase().trim() + '|';
+  for (const k of _cache.keys()) {
+    if (k.startsWith(prefix)) _cache.delete(k);
+  }
 }

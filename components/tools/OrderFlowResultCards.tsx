@@ -1,6 +1,7 @@
 'use client';
 
 import type { FVGResult, SweepResult, CVDResult } from '@/lib/algorithms/orderflow';
+import { formatAssetPrice } from '@/lib/assetInfo';
 
 function fmtPrice(n: number): string {
   if (Math.abs(n) >= 10_000) return n.toLocaleString('en-US', { maximumFractionDigits: 1 });
@@ -78,9 +79,9 @@ export function FvgResultCard({ data, symbol, timeframe }: FvgProps) {
       ) : (
         <div className="mx-4 my-3 rounded-xl border border-white/[0.06] bg-[#0a0a0a] divide-y divide-white/[0.05]" dir="rtl">
           {[
-            { ar: 'الحد العلوي (Top)',    val: `$${fmtPrice(data.top)}`,      color: isBull ? 'text-emerald-300' : 'text-red-300' },
-            { ar: 'المنتصف (Midpoint)',   val: `$${fmtPrice(data.midpoint)}`, color: 'text-orange-300' },
-            { ar: 'الحد السفلي (Bottom)', val: `$${fmtPrice(data.bottom)}`,   color: isBull ? 'text-emerald-300' : 'text-red-300' },
+            { ar: 'الحد العلوي (Top)',    val: formatAssetPrice(data.top, symbol),      color: isBull ? 'text-emerald-300' : 'text-red-300' },
+            { ar: 'المنتصف (Midpoint)',   val: formatAssetPrice(data.midpoint, symbol), color: 'text-orange-300' },
+            { ar: 'الحد السفلي (Bottom)', val: formatAssetPrice(data.bottom, symbol),   color: isBull ? 'text-emerald-300' : 'text-red-300' },
             { ar: 'العمر (Age)',          val: `${data.age} شمعة`,            color: 'text-white/60' },
           ].map(({ ar, val, color }) => (
             <div key={ar} className="flex items-center justify-between px-3 py-4.5">
