@@ -78,22 +78,30 @@ export async function fetchLiveCandles(
 
 /**
  * Fetches the current live price.
- * For commodities, fetches the latest kline close from /api/klines.
+ * - Commodities: calls /api/commodities (metals.live real-time — always fresh)
+ * - Crypto: Binance ticker
  */
 export async function fetchCurrentPrice(symbol: string): Promise<number | null> {
   const upperSymbol = symbol.toUpperCase().trim();
 
-  // ── Commodity: get latest close price ───────────────────────────────────
+  // ── Commodity: real-time spot from /api/commodities ────────────────────
   if (COMMODITY_SYMBOLS.has(upperSymbol)) {
     try {
-      const params = new URLSearchParams({ symbol: upperSymbol, interval: '1h', limit: '1' });
-      const res = await fetch(`/api/klines?${params}`);
-      if (!res.ok) return null;
-      const bars: BinanceKline[] = await res.json();
-      return Array.isArray(bars) && bars.length > 0 ? bars[bars.length - 1].close : null;
-    } catch {
-      return null;
-    }
+      const res = await fetch('/api/commodities');
+      if (res.ok) {
+        const data = await res.json();
+        const priceMap: Record<string, number | undefined> = {
+          XAUUSD:   data.gold?.price,
+          WTIUSD:   data.oil?.price,
+          BRENTUSD: data.oil?.price,
+          USDEGP:   data.usdEgp?.price,
+          EGYXAU:   data.egyptianGold?.price,
+        };
+        const price = priceMap[upperSymbol];
+        if (price && price > 0) return price;
+      }
+    } catch {}
+    return null;
   }
 
   // ── Crypto: original Binance ticker ──────────────────────────────────────

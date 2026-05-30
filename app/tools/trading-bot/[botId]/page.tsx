@@ -11,6 +11,8 @@ import { useState, useEffect, use } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ScanSearch, AlertCircle, Bot, Activity, Crosshair, Target, ShieldAlert, ArrowUpRight, ArrowDownRight, Info } from 'lucide-react';
 import { generateBotSignal, TradingBotSignal } from '@/lib/algorithms/tradingBots';
+import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
+import { getAssetInfo } from '@/lib/assetInfo';
 import { useRouter } from 'next/navigation';
 
 export default function TradingBotPage({ params }: { params: Promise<{ botId: string }> }) {
@@ -28,29 +30,57 @@ export default function TradingBotPage({ params }: { params: Promise<{ botId: st
   // Pre-fetch the bot's static info on load just to show header correctly
   const botStatic = generateBotSignal(botId, 0);
 
-  const handleRunBot = () => {
+  const handleRunBot = async () => {
     setError('');
     if (!symbol.trim()) return setError('أدخل اسم الأصل للتداول.');
     
     setLoading(true);
     
     try {
-      setTimeout(() => {
-        // Mock current price for simulation
-        const mockPrice = symbol.toUpperCase() === 'BTCUSDT' ? 62500 : 3500;
-        const res = generateBotSignal(botId, mockPrice);
-        setResult(res);
-        setLoading(false);
-      }, 900);
+      // Fetch real current price
+      let currentPrice = 0;
+      const sym = symbol.toUpperCase().trim();
+      const COMMODITIES = ['XAUUSD', 'WTIUSD', 'BRENTUSD', 'USDEGP', 'EGYXAU'];
+
+      if (COMMODITIES.includes(sym)) {
+        // Real-time commodity price
+        const res = await fetch('/api/commodities');
+        if (res.ok) {
+          const data = await res.json();
+          const priceMap: Record<string, number> = {
+            XAUUSD: data.gold?.price,
+            WTIUSD: data.oil?.price,
+            BRENTUSD: data.oil?.price,
+            USDEGP: data.usdEgp?.price,
+            EGYXAU: data.egyptianGold?.price,
+          };
+          currentPrice = priceMap[sym] || 0;
+        }
+      } else {
+        // Binance ticker
+        const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${encodeURIComponent(sym)}`);
+        if (res.ok) {
+          const data = await res.json();
+          currentPrice = parseFloat(data.price) || 0;
+        }
+      }
+
+      if (!currentPrice) currentPrice = 1000; // last resort
+      const res = generateBotSignal(botId, currentPrice);
+      setResult(res);
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'حدث خطأ في تشغيل المستشار الآلي.');
+    } finally {
       setLoading(false);
     }
   };
 
-  const priceStr = (val: number) => {
-    return val.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  const assetInfo = getAssetInfo(symbol);
+  const priceStr  = (val: number) => {
+    const info = getAssetInfo(symbol);
+    const fmt  = val.toLocaleString('en-US', { minimumFractionDigits: info.precision, maximumFractionDigits: Math.max(info.precision, 2) });
+    return info.prefix ? `${info.prefix}${fmt}` : `${fmt} ${info.unit}`;
   };
 
   return (
@@ -92,14 +122,7 @@ export default function TradingBotPage({ params }: { params: Promise<{ botId: st
         <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md p-5 flex flex-col gap-4 shadow-xl shadow-black/50">
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest">تحديد الأصل المالي</label>
-            <input
-              type="text"
-              value={symbol}
-              onChange={e => setSymbol(e.target.value)}
-              placeholder="BTCUSDT"
-              className="w-full rounded-xl bg-black/40 border border-white/[0.08] text-white font-mono text-sm px-4 py-3 placeholder:text-white/20 focus:outline-none focus:border-indigo-500/40 transition-colors"
-              dir="ltr"
-            />
+            <SymbolDropdown value={symbol} onChange={setSymbol} />
           </div>
 
           <AnimatePresence>

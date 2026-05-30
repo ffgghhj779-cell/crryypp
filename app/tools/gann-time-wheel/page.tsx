@@ -10,7 +10,7 @@ import { ShieldAlert, AlertTriangle, TrendingUp, TrendingDown, Minus, ChevronRig
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
-type Asset = 'BTC' | 'GOLD';
+type Asset = 'BTC' | 'GOLD' | 'OIL' | 'USDEGP' | 'EGYXAU';
 type ViewMode = 'wheel' | 'month_days';
 
 interface OHLCBar {
@@ -44,27 +44,48 @@ const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct
 
 // ─── Binance-compatible fetch ──────────────────────────────────────────────────
 
-async function fetchDailyBars(symbol: string, year: number, month: number): Promise<OHLCBar[]> {
-  // Start of month, end of month
+/** Maps internal Asset key to API symbol */
+const ASSET_SYMBOL: Record<Asset, string> = {
+  BTC:    'BTCUSDT',
+  GOLD:   'XAUUSD',
+  OIL:    'WTIUSD',
+  USDEGP: 'USDEGP',
+  EGYXAU: 'EGYXAU',
+};
+
+/** Commodity symbols (not on Binance — use /api/klines) */
+const COMMODITY_ASSETS = new Set<Asset>(['GOLD', 'OIL', 'USDEGP', 'EGYXAU']);
+
+async function fetchDailyBars(asset: Asset, year: number, month: number): Promise<OHLCBar[]> {
+  const symbol = ASSET_SYMBOL[asset];
+
+  // ── Commodity path: use /api/klines (Twelve Data / GBM) ──────────────
+  if (COMMODITY_ASSETS.has(asset)) {
+    try {
+      // Request enough bars to cover the past 2 years
+      const params = new URLSearchParams({ symbol, interval: '1d', limit: '730' });
+      const res = await fetch(`/api/klines?${params}`, { cache: 'no-store' });
+      if (!res.ok) return [];
+      const bars: Array<{ time: number; open: number; high: number; low: number; close: number; volume: number }> = await res.json();
+      // Filter to the requested month
+      const startTs = new Date(year, month, 1).getTime() / 1000;
+      const endTs   = new Date(year, month + 1, 1).getTime() / 1000;
+      return bars
+        .filter(b => b.time >= startTs && b.time < endTs)
+        .map(b => ({ t: b.time, o: b.open, h: b.high, l: b.low, c: b.close, v: b.volume }));
+    } catch { return []; }
+  }
+
+  // ── Binance path (crypto) ──────────────────────────────────────
   const start = new Date(year, month, 1).getTime();
   const end   = new Date(year, month + 1, 1).getTime();
   const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&startTime=${start}&endTime=${end}&limit=35`;
-
   try {
     const res  = await fetch(url, { next: { revalidate: 3600 } });
     if (!res.ok) return [];
     const raw: any[][] = await res.json();
-    return raw.map(k => ({
-      t: k[0] / 1000,
-      o: parseFloat(k[1]),
-      h: parseFloat(k[2]),
-      l: parseFloat(k[3]),
-      c: parseFloat(k[4]),
-      v: parseFloat(k[5]),
-    }));
-  } catch {
-    return [];
-  }
+    return raw.map(k => ({ t: k[0] / 1000, o: parseFloat(k[1]), h: parseFloat(k[2]), l: parseFloat(k[3]), c: parseFloat(k[4]), v: parseFloat(k[5]) }));
+  } catch { return []; }
 }
 
 // ─── Peak / Trough Detector ────────────────────────────────────────────────────
@@ -112,22 +133,50 @@ function buildDayAnalytics(bars: OHLCBar[], year: number, month: number): DayAna
 
 // ─── Asset Toggle ─────────────────────────────────────────────────────────────
 
+/** Price formatter per asset */
+function fmtAssetPrice(n: number, asset: Asset): string {
+  switch (asset) {
+    case 'BTC':    return `$${n.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+    case 'GOLD':   return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    case 'OIL':    return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    case 'USDEGP': return `${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} جنيه`;
+    case 'EGYXAU': return `${n.toLocaleString('en-US', { maximumFractionDigits: 0 })} جنيه/جرام`;
+    default:       return `$${n.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
+  }
+}
+
+/** Asset label in Arabic */
+const ASSET_LABEL: Record<Asset, string> = {
+  BTC:    'بيتكوين BTC',
+  GOLD:   'ذهب XAU',
+  OIL:    'نفط WTI',
+  USDEGP: 'دولار/جنيه',
+  EGYXAU: 'ذهب مصري',
+};
+
+/** Color theme per asset */
+const ASSET_COLOR: Record<Asset, { active: string; text: string }> = {
+  BTC:    { active: 'bg-orange-500 text-white shadow-[0_0_20px_rgba(249,115,22,0.4)]',  text: 'text-orange-400' },
+  GOLD:   { active: 'bg-yellow-500 text-black shadow-[0_0_20px_rgba(234,179,8,0.4)]',   text: 'text-yellow-400' },
+  OIL:    { active: 'bg-blue-500 text-white shadow-[0_0_20px_rgba(59,130,246,0.4)]',    text: 'text-blue-400' },
+  USDEGP: { active: 'bg-emerald-500 text-white shadow-[0_0_20px_rgba(16,185,129,0.4)]', text: 'text-emerald-400' },
+  EGYXAU: { active: 'bg-amber-600 text-white shadow-[0_0_20px_rgba(217,119,6,0.4)]',   text: 'text-amber-400' },
+};
+
 function AssetToggle({ asset, onChange }: { asset: Asset; onChange: (a: Asset) => void }) {
   return (
-    <div className="flex bg-white/[0.04] border border-white/[0.08] rounded-2xl p-1 w-full max-w-xs mx-auto">
-      {(['BTC', 'GOLD'] as Asset[]).map(a => (
+    <div className="flex flex-wrap gap-2 justify-center">
+      {(['BTC', 'GOLD', 'OIL', 'USDEGP', 'EGYXAU'] as Asset[]).map(a => (
         <button
           key={a}
           onClick={() => onChange(a)}
-          className={`flex-1 py-4.5 rounded-xl text-base font-black tracking-wide transition-all duration-200 ${
+          className={`px-4 py-2 rounded-xl text-sm font-black tracking-wide transition-all duration-200 border ${
             asset === a
-              ? a === 'BTC'
-                ? 'bg-orange-500 text-white shadow-[0_0_20px_rgba(249,115,22,0.4)]'
-                : 'bg-yellow-500 text-black shadow-[0_0_20px_rgba(234,179,8,0.4)]'
-              : 'text-white/40 hover:text-white/60'
+              ? ASSET_COLOR[a].active + ' border-transparent'
+              : 'text-white/40 border-white/10 hover:text-white/70 hover:border-white/20'
           }`}
         >
-          {a === 'BTC' ? 'بيتكوين BTC' : 'ذهب Gold'}
+          {ASSET_LABEL[a]}
         </button>
       ))}
     </div>
@@ -296,10 +345,7 @@ function GannWheelSvg({
 // ─── Day Analytics Card ────────────────────────────────────────────────────────
 
 function DayCard({ day, asset }: { day: DayAnalytics; asset: Asset }) {
-  const fmt = (n: number) =>
-    asset === 'BTC'
-      ? `$${n.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
-      : `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const fmt = (n: number) => fmtAssetPrice(n, asset);
 
   const isUp = day.close >= day.open;
 
@@ -367,7 +413,7 @@ function MonthDrilldown({
   asset: Asset;
   onBack: () => void;
 }) {
-  const symbol  = asset === 'BTC' ? 'BTCUSDT' : 'PAXGUSDT';
+  const symbol = ASSET_SYMBOL[asset];
   const [bars, setBars]     = useState<OHLCBar[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -376,7 +422,7 @@ function MonthDrilldown({
     (async () => {
       setLoading(true);
       setBars([]);
-      const data = await fetchDailyBars(symbol, year, monthIndex);
+      const data = await fetchDailyBars(asset, year, monthIndex);
       if (!cancelled) {
         setBars(data);
         setLoading(false);
@@ -389,9 +435,7 @@ function MonthDrilldown({
   const peakCount   = days.filter(d => d.status === 'قمة').length;
   const troughCount = days.filter(d => d.status === 'قاع').length;
   const avgMove     = days.length ? days.reduce((s, d) => s + d.priceMagnitude, 0) / days.length : 0;
-  const fmtAvg = asset === 'BTC'
-    ? `$${avgMove.toLocaleString('en-US', { maximumFractionDigits: 0 })}`
-    : `$${avgMove.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const fmtAvg = fmtAssetPrice(avgMove, asset);
 
   return (
     <div className="flex flex-col gap-6 w-full" dir="rtl">
@@ -405,7 +449,7 @@ function MonthDrilldown({
         </button>
         <div>
           <h3 className="text-lg font-black text-white">{MONTHS_AR[monthIndex]} {year}</h3>
-          <p className="text-sm text-white/40 font-mono">التحليل اليومي — {asset === 'BTC' ? 'بيتكوين' : 'ذهب'}</p>
+          <p className="text-sm text-white/40 font-mono">التحليل اليومي — {ASSET_LABEL[asset]}</p>
         </div>
       </div>
 
@@ -476,8 +520,8 @@ export default function GannWheelPage() {
 
   if (!tool) return notFound();
 
-  const accentColor = asset === 'BTC' ? 'orange' : 'yellow';
-  const accentClass = asset === 'BTC' ? 'text-orange-400' : 'text-yellow-400';
+  const accentColor = ASSET_COLOR[asset].text.replace('text-', '');
+  const accentClass  = ASSET_COLOR[asset].text;
 
   return (
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-8">
