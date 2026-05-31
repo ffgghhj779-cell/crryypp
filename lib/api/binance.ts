@@ -16,7 +16,7 @@ export interface BinanceKline {
 }
 
 /** Commodity symbols routed to /api/klines proxy */
-const COMMODITY_SYMBOLS = new Set(['XAUUSD', 'WTIUSD', 'USDEGP', 'EGYXAU', 'BRENTUSD']);
+const COMMODITY_SYMBOLS = new Set(['XAUUSD', 'WTIUSD', 'USDEGP', 'EGYXAU', 'BRENTUSD', 'EURUSD']);
 
 /**
  * Fetches live candlestick data.

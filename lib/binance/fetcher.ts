@@ -67,7 +67,7 @@ function toCache(key: string, bars: Kline[], interval: string): void {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Commodity symbols — routed to /api/klines proxy instead of Binance */
-const COMMODITY_SYMBOLS = new Set(['XAUUSD', 'WTIUSD', 'USDEGP', 'EGYXAU', 'BRENTUSD']);
+const COMMODITY_SYMBOLS = new Set(['XAUUSD', 'WTIUSD', 'USDEGP', 'EGYXAU', 'BRENTUSD', 'EURUSD']);
 
 /**
  * Normalises a UI timeframe label (e.g. "1H", "4H", "1D") to the Binance

@@ -31,6 +31,7 @@ export const ALL_ASSETS: Asset[] = [
   { symbol: 'WTIUSD',  labelAr: 'نفط خام WTI',  labelEn: 'WTI/USD',  icon: '🛢️', group: 'commodity' },
   { symbol: 'USDEGP',  labelAr: 'دولار / جنيه', labelEn: 'USD/EGP',  icon: '💵', group: 'commodity' },
   { symbol: 'EGYXAU',  labelAr: 'ذهب مصري 21',  labelEn: 'XAU/EGP',  icon: '🇪🇬', group: 'commodity' },
+  { symbol: 'EURUSD',  labelAr: 'EUR/USD',      labelEn: 'EUR/USD',  icon: '💶', group: 'commodity' },
 ];
 
 interface Props {
@@ -66,7 +67,7 @@ export function SymbolDropdown({ value, onChange, className }: Props) {
   }
 
   return (
-    <div ref={ref} className={`relative ${className ?? ''}`} dir="rtl">
+    <div ref={ref} className={`relative ${open ? 'z-[9999]' : 'z-10'} ${className ?? ''}`} dir="rtl">
       {/* ── Trigger ───────────────────────────────────────────────────────── */}
       <button
         type="button"
@@ -85,7 +86,7 @@ export function SymbolDropdown({ value, onChange, className }: Props) {
 
       {/* ── Dropdown ──────────────────────────────────────────────────────── */}
       {open && (
-        <div className="absolute top-full mt-2 right-0 left-0 z-50 rounded-2xl border border-white/10 bg-zinc-900/98 backdrop-blur-xl shadow-2xl overflow-hidden">
+        <div className="absolute top-full mt-2 right-0 left-0 z-[9999] rounded-2xl border border-white/10 bg-zinc-900/98 backdrop-blur-xl shadow-2xl overflow-hidden">
 
           {/* Crypto group */}
           <div className="px-3 pt-3 pb-1">

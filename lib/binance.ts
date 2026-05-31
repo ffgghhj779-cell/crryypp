@@ -1,7 +1,7 @@
 import { sanitizeSymbol, sanitizeInterval } from '@/lib/sanitize';
 
 /** Symbols that are commodities — routed via /api/klines proxy */
-const COMMODITY_SYMBOLS = new Set(['XAUUSD', 'WTIUSD', 'USDEGP', 'EGYXAU', 'BRENTUSD']);
+const COMMODITY_SYMBOLS = new Set(['XAUUSD', 'WTIUSD', 'USDEGP', 'EGYXAU', 'BRENTUSD', 'EURUSD']);
 
 export async function fetchKlines(
   symbol   = 'BTCUSDT',

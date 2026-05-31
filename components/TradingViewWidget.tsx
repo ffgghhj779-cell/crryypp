@@ -73,15 +73,45 @@ interface TradingViewWidgetProps {
   symbol?: string;
 }
 
+const TV_SYMBOL_MAP: Record<string, string> = {
+  'BTCUSDT': 'BINANCE:BTCUSDT',
+  'ETHUSDT': 'BINANCE:ETHUSDT',
+  'BNBUSDT': 'BINANCE:BNBUSDT',
+  'SOLUSDT': 'BINANCE:SOLUSDT',
+  'XRPUSDT': 'BINANCE:XRPUSDT',
+  'XAUUSD':  'OANDA:XAUUSD',
+  'WTIUSD':  'TVC:USOIL',
+  'BRENTUSD':'TVC:UKOIL',
+  'USDEGP':  'FX_IDC:USDEGP',
+  'EURUSD':  'FX:EURUSD',
+  // EGYXAU is explicitly handled (not supported on TV natively in a clean way)
+};
+
 const TradingViewWidget = memo(function TradingViewWidget({
   toolName,
-  symbol = 'BINANCE:BTCUSDT',
+  symbol = 'BTCUSDT',
 }: TradingViewWidgetProps) {
   const defaultInterval = TOOL_DEFAULT_INTERVAL[toolName] ?? '60';
   const [interval, setInterval] = useState(defaultInterval);
   const containerRef = useRef<HTMLDivElement>(null);
   // Stable unique ID per widget instance
   const containerId = useRef(`tv_${Math.random().toString(36).slice(2, 9)}`).current;
+
+  // Handle unsupported symbols like Egyptian Gold
+  if (symbol.toUpperCase() === 'EGYXAU') {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center px-6 gap-3 bg-zinc-950">
+        <span className="text-4xl">🇪🇬</span>
+        <p className="text-base text-white/50 font-bold">عذراً، شارت الذهب المصري غير متوفر على منصة TradingView</p>
+        <p className="text-sm text-white/30 leading-relaxed">
+          نظراً لأن الذهب المصري يعتمد على تسعير محلي خاص بالأسواق المصرية (جنيه للجرام 21)، 
+          فإنه غير مدرج كمؤشر عالمي على منصة TradingView. يمكنك استخدام الأدوات الحسابية (مثل عجلة جان ومصفوفة فيبوناتشي) التي تعتمد على أسعارنا الخاصة بدلاً من الشارت.
+        </p>
+      </div>
+    );
+  }
+
+  const tvSymbol = TV_SYMBOL_MAP[symbol.toUpperCase()] ?? `BINANCE:${symbol.toUpperCase()}`;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -100,7 +130,7 @@ const TradingViewWidget = memo(function TradingViewWidget({
 
       new window.TradingView!.widget({
         autosize: true,
-        symbol,
+        symbol: tvSymbol,
         interval,
         timezone: 'Etc/UTC',
         theme: 'dark',
@@ -163,7 +193,7 @@ const TradingViewWidget = memo(function TradingViewWidget({
     };
   // Re-mount when interval or tool changes
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toolName, interval, symbol, containerId]);
+  }, [toolName, interval, tvSymbol, containerId]);
 
   return (
     <div className="flex flex-col h-full">

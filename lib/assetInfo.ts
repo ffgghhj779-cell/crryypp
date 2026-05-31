@@ -38,6 +38,7 @@ const ASSET_MAP: Record<string, AssetInfo> = {
   BRENTUSD:  { currency: 'USD', unit: 'USD/bbl',    labelAr: 'برنت',        precision: 2, prefix: '$' },
   USDEGP:    { currency: 'EGP', unit: 'جنيه/دولار', labelAr: 'دولار/جنيه', precision: 2, prefix: '' },
   EGYXAU:    { currency: 'EGP', unit: 'جنيه/جرام',  labelAr: 'ذهب مصري',   precision: 0, prefix: '' },
+  EURUSD:    { currency: 'USD', unit: 'USD',        labelAr: 'EUR/USD',    precision: 4, prefix: '$' },
 };
 
 /** Fallback for unknown symbols */

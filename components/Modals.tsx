@@ -7,6 +7,7 @@ import { AnimatePresence } from 'motion/react';
 import { NativeSheet }    from '@/components/ui/NativeSheet';
 import { fetchKlines, calculateRSI } from '@/lib/binance';
 import { TOOL_DESCRIPTIONS } from '@/components/TradingViewWidget';
+import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
 
 // Lazy-load the TradingView widget so it doesn't block the main bundle
 const TradingViewWidget = lazy(() => import('@/components/TradingViewWidget'));
@@ -456,6 +457,7 @@ const CalendarIcon = Calendar;
 function ToolModal({ toolName }: { toolName: string }) {
   const description = TOOL_DESCRIPTIONS[toolName];
   const isFearGreed = toolName === 'Fear & Greed Index';
+  const [symbol, setSymbol] = useState('BTCUSDT');
 
   return (
     <div className="flex flex-col h-full">
@@ -467,20 +469,27 @@ function ToolModal({ toolName }: { toolName: string }) {
       )}
 
       {/* Chart or custom view */}
-      <div className="flex-1 overflow-hidden" style={{ minHeight: 0 }}>
+      <div className="flex-1 overflow-hidden flex flex-col" style={{ minHeight: 0 }}>
         {isFearGreed ? (
           <FearGreedDetail />
         ) : (
-          <Suspense
-            fallback={
-              <div className="flex flex-col items-center justify-center h-full gap-3">
-                <div className="w-6 h-6 border-2 border-orange-500/40 border-t-orange-500 rounded-full animate-spin" />
-                <p className="text-white/30 text-sm">Loading TradingView chart...</p>
+          <>
+            <div className="px-5 py-3 border-b border-white/[0.05] shrink-0 bg-zinc-950/50">
+              <SymbolDropdown value={symbol} onChange={setSymbol} />
+            </div>
+            <Suspense
+              fallback={
+                <div className="flex flex-col items-center justify-center h-full gap-3">
+                  <div className="w-6 h-6 border-2 border-orange-500/40 border-t-orange-500 rounded-full animate-spin" />
+                  <p className="text-white/30 text-sm">Loading TradingView chart...</p>
+                </div>
+              }
+            >
+              <div className="flex-1 min-h-0">
+                <TradingViewWidget toolName={toolName} symbol={symbol} />
               </div>
-            }
-          >
-            <TradingViewWidget toolName={toolName} />
-          </Suspense>
+            </Suspense>
+          </>
         )}
       </div>
     </div>

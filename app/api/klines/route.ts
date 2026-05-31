@@ -27,6 +27,7 @@ const TD_SYMBOL: Record<string, string> = {
   WTIUSD:   'WTI/USD',
   BRENTUSD: 'BRN/USD',
   USDEGP:   'USD/EGP',
+  EURUSD:   'EUR/USD',
 };
 
 // Twelve Data interval mapping (our format → TD format)
@@ -167,7 +168,7 @@ function symbolSeed(symbol: string): number {
 }
 
 const DAILY_VOL: Record<string, number> = {
-  XAUUSD: 0.008, WTIUSD: 0.022, BRENTUSD: 0.022, USDEGP: 0.003, EGYXAU: 0.009,
+  XAUUSD: 0.008, WTIUSD: 0.022, BRENTUSD: 0.022, USDEGP: 0.003, EGYXAU: 0.009, EURUSD: 0.005,
 };
 
 const TF_SECONDS: Record<string, number> = {
@@ -255,12 +256,27 @@ async function fetchOilSpot(): Promise<number | null> {
   return null;
 }
 
+async function fetchEurUsdRate(): Promise<number | null> {
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/EUR', {
+      headers: { Accept: 'application/json' }, next: { revalidate: 3600 },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const rate = data?.rates?.USD;
+      if (rate && Number(rate) > 0.5) return Number(rate);
+    }
+  } catch {}
+  return null;
+}
+
 async function fetchCommoditySpot(symbol: string): Promise<number> {
   switch (symbol) {
     case 'XAUUSD':   return (await fetchGoldSpot())   ?? 3340;
     case 'WTIUSD':   return (await fetchOilSpot())    ?? 79.5;
     case 'BRENTUSD': return (await fetchOilSpot())    ?? 82.0;
     case 'USDEGP':   return (await fetchUsdEgpRate()) ?? 50.85;
+    case 'EURUSD':   return (await fetchEurUsdRate()) ?? 1.08;
     case 'EGYXAU': {
       const [g, e] = await Promise.all([fetchGoldSpot(), fetchUsdEgpRate()]);
       return +((g ?? 3340) / 31.1035 * (e ?? 50.85) * (21 / 24)).toFixed(2);
@@ -286,7 +302,7 @@ async function fetchBinanceKlines(
 }
 
 // ── Commodity symbols set ─────────────────────────────────────────────────────
-const COMMODITY_SYMBOLS = new Set(['XAUUSD', 'WTIUSD', 'BRENTUSD', 'USDEGP', 'EGYXAU']);
+const COMMODITY_SYMBOLS = new Set(['XAUUSD', 'WTIUSD', 'BRENTUSD', 'USDEGP', 'EGYXAU', 'EURUSD']);
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
