@@ -97,36 +97,23 @@ const TradingViewWidget = memo(function TradingViewWidget({
   // Stable unique ID per widget instance
   const containerId = useRef(`tv_${Math.random().toString(36).slice(2, 9)}`).current;
 
-  // Handle unsupported symbols like Egyptian Gold
-  if (symbol.toUpperCase() === 'EGYXAU') {
-    return (
-      <div className="flex flex-col items-center justify-center h-full text-center px-6 gap-3 bg-zinc-950">
-        <span className="text-4xl">🇪🇬</span>
-        <p className="text-base text-white/50 font-bold">عذراً، شارت الذهب المصري غير متوفر على منصة TradingView</p>
-        <p className="text-sm text-white/30 leading-relaxed">
-          نظراً لأن الذهب المصري يعتمد على تسعير محلي خاص بالأسواق المصرية (جنيه للجرام 21)، 
-          فإنه غير مدرج كمؤشر عالمي على منصة TradingView. يمكنك استخدام الأدوات الحسابية (مثل عجلة جان ومصفوفة فيبوناتشي) التي تعتمد على أسعارنا الخاصة بدلاً من الشارت.
-        </p>
-      </div>
-    );
-  }
-
   const tvSymbol = TV_SYMBOL_MAP[symbol.toUpperCase()] ?? `BINANCE:${symbol.toUpperCase()}`;
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const currentContainer = containerRef.current;
+    if (!currentContainer || symbol.toUpperCase() === 'EGYXAU') return;
 
     const studies = TOOL_STUDIES[toolName] ?? [];
 
     const mountWidget = () => {
-      if (!containerRef.current) return;
+      if (!currentContainer) return;
       // Clear any previous widget
-      containerRef.current.innerHTML = '';
+      currentContainer.innerHTML = '';
 
       const innerDiv = document.createElement('div');
       innerDiv.id = containerId;
       innerDiv.style.height = '100%';
-      containerRef.current.appendChild(innerDiv);
+      currentContainer.appendChild(innerDiv);
 
       new window.TradingView!.widget({
         autosize: true,
@@ -187,13 +174,25 @@ const TradingViewWidget = memo(function TradingViewWidget({
     }
 
     return () => {
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
+      if (currentContainer) {
+        currentContainer.innerHTML = '';
       }
     };
   // Re-mount when interval or tool changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toolName, interval, tvSymbol, containerId]);
+  }, [toolName, interval, tvSymbol, containerId, symbol]);
+
+  if (symbol.toUpperCase() === 'EGYXAU') {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center px-6 gap-3 bg-zinc-950">
+        <span className="text-4xl">🇪🇬</span>
+        <p className="text-base text-white/50 font-bold">عذراً، شارت الذهب المصري غير متوفر على منصة TradingView</p>
+        <p className="text-sm text-white/30 leading-relaxed">
+          نظراً لأن الذهب المصري يعتمد على تسعير محلي خاص بالأسواق المصرية (جنيه للجرام 21)، 
+          فإنه غير مدرج كمؤشر عالمي على منصة TradingView. يمكنك استخدام الأدوات الحسابية (مثل عجلة جان ومصفوفة فيبوناتشي) التي تعتمد على أسعارنا الخاصة بدلاً من الشارت.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">
