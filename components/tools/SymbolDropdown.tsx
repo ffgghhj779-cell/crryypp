@@ -33,9 +33,20 @@ interface Props {
   className?: string;
 }
 
+interface DropdownStyle {
+  position:    'fixed';
+  left:        number;
+  right:       number;
+  zIndex:      number;
+  maxHeight:   string;
+  overflowY:   'auto';
+  top?:        number;
+  bottom?:     number;
+}
+
 export function SymbolDropdown({ value, onChange, className }: Props) {
   const [open, setOpen] = useState(false);
-  const [rect, setRect] = useState<DOMRect | null>(null);
+  const [style, setStyle] = useState<DropdownStyle | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   const current = ALL_ASSETS.find(a => a.symbol === value.toUpperCase())
@@ -45,29 +56,51 @@ export function SymbolDropdown({ value, onChange, className }: Props) {
   const cryptoList    = ALL_ASSETS.filter(a => a.group === 'crypto');
   const commodityList = ALL_ASSETS.filter(a => a.group === 'commodity');
 
-  // Measure trigger position when opening
-  const openDropdown = useCallback(() => {
-    if (triggerRef.current) {
-      setRect(triggerRef.current.getBoundingClientRect());
-    }
-    setOpen(v => !v);
+  /** Calculate the best position for the dropdown based on available viewport space */
+  const calcStyle = useCallback((): DropdownStyle | null => {
+    if (!triggerRef.current) return null;
+    const r          = triggerRef.current.getBoundingClientRect();
+    const GAP        = 6;
+    const PADDING    = 16;
+    const spaceBelow = window.innerHeight - r.bottom - PADDING;
+    const spaceAbove = r.top - PADDING;
+    const openUp     = spaceBelow < 200 && spaceAbove > spaceBelow;
+    const maxHeight  = Math.max(openUp ? spaceAbove : spaceBelow, 120);
+
+    return {
+      position:  'fixed',
+      left:      r.left,
+      right:     window.innerWidth - r.right,
+      zIndex:    999999,
+      maxHeight: `${Math.min(maxHeight, 380)}px`,
+      overflowY: 'auto',
+      ...(openUp
+        ? { bottom: window.innerHeight - r.top + GAP }
+        : { top:    r.bottom + GAP }),
+    };
   }, []);
 
-  // Re-measure on scroll/resize while open
+  const openDropdown = useCallback(() => {
+    if (!open) {
+      const s = calcStyle();
+      setStyle(s);
+    }
+    setOpen(v => !v);
+  }, [open, calcStyle]);
+
+  // Re-calculate on scroll / resize while open
   useEffect(() => {
     if (!open) return;
-    const update = () => {
-      if (triggerRef.current) setRect(triggerRef.current.getBoundingClientRect());
-    };
+    const update = () => setStyle(calcStyle());
     window.addEventListener('scroll', update, true);
     window.addEventListener('resize', update);
     return () => {
       window.removeEventListener('scroll', update, true);
       window.removeEventListener('resize', update);
     };
-  }, [open]);
+  }, [open, calcStyle]);
 
-  // Close on outside click / touch
+  // Close on outside tap
   useEffect(() => {
     if (!open) return;
     function h(e: MouseEvent | TouchEvent) {
@@ -87,82 +120,83 @@ export function SymbolDropdown({ value, onChange, className }: Props) {
     setOpen(false);
   }
 
-  // Dropdown renders as a fixed portal so overflow:hidden on parents can't clip it
-  // 'use client' guarantees document exists — no mounted guard needed
-  const dropdown = typeof document !== 'undefined' && open && rect ? createPortal(
-    <div
-      dir="rtl"
-      style={{
-        position:  'fixed',
-        top:       rect.bottom + 6,
-        right:     window.innerWidth - rect.right,
-        left:      rect.left,
-        zIndex:    999999,
-        maxHeight: '320px',
-      }}
-      className="rounded-2xl border border-white/10 bg-zinc-900/95 backdrop-blur-xl shadow-2xl overflow-y-auto"
-    >
-      {/* Crypto group */}
-      <div className="px-3 pt-3 pb-1">
-        <p className="text-xs font-bold text-blue-400/60 uppercase tracking-widest mb-1.5">كريبتو</p>
-        {cryptoList.map(asset => (
-          <button
-            key={asset.symbol}
-            type="button"
-            onMouseDown={e => { e.preventDefault(); pick(asset); }}
-            onTouchEnd={e => { e.preventDefault(); pick(asset); }}
-            className={`w-full flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-sm transition-all ${
-              value.toUpperCase() === asset.symbol
-                ? 'bg-blue-500/20 text-blue-300 font-bold'
-                : 'text-white/70 hover:bg-white/5 hover:text-white'
-            }`}
-          >
-            <span className="text-lg w-6 text-center">{asset.icon}</span>
-            <span className="font-semibold">{asset.labelAr}</span>
-            <span className="text-xs font-mono text-white/30 mr-auto">{asset.labelEn}</span>
-          </button>
-        ))}
-      </div>
+  // Portal: renders directly on <body> — immune to any overflow/z-index parent issues
+  const portal = typeof document !== 'undefined' && open && style
+    ? createPortal(
+        <div
+          dir="rtl"
+          style={{
+            ...style,
+            // Mobile Safari touch-scroll
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain',
+          } as React.CSSProperties}
+          className="rounded-2xl border border-white/10 bg-zinc-900 shadow-2xl"
+          // Prevent touch events from reaching the outside-click handler
+          onTouchMove={e => e.stopPropagation()}
+        >
+          {/* ── Crypto ───────────────────────────────────────────────── */}
+          <div className="px-3 pt-3 pb-1">
+            <p className="text-xs font-bold text-blue-400/60 uppercase tracking-widest mb-1.5">كريبتو</p>
+            {cryptoList.map(asset => (
+              <button
+                key={asset.symbol}
+                type="button"
+                onMouseDown={e => { e.preventDefault(); pick(asset); }}
+                onTouchEnd={e  => { e.preventDefault(); pick(asset); }}
+                className={`w-full flex items-center gap-3 px-2.5 py-3 rounded-xl text-sm transition-all ${
+                  value.toUpperCase() === asset.symbol
+                    ? 'bg-blue-500/20 text-blue-300 font-bold'
+                    : 'text-white/70 active:bg-white/10'
+                }`}
+              >
+                <span className="text-lg w-6 text-center shrink-0">{asset.icon}</span>
+                <span className="font-semibold flex-1 text-right">{asset.labelAr}</span>
+                <span className="text-xs font-mono text-white/30">{asset.labelEn}</span>
+              </button>
+            ))}
+          </div>
 
-      {/* Divider */}
-      <div className="h-px bg-white/10 mx-3 my-1" />
+          {/* ── Divider ──────────────────────────────────────────────── */}
+          <div className="h-px bg-white/10 mx-3" />
 
-      {/* Commodity group */}
-      <div className="px-3 pb-3 pt-1">
-        <p className="text-xs font-bold text-amber-400/60 uppercase tracking-widest mb-1.5">سلع وعملات</p>
-        {commodityList.map(asset => (
-          <button
-            key={asset.symbol}
-            type="button"
-            onMouseDown={e => { e.preventDefault(); pick(asset); }}
-            onTouchEnd={e => { e.preventDefault(); pick(asset); }}
-            className={`w-full flex items-center gap-3 px-2.5 py-2.5 rounded-xl text-sm transition-all ${
-              value.toUpperCase() === asset.symbol
-                ? 'bg-amber-500/20 text-amber-300 font-bold'
-                : 'text-white/70 hover:bg-white/5 hover:text-white'
-            }`}
-          >
-            <span className="text-lg w-6 text-center">{asset.icon}</span>
-            <span className="font-semibold">{asset.labelAr}</span>
-            <span className="text-xs font-mono text-white/30 mr-auto">{asset.labelEn}</span>
-          </button>
-        ))}
-      </div>
-    </div>,
-    document.body
-  ) : null;
+          {/* ── Commodities ──────────────────────────────────────────── */}
+          <div className="px-3 pb-3 pt-1">
+            <p className="text-xs font-bold text-amber-400/60 uppercase tracking-widest mb-1.5 mt-1">سلع وعملات</p>
+            {commodityList.map(asset => (
+              <button
+                key={asset.symbol}
+                type="button"
+                onMouseDown={e => { e.preventDefault(); pick(asset); }}
+                onTouchEnd={e  => { e.preventDefault(); pick(asset); }}
+                className={`w-full flex items-center gap-3 px-2.5 py-3 rounded-xl text-sm transition-all ${
+                  value.toUpperCase() === asset.symbol
+                    ? 'bg-amber-500/20 text-amber-300 font-bold'
+                    : 'text-white/70 active:bg-white/10'
+                }`}
+              >
+                <span className="text-lg w-6 text-center shrink-0">{asset.icon}</span>
+                <span className="font-semibold flex-1 text-right">{asset.labelAr}</span>
+                <span className="text-xs font-mono text-white/30">{asset.labelEn}</span>
+              </button>
+            ))}
+          </div>
+        </div>,
+        document.body
+      )
+    : null;
 
   return (
     <div className={`relative ${className ?? ''}`} dir="rtl">
-      {/* ── Trigger ───────────────────────────────────────────────────────── */}
+      {/* ── Trigger button ────────────────────────────────────────────── */}
       <button
         ref={triggerRef}
         type="button"
         onClick={openDropdown}
         className={`w-full flex items-center gap-2.5 px-4 py-3 rounded-xl border text-base font-bold transition-all select-none ${
           isCommodity
-            ? 'border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/15'
-            : 'border-blue-500/40 bg-blue-500/10 text-blue-300 hover:bg-blue-500/15'
+            ? 'border-amber-500/40 bg-amber-500/10 text-amber-300'
+            : 'border-blue-500/40 bg-blue-500/10 text-blue-300'
         }`}
       >
         <span className="text-xl leading-none">{current.icon}</span>
@@ -171,8 +205,8 @@ export function SymbolDropdown({ value, onChange, className }: Props) {
         <ChevronDown className={`w-4 h-4 shrink-0 transition-transform text-white/40 ${open ? 'rotate-180' : ''}`} />
       </button>
 
-      {/* ── Fixed Portal Dropdown ─────────────────────────────────────────── */}
-      {dropdown}
+      {/* ── Portal dropdown ───────────────────────────────────────────── */}
+      {portal}
     </div>
   );
 }
