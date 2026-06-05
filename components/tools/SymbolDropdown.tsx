@@ -145,8 +145,7 @@ export function SymbolDropdown({ value, onChange, className }: Props) {
               <button
                 key={asset.symbol}
                 type="button"
-                onMouseDown={e => { e.preventDefault(); pick(asset); }}
-                onTouchEnd={e  => { e.preventDefault(); pick(asset); }}
+                onClick={() => pick(asset)}
                 className={`w-full flex items-center gap-3 px-2.5 py-3 rounded-xl text-sm transition-all ${
                   value.toUpperCase() === asset.symbol
                     ? 'bg-blue-500/20 text-blue-300 font-bold'
@@ -170,8 +169,7 @@ export function SymbolDropdown({ value, onChange, className }: Props) {
               <button
                 key={asset.symbol}
                 type="button"
-                onMouseDown={e => { e.preventDefault(); pick(asset); }}
-                onTouchEnd={e  => { e.preventDefault(); pick(asset); }}
+                onClick={() => pick(asset)}
                 className={`w-full flex items-center gap-3 px-2.5 py-3 rounded-xl text-sm transition-all ${
                   value.toUpperCase() === asset.symbol
                     ? 'bg-amber-500/20 text-amber-300 font-bold'
