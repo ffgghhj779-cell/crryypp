@@ -48,6 +48,7 @@ export function SymbolDropdown({ value, onChange, className }: Props) {
   const [open, setOpen] = useState(false);
   const [style, setStyle] = useState<DropdownStyle | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const portalRef = useRef<HTMLDivElement>(null);
 
   const current = ALL_ASSETS.find(a => a.symbol === value.toUpperCase())
     ?? { symbol: value, labelAr: value, labelEn: value, icon: '📊', group: 'crypto' as const };
@@ -105,6 +106,7 @@ export function SymbolDropdown({ value, onChange, className }: Props) {
     if (!open) return;
     function h(e: MouseEvent | TouchEvent) {
       if (triggerRef.current && triggerRef.current.contains(e.target as Node)) return;
+      if (portalRef.current && portalRef.current.contains(e.target as Node)) return;
       setOpen(false);
     }
     document.addEventListener('mousedown', h, true);
@@ -124,6 +126,7 @@ export function SymbolDropdown({ value, onChange, className }: Props) {
   const portal = typeof document !== 'undefined' && open && style
     ? createPortal(
         <div
+          ref={portalRef}
           dir="rtl"
           style={{
             ...style,
