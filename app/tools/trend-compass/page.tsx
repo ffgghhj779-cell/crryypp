@@ -13,7 +13,7 @@ import { ScanSearch, AlertCircle, ChevronDown, Compass, CheckCircle2, XCircle, M
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
 import { slugToTool } from '@/lib/tools/registry';
 import { calculateTrendCompass, TrendCompassResult } from '@/lib/algorithms/trendCompass';
-import { fetchLiveCandles, BinanceKline } from '@/lib/api/binance';
+import { fetchKlines, Kline } from '@/lib/binance/fetcher';
 import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
 import { notFound } from 'next/navigation';
 
@@ -21,7 +21,7 @@ export default function TrendCompassPage() {
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [timeframe, setTimeframe] = useState('1d');
   
-  const [liveData, setLiveData] = useState<BinanceKline[]>([]);
+  const [liveData, setLiveData] = useState<Kline[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [result, setResult] = useState<TrendCompassResult | null>(null);
@@ -38,12 +38,12 @@ export default function TrendCompassPage() {
       setIsLoading(true);
       setError('');
       try {
-        const klines = await fetchLiveCandles(symbol, timeframe.toLowerCase(), 200);
+        const klines = await fetchKlines(symbol, timeframe.toLowerCase(), 200);
         if (mounted) {
           setLiveData(klines);
           if (klines.length > 0) {
             // Auto-calculate when symbol/timeframe changes
-            const res = calculateTrendCompass(symbol.toUpperCase().trim(), timeframe.toUpperCase(), klines as any);
+            const res = calculateTrendCompass(symbol.toUpperCase().trim(), timeframe.toUpperCase(), klines);
             setResult(res);
             setTimeout(() => setAnimated(true), 100);
           }
@@ -68,11 +68,11 @@ export default function TrendCompassPage() {
     setAnimated(false);
     
     try {
-      const klines = await fetchLiveCandles(symbol.toUpperCase().trim(), timeframe.toLowerCase(), 200);
+      const klines = await fetchKlines(symbol.toUpperCase().trim(), timeframe.toLowerCase(), 200);
       if (klines.length === 0) throw new Error('لا توجد بيانات متاحة لهذا الأصل.');
       
       setLiveData(klines);
-      const res = calculateTrendCompass(symbol.toUpperCase().trim(), timeframe.toUpperCase(), klines as any);
+      const res = calculateTrendCompass(symbol.toUpperCase().trim(), timeframe.toUpperCase(), klines);
       setResult(res);
       setTimeout(() => setAnimated(true), 100);
     } catch (err: any) {
