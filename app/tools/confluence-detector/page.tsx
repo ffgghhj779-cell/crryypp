@@ -1,129 +1,247 @@
 'use client';
 
-import { useMarketData } from '@/context/MarketDataContext';
-import { slugToTool } from '@/lib/tools/registry';
-import { notFound } from 'next/navigation';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Crosshair, ScanSearch, Shield, Star, AlertCircle } from 'lucide-react';
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
-import { Crosshair, RefreshCcw, Shield } from 'lucide-react';
-import { motion } from 'motion/react';
-import { useMemo } from 'react';
-import { ContextAssetBar } from '@/components/tools/ContextAssetBar';
+import { slugToTool } from '@/lib/tools/registry';
+import { fetchKlines } from '@/lib/binance/fetcher';
+import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
+import { notFound } from 'next/navigation';
+
+interface ConfluenceLevel {
+  price: number;
+  type: 'support' | 'resistance';
+  sources: string[];
+  strength: number;
+  distancePct: number;
+}
 
 export default function ConfluenceDetectorPage() {
-  const { currentPrice, isLoading } = useMarketData();
+  const [symbol, setSymbol] = useState('BTCUSDT');
+  const [levels, setLevels] = useState<ConfluenceLevel[]>([]);
+  const [currentPrice, setCurrentPrice] = useState<number>(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
   const tool = slugToTool('confluence-detector');
-
-  // Mock detection of a confluence level
-  const confluenceLevel = useMemo(() => {
-    if (!currentPrice) return null;
-    
-    // Simulate finding a strong level just below current price
-    const level = currentPrice * 0.96; 
-    
-    return {
-      price: level,
-      reasons: [
-        'دعم قوي سابق (تاريخي)',
-        'مستوى فيبوناتشي الذهبي 0.618',
-        'كتلة أوامر شرائية (Order Block)'
-      ]
-    };
-  }, [currentPrice]);
-
   if (!tool) return notFound();
 
-  const formatPrice = (p: number) => p.toLocaleString(undefined, { minimumFractionDigits: p > 1000 ? 1 : 4, maximumFractionDigits: p > 1000 ? 1 : 4 });
+  const handleScan = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const klines = await fetchKlines(symbol.toUpperCase().trim(), '1d', 100);
+      if (klines.length < 10) throw new Error('بيانات غير كافية');
+
+      const cp = klines[klines.length - 1].close;
+      setCurrentPrice(cp);
+
+      // ─── Swing High/Low from last 100 candles ────────────────────────
+      const swingHigh = Math.max(...klines.map(k => k.high));
+      const swingLow  = Math.min(...klines.map(k => k.low));
+      const range = swingHigh - swingLow;
+
+      // ─── Fibonacci Levels ─────────────────────────────────────────────
+      const fibRatios = [0.236, 0.382, 0.5, 0.618, 0.786];
+      const fibLevels = fibRatios.map(r => ({
+        price: swingLow + range * r,
+        label: `فيبوناتشي ${r}`
+      }));
+
+      // ─── Pivot Points (from previous completed candle) ────────────────
+      const prev = klines[klines.length - 2];
+      const pp = (prev.high + prev.low + prev.close) / 3;
+      const r1 = 2 * pp - prev.low;
+      const r2 = pp + (prev.high - prev.low);
+      const s1 = 2 * pp - prev.high;
+      const s2 = pp - (prev.high - prev.low);
+      const pivotLevels = [
+        { price: pp, label: 'Pivot PP' },
+        { price: r1, label: 'Pivot R1' },
+        { price: r2, label: 'Pivot R2' },
+        { price: s1, label: 'Pivot S1' },
+        { price: s2, label: 'Pivot S2' },
+      ];
+
+      // ─── VWAP (last 20 candles) ───────────────────────────────────────
+      const last20 = klines.slice(-20);
+      const vwapNum = last20.reduce((acc, k) => acc + ((k.high + k.low + k.close) / 3) * k.volume, 0);
+      const vwapDen = last20.reduce((acc, k) => acc + k.volume, 0);
+      const vwap = vwapNum / (vwapDen || 1);
+
+      // ─── Merge all levels ─────────────────────────────────────────────
+      const allLevels = [
+        ...fibLevels,
+        ...pivotLevels,
+        { price: vwap, label: 'VWAP (20)' },
+      ];
+
+      // ─── Group by confluence (±0.5% tolerance) ───────────────────────
+      const grouped: ConfluenceLevel[] = [];
+      for (const lv of allLevels) {
+        const tol = lv.price * 0.005;
+        const existing = grouped.find(g => Math.abs(g.price - lv.price) <= tol);
+        if (existing) {
+          existing.sources.push(lv.label);
+          existing.price = (existing.price + lv.price) / 2;
+        } else {
+          grouped.push({
+            price: lv.price,
+            type: lv.price > cp ? 'resistance' : 'support',
+            sources: [lv.label],
+            strength: 1,
+            distancePct: +Math.abs((lv.price - cp) / cp * 100).toFixed(2),
+          });
+        }
+      }
+      grouped.forEach(g => { g.strength = Math.min(5, g.sources.length); });
+
+      const sorted = grouped
+        .sort((a, b) => b.strength - a.strength || a.distancePct - b.distancePct)
+        .slice(0, 6);
+      setLevels(sorted);
+    } catch (err: any) {
+      setError(err.message || 'حدث خطأ');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fmtPrice = (p: number) =>
+    p.toLocaleString(undefined, { minimumFractionDigits: p > 1000 ? 1 : 4, maximumFractionDigits: p > 1000 ? 1 : 4 });
+
+  const strongestResistance = levels.filter(l => l.type === 'resistance').sort((a, b) => b.strength - a.strength)[0];
+  const strongestSupport    = levels.filter(l => l.type === 'support').sort((a, b) => b.strength - a.strength)[0];
 
   return (
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
-      <ToolPageHeader tool={tool} />
+      <ToolPageHeader tool={tool!} />
 
-      {/* Asset selector — inside tool content */}
-      <ContextAssetBar />
-
-      {/* Header */}
       <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
         <div className="flex items-center gap-3">
           <span className="text-sm font-black text-purple-500/70 tracking-widest uppercase border border-purple-500/20 bg-purple-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-            <Crosshair className="w-3 h-3" /> Confluence
+            <Crosshair className="w-3 h-3" /> Confluence Detector
           </span>
         </div>
-        <h1 className="text-xl font-black text-white tracking-tight mt-1">كاشف التوافق الدقيق</h1>
+        <h1 className="text-xl font-black text-white tracking-tight mt-1">كاشف مستويات التوافق</h1>
         <p className="text-sm text-white/40 font-mono leading-relaxed">
-          البحث عن أقوى نقطة سعرية تجتمع فيها عدة مؤشرات لدعم السعر
+          يجمع فيبوناتشي + Pivot Points + VWAP ليكشف أقوى المستويات السعرية
         </p>
       </div>
 
-      <div className="px-5 flex flex-col gap-5 mt-4">
-        {isLoading || !confluenceLevel ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-6">
-            <RefreshCcw className="w-8 h-8 text-purple-500 animate-spin" />
-            <p className="text-purple-500/80 font-bold tracking-widest uppercase text-sm animate-pulse">جاري المسح المعمق...</p>
-          </div>
-        ) : (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col gap-6"
+      <div className="px-5 flex flex-col gap-5">
+        {/* Input */}
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 flex flex-col gap-4">
+          <SymbolDropdown value={symbol} onChange={setSymbol} />
+          <AnimatePresence>
+            {error && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-3">
+                <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+                <p className="text-sm text-red-300">{error}</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <button
+            onClick={handleScan}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-3 rounded-xl py-4 font-black text-base text-white transition-all disabled:opacity-50"
+            style={{
+              background: loading ? '#1a1a1a' : 'linear-gradient(135deg, #a855f7, #7c3aed)',
+              boxShadow: !loading ? '0 0 20px rgba(168,85,247,0.25)' : 'none',
+            }}
           >
-            {/* Radar / Target UI */}
-            <div className="rounded-3xl border border-white/[0.05] bg-[#0d0d0d] p-6 shadow-xl relative overflow-hidden flex flex-col items-center">
-              
-              <div className="relative w-48 h-48 flex items-center justify-center mt-4 mb-6">
-                {/* Glowing Rings */}
-                <motion.div 
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 1 }}
-                  className="absolute w-full h-full rounded-full border border-purple-500/20 bg-purple-500/5 flex items-center justify-center"
+            {loading ? <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-6 h-6" />}
+            {loading ? 'جاري المسح...' : 'تشغيل ماسح التوافق'}
+          </button>
+        </div>
+
+        {/* Current Price */}
+        {currentPrice > 0 && (
+          <div className="flex items-center justify-between bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3">
+            <span className="text-sm text-white/40 font-bold uppercase tracking-widest">السعر الحالي</span>
+            <span className="text-xl font-black text-white font-mono">{fmtPrice(currentPrice)}</span>
+          </div>
+        )}
+
+        {/* Levels List */}
+        <AnimatePresence>
+          {levels.length > 0 && (
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-3">
+              <h2 className="text-base font-bold text-purple-400 pr-2 border-r-2 border-purple-500">
+                أقوى مستويات التوافق
+              </h2>
+              {levels.map((lv, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.08 }}
+                  className={`rounded-xl border p-4 flex flex-col gap-2 ${lv.type === 'resistance' ? 'border-red-500/20 bg-red-500/5' : 'border-emerald-500/20 bg-emerald-500/5'}`}
                 >
-                  <div className="w-3/4 h-3/4 rounded-full border border-purple-500/40 bg-purple-500/10 flex items-center justify-center">
-                    <div className="w-1/2 h-1/2 rounded-full border border-purple-500/60 bg-purple-500/20 flex items-center justify-center shadow-[0_0_30px_rgba(168,85,247,0.5)]">
-                      <Crosshair className="w-8 h-8 text-purple-400" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-0.5">
+                      <span className={`text-xs font-bold uppercase tracking-widest ${lv.type === 'resistance' ? 'text-red-400' : 'text-emerald-400'}`}>
+                        {lv.type === 'resistance' ? '🔴 مقاومة' : '🟢 دعم'}
+                      </span>
+                      <span className="text-lg font-black text-white font-mono">{fmtPrice(lv.price)}</span>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-xs text-white/40">المسافة</span>
+                      <span className="text-sm font-bold text-white/70">{lv.distancePct}%</span>
+                      {/* Stars */}
+                      <div className="flex gap-0.5">
+                        {Array.from({ length: 5 }).map((_, s) => (
+                          <Star key={s} className={`w-3 h-3 ${s < lv.strength ? 'text-yellow-400 fill-yellow-400' : 'text-white/20'}`} />
+                        ))}
+                      </div>
                     </div>
                   </div>
+                  {/* Sources */}
+                  <div className="flex flex-wrap gap-1.5 pt-1 border-t border-white/[0.05]">
+                    {lv.sources.map((src, j) => (
+                      <span key={j} className="flex items-center gap-1 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full text-xs font-bold text-white/60">
+                        <Shield className="w-3 h-3" /> {src}
+                      </span>
+                    ))}
+                  </div>
                 </motion.div>
-                
-                {/* Sweep animation */}
-                <motion.div 
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                  className="absolute w-full h-full rounded-full"
-                  style={{ background: 'conic-gradient(from 0deg, transparent 70%, rgba(168,85,247,0.4) 100%)' }}
-                />
-              </div>
+              ))}
 
-              <span className="text-sm text-white/50 font-bold uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full border border-white/10 mb-2">أقوى نقطة ارتداد حالية متوقعة</span>
-              <span className="text-4xl font-black font-mono text-white dir-ltr text-shadow-glow">${formatPrice(confluenceLevel.price)}</span>
-            </div>
-
-            {/* Reasons List */}
-            <div className="flex flex-col gap-3">
-              <h2 className="text-base font-bold text-purple-400 pr-2 border-r-2 border-purple-500">لماذا هذا السعر قوي جداً؟</h2>
-              
-              <div className="flex flex-col gap-3">
-                {confluenceLevel.reasons.map((reason, idx) => (
-                  <motion.div 
-                    key={idx}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.15 }}
-                    className="flex items-center gap-3 bg-[#111] border border-white/[0.05] p-6 rounded-xl"
-                  >
-                    <Shield className="w-5 h-5 text-emerald-400" />
-                    <span className="text-sm font-bold text-white/80">{reason}</span>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            <div className="text-center px-5 bg-purple-500/10 border border-purple-500/20 rounded-xl p-6">
-              <p className="text-sm text-white/60 leading-relaxed font-bold">
-                💡 عندما تجتمع عدة أسباب عند نفس السعر، يتشكل &quot;جدار حديدي&quot; يصعب كسره، وتعتبر فرصة ممتازة للدخول.
-              </p>
-            </div>
-          </motion.div>
-        )}
+              {/* Verdict Card */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="rounded-2xl border border-purple-500/20 bg-purple-500/10 p-5 mt-2"
+              >
+                <p className="text-sm font-black text-purple-400 uppercase tracking-widest mb-3">الدليل الإرشادي</p>
+                <div className="flex flex-col gap-2">
+                  {strongestResistance && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-red-400 font-bold text-sm shrink-0">🔴</span>
+                      <p className="text-sm text-white/70">
+                        المقاومة الرئيسية عند <span className="font-black text-red-300 font-mono">{fmtPrice(strongestResistance.price)}</span> ({strongestResistance.strength} مؤشرات متوافقة) — يُعتبر حاجزاً قوياً أمام السعر.
+                      </p>
+                    </div>
+                  )}
+                  {strongestSupport && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-emerald-400 font-bold text-sm shrink-0">🟢</span>
+                      <p className="text-sm text-white/70">
+                        الدعم الرئيسي عند <span className="font-black text-emerald-300 font-mono">{fmtPrice(strongestSupport.price)}</span> ({strongestSupport.strength} مؤشرات متوافقة) — منطقة قوية للارتداد.
+                      </p>
+                    </div>
+                  )}
+                  <p className="text-xs text-white/40 mt-2 pt-2 border-t border-white/10">
+                    💡 كلما زاد عدد المؤشرات المتوافقة عند سعر واحد (نجوم أكثر) كلما زادت أهمية هذا المستوى. استخدمه كنقطة دخول أو وقف خسارة.
+                  </p>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

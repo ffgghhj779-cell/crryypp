@@ -1,141 +1,139 @@
 'use client';
 
-import { useMarketData } from '@/context/MarketDataContext';
-import { slugToTool } from '@/lib/tools/registry';
-import { notFound } from 'next/navigation';
+import { useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Layers, ScanSearch, AlertCircle } from 'lucide-react';
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
-import { Footprints, RefreshCcw } from 'lucide-react';
-import { motion } from 'motion/react';
-import { useMemo } from 'react';
-import { ContextAssetBar } from '@/components/tools/ContextAssetBar';
+import { slugToTool } from '@/lib/tools/registry';
+import { fetchKlines } from '@/lib/binance/fetcher';
+import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
+import { notFound } from 'next/navigation';
+
+interface FootprintCandle {
+  date: string; open: number; high: number; low: number; close: number;
+  volume: number; buyVol: number; sellVol: number; delta: number;
+}
+
+function calcFootprint(klines: { open: number; high: number; low: number; close: number; volume: number; time: number }[]): FootprintCandle[] {
+  return klines.slice(-12).map(k => {
+    const range = k.high - k.low || 0.0001;
+    const buyVol  = +(k.volume * ((k.close - k.low) / range)).toFixed(2);
+    const sellVol = +(k.volume - buyVol).toFixed(2);
+    const delta   = +(buyVol - sellVol).toFixed(2);
+    return {
+      date: new Date(k.time).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' }),
+      open: k.open, high: k.high, low: k.low, close: k.close,
+      volume: +k.volume.toFixed(2), buyVol, sellVol, delta,
+    };
+  });
+}
+
+const fmtV = (v: number) => v > 1_000_000 ? `${(v/1_000_000).toFixed(1)}M` : v > 1000 ? `${(v/1000).toFixed(1)}K` : v.toFixed(1);
+const fmtP = (p: number) => p.toLocaleString(undefined, { maximumFractionDigits: p > 1000 ? 1 : 4 });
 
 export default function FootprintProPage() {
-  const { symbol, currentPrice, candles, isLoading } = useMarketData();
+  const [symbol, setSymbol] = useState('BTCUSDT');
+  const [loading, setLoading] = useState(false);
+  const [error, setError]   = useState('');
+  const [candles, setCandles] = useState<FootprintCandle[]>([]);
+
+  const handleScan = useCallback(async () => {
+    setError(''); setLoading(true);
+    try {
+      const klines = await fetchKlines(symbol.toUpperCase().trim(), '1d', 20);
+      if (klines.length < 5) throw new Error('بيانات غير كافية');
+      setCandles(calcFootprint(klines));
+    } catch (e: any) { setError(e.message); }
+    finally { setLoading(false); }
+  }, [symbol]);
+
+  const cumDelta   = candles.reduce((s, c) => s + c.delta, 0);
+  const dominance  = cumDelta > 0 ? 'buy' : cumDelta < 0 ? 'sell' : 'neutral';
+  const domColor   = dominance === 'buy' ? '#10b981' : dominance === 'sell' ? '#ef4444' : '#6b7280';
+  const maxAbsDelta = Math.max(...candles.map(c => Math.abs(c.delta)), 1);
+
+  const verdict = candles.length === 0 ? '' :
+    dominance === 'buy'
+      ? `الدلتا التراكمي موجب (${fmtV(cumDelta)}) — المشترون يتحكمون في آخر 12 جلسة. الضغط الشرائي حقيقي ومدعوم بالحجم.`
+      : dominance === 'sell'
+      ? `الدلتا التراكمي سالب (${fmtV(cumDelta)}) — البائعون يتحكمون في آخر 12 جلسة. الضغط البيعي قوي. احذر من الانخفاض.`
+      : `الدلتا متوازن — لا هيمنة واضحة. السوق في حالة توازن بين المشترين والبائعين.`;
+
   const tool = slugToTool('footprint-pro');
-
-  // Simulate volume clusters (Footprint) for the current candle or recent price range
-  const clusters = useMemo(() => {
-    if (!candles || candles.length === 0 || !currentPrice) return [];
-    
-    // Take the last candle to represent current period footprint
-    const last = candles[candles.length - 1];
-    const range = last.high - last.low;
-    if (range <= 0) return [];
-
-    const numClusters = 12;
-    const step = range / numClusters;
-    
-    // Seed predictable randomness based on currentPrice and volume
-    const seed = Math.floor(currentPrice) + last.volume;
-    
-    let pocIndex = 0;
-    let maxVol = 0;
-
-    const data = Array.from({ length: numClusters }).map((_, i) => {
-      const priceLevel = last.low + step * i;
-      
-      // Simulate volume bell curve around current price or middle of candle
-      const distFromCenter = Math.abs(i - (numClusters / 2));
-      const baseVol = last.volume / numClusters;
-      // Add randomness and bell shape
-      const clusterVol = baseVol * (1 - distFromCenter * 0.15) + (seed % (i+1)) * (baseVol * 0.1);
-      
-      const bidVol = clusterVol * (0.3 + ((seed * i) % 40) / 100);
-      const askVol = clusterVol - bidVol;
-
-      if (clusterVol > maxVol) {
-        maxVol = clusterVol;
-        pocIndex = i;
-      }
-
-      return { priceLevel, bidVol, askVol, totalVol: clusterVol };
-    });
-
-    // Mark Point of Control
-    const result = data.map((d, i) => ({ ...d, isPOC: i === pocIndex }));
-    
-    // Reverse so highest price is at top
-    return result.reverse();
-  }, [candles, currentPrice]);
-
   if (!tool) return notFound();
-
-  const maxTotalVol = Math.max(...clusters.map(c => c.totalVol), 1);
-  const formatSize = (s: number) => s.toLocaleString(undefined, { maximumFractionDigits: 1 });
 
   return (
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
       <ToolPageHeader tool={tool} />
-
-      {/* Asset selector — inside tool content */}
-      <ContextAssetBar />
-
-      {/* Header */}
       <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-black text-indigo-500/70 tracking-widest uppercase border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-            <Footprints className="w-3 h-3" /> OrderFlow
-          </span>
-        </div>
-        <h1 className="text-xl font-black text-white tracking-tight mt-1">محلل بصمة الحجم (Footprint)</h1>
-        <p className="text-sm text-white/40 font-mono leading-relaxed">
-          تحليل السيولة المتداولة داخل مستويات السعر للشمعة الحالية
-        </p>
+        <span className="text-sm font-black text-teal-500/70 tracking-widest uppercase border border-teal-500/20 bg-teal-500/10 px-2.5 py-1 rounded-full w-fit flex items-center gap-1"><Layers className="w-3 h-3" /> Footprint Pro</span>
+        <h1 className="text-xl font-black text-white mt-1">بصمة الحجم (Footprint)</h1>
+        <p className="text-sm text-white/40 font-mono">حجم الشراء والبيع لكل شمعة — آخر 12 جلسة يومية</p>
       </div>
+      <div className="px-5 flex flex-col gap-5">
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 flex flex-col gap-4">
+          <SymbolDropdown value={symbol} onChange={setSymbol} />
+          <AnimatePresence>{error && <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-3"><AlertCircle className="w-4 h-4 text-red-400 shrink-0" /><p className="text-sm text-red-300">{error}</p></motion.div>}</AnimatePresence>
+          <button onClick={handleScan} disabled={loading} className="w-full flex items-center justify-center gap-3 rounded-xl py-4 font-black text-base text-white disabled:opacity-50 transition-all"
+            style={{ background: loading ? '#1a1a1a' : 'linear-gradient(135deg,#14b8a6,#0d9488)', boxShadow: !loading ? '0 0 20px rgba(20,184,166,0.25)' : 'none' }}>
+            {loading ? <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-6 h-6" />}
+            {loading ? 'جاري التحليل...' : 'عرض بصمة الحجم'}
+          </button>
+        </div>
 
-      <div className="px-5 flex flex-col gap-5 mt-4">
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-6">
-            <RefreshCcw className="w-8 h-8 text-indigo-500 animate-spin" />
-            <p className="text-indigo-500/80 font-bold tracking-widest uppercase text-sm animate-pulse">جاري جلب بصمة الحجم...</p>
-          </div>
-        ) : (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col gap-3 rounded-2xl border border-white/[0.05] bg-[#0d0d0d] p-6 shadow-xl"
-          >
-            {/* Legend */}
-            <div className="flex justify-between items-center text-sm font-bold tracking-widest uppercase text-white/40 mb-2 px-2 border-b border-white/[0.05] pb-2">
-              <span>عقود البيع (Asks)</span>
-              <span>السعر</span>
-              <span>عقود الشراء (Bids)</span>
-            </div>
+        <AnimatePresence>
+          {candles.length > 0 && (
+            <motion.div initial={{opacity:0,scale:0.95}} animate={{opacity:1,scale:1}} exit={{opacity:0}} className="flex flex-col gap-5">
+              {/* Cumulative Delta */}
+              <div className="rounded-2xl border p-5 flex items-center justify-between" style={{ borderColor: domColor + '40', background: domColor + '0a' }}>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: domColor }}>الدلتا التراكمي (12 يوم)</p>
+                  <p className="text-2xl font-black font-mono" style={{ color: domColor }}>{cumDelta > 0 ? '+' : ''}{fmtV(cumDelta)}</p>
+                </div>
+                <span className="text-2xl">{dominance === 'buy' ? '🟢' : dominance === 'sell' ? '🔴' : '⚪'}</span>
+              </div>
 
-            {/* Clusters */}
-            <div className="flex flex-col gap-1">
-              {clusters.map((c, i) => {
-                const widthPct = Math.max((c.totalVol / maxTotalVol) * 100, 5);
-                const isPOC = c.isPOC;
-                
-                return (
-                  <div key={i} className="relative flex items-center justify-between py-4 px-2 rounded overflow-hidden group">
-                    {/* Background Bar */}
-                    <div className="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 bg-indigo-500/10 -z-10 transition-all" style={{ width: `${widthPct}%` }} />
-                    
-                    {isPOC && <div className="absolute inset-0 border border-indigo-400/50 rounded pointer-events-none -z-10 bg-indigo-500/5" />}
+              {/* Footprint Table */}
+              <div className="rounded-2xl border border-white/[0.08] bg-[#0d0d0d] overflow-hidden">
+                <div className="grid grid-cols-5 px-3 py-2 border-b border-white/[0.06]" style={{ gridTemplateColumns: '2fr 2fr 2fr 2fr 2fr' }}>
+                  {['التاريخ','الإغلاق','شراء','بيع','دلتا'].map(h => <p key={h} className="text-xs font-bold text-white/30 uppercase tracking-widest text-center">{h}</p>)}
+                </div>
+                <div className="flex flex-col">
+                  {candles.map((c, i) => {
+                    const dColor = c.delta >= 0 ? '#10b981' : '#ef4444';
+                    const barW   = Math.abs(c.delta) / maxAbsDelta * 100;
 
-                    {/* Asks (Red) */}
-                    <div className="text-red-400/80 text-sm font-mono font-bold w-1/3 text-right">
-                      {formatSize(c.askVol)}
-                    </div>
+return (
+                      <motion.div key={i} initial={{opacity:0,x:-10}} animate={{opacity:1,x:0}} transition={{delay:i*0.04}}
+                        className="grid px-3 py-2.5 border-b border-white/[0.04] relative overflow-hidden"
+                        style={{ gridTemplateColumns: '2fr 2fr 2fr 2fr 2fr' }}>
+                        <div className="absolute inset-0 pointer-events-none" style={{ width: `${barW}%`, background: dColor + '08' }} />
+                        <p className="text-xs text-white/40 font-mono text-center z-10">{c.date}</p>
+                        <p className="text-xs font-bold text-white font-mono text-center z-10">{fmtP(c.close)}</p>
+                        <p className="text-xs font-bold text-emerald-400 font-mono text-center z-10">{fmtV(c.buyVol)}</p>
+                        <p className="text-xs font-bold text-red-400 font-mono text-center z-10">{fmtV(c.sellVol)}</p>
+                        <p className="text-xs font-black font-mono text-center z-10" style={{ color: dColor }}>{c.delta > 0 ? '+' : ''}{fmtV(c.delta)}</p>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
 
-                    {/* Price */}
-                    <div className={`text-sm font-mono font-black text-center w-1/3 ${isPOC ? 'text-indigo-400 shadow-indigo-400/50' : 'text-white/60'}`} style={{ textShadow: isPOC ? '0 0 10px currentColor' : 'none' }}>
-                      {c.priceLevel.toLocaleString(undefined, { minimumFractionDigits: (currentPrice ?? 0) > 1000 ? 1 : 2, maximumFractionDigits: (currentPrice ?? 0) > 1000 ? 1 : 2 })}
-                      {isPOC && <div className="text-sm uppercase tracking-widest mt-0.5 text-indigo-400/80">نقطة الارتكاز</div>}
-                    </div>
+              {/* Legend */}
+              <div className="flex items-center gap-4 text-xs text-white/40 font-mono px-1">
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-500" />شراء</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-red-500" />بيع</span>
+                <span className="flex items-center gap-1"><span className="w-6 h-1 bg-gradient-to-r from-emerald-500/30 to-transparent" />شريط خلفي = حجم الدلتا</span>
+              </div>
 
-                    {/* Bids (Green) */}
-                    <div className="text-emerald-400/80 text-sm font-mono font-bold w-1/3 text-left">
-                      {formatSize(c.bidVol)}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
+              {/* Verdict */}
+              <div className="rounded-2xl border p-5" style={{ borderColor: domColor + '30', background: domColor + '08' }}>
+                <p className="text-sm font-black uppercase tracking-widest mb-2" style={{ color: domColor }}>الدليل الإرشادي</p>
+                <p className="text-sm text-white/70 leading-relaxed">{verdict}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

@@ -17,7 +17,7 @@ import { motion, useAnimationControls } from 'motion/react';
 import { ToolExitContext }              from '@/lib/tools/ExitContext';
 
 // Must match the key used in AppLayout.tsx — one source of truth
-const DISCLAIMER_KEY = 'ct360_disclaimer_v1';
+
 
 // Spring presets
 const ENTER_SPRING = { type: 'spring', stiffness: 380, damping: 36, mass: 0.8 } as const;
@@ -43,9 +43,6 @@ export default function ToolsLayout({ children }: { children: React.ReactNode })
 
   // ── Side effects (non-blocking) ─────────────────────────────────────────────
   useEffect(() => {
-    // Disclaimer gate — rare edge case (deep-link without accepting disclaimer)
-    const accepted = localStorage.getItem(DISCLAIMER_KEY) === '1';
-    if (!accepted) { router.replace('/'); return; }
 
     // Stable viewport height — already set by AppLayout for in-app navigation.
     // Re-synced here to handle direct deep-link entries.
@@ -62,7 +59,7 @@ export default function ToolsLayout({ children }: { children: React.ReactNode })
   return (
     <ToolExitContext.Provider value={triggerExit}>
       <motion.div
-        className="bg-black text-white font-sans overflow-hidden"
+        className="bg-black text-white font-sans overflow-visible"
         style={{
           height:      'var(--app-stable-height, 100dvh)',
           willChange:  'transform, opacity',  // GPU layer for 120fps spring

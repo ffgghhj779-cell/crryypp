@@ -1,147 +1,142 @@
 'use client';
 
-import { useMarketData } from '@/context/MarketDataContext';
-import { slugToTool } from '@/lib/tools/registry';
-import { notFound } from 'next/navigation';
+import { useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Eye, ScanSearch, AlertCircle } from 'lucide-react';
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
-import { EyeOff, RefreshCcw } from 'lucide-react';
-import { motion } from 'motion/react';
-import { useMemo } from 'react';
-import { ContextAssetBar } from '@/components/tools/ContextAssetBar';
+import { slugToTool } from '@/lib/tools/registry';
+import { fetchKlines } from '@/lib/binance/fetcher';
+import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
+import { notFound } from 'next/navigation';
+
+interface CandlePattern { name: string; nameEn: string; isBullish: boolean; description: string; candle: { o: number; h: number; l: number; c: number }; }
+
+function detectPattern(klines: { open: number; high: number; low: number; close: number }[]): CandlePattern | null {
+  if (klines.length < 3) return null;
+  const [prev2, prev, curr] = klines.slice(-3);
+  const body = Math.abs(curr.close - curr.open);
+  const upperWick = curr.high - Math.max(curr.open, curr.close);
+  const lowerWick = Math.min(curr.open, curr.close) - curr.low;
+  const range = curr.high - curr.low || 0.0001;
+
+  // Hammer: small body, long lower wick (> 2x body), small upper wick
+  if (lowerWick > body * 2 && upperWick < body * 0.5 && body / range < 0.4) {
+    return { name: 'مطرقة (Hammer)', nameEn: 'Hammer', isBullish: true, description: 'نمط انعكاسي صعودي — ذيل سفلي طويل يعكس رفض البائعين وقوة المشترين', candle: { o: curr.open, h: curr.high, l: curr.low, c: curr.close } };
+  }
+  // Shooting Star: small body, long upper wick
+  if (upperWick > body * 2 && lowerWick < body * 0.5 && body / range < 0.4) {
+    return { name: 'نجمة ساقطة (Shooting Star)', nameEn: 'Shooting Star', isBullish: false, description: 'نمط انعكاسي هبوطي — ذيل علوي طويل يعكس رفض المشترين وقوة البائعين', candle: { o: curr.open, h: curr.high, l: curr.low, c: curr.close } };
+  }
+  // Bullish Engulfing
+  if (prev.close < prev.open && curr.close > curr.open && curr.open < prev.close && curr.close > prev.open) {
+    return { name: 'ابتلاع صعودي', nameEn: 'Bullish Engulfing', isBullish: true, description: 'شمعة خضراء كبيرة تبتلع الشمعة الحمراء السابقة — إشارة انعكاس صعودي قوية', candle: { o: curr.open, h: curr.high, l: curr.low, c: curr.close } };
+  }
+  // Bearish Engulfing
+  if (prev.close > prev.open && curr.close < curr.open && curr.open > prev.close && curr.close < prev.open) {
+    return { name: 'ابتلاع هبوطي', nameEn: 'Bearish Engulfing', isBullish: false, description: 'شمعة حمراء كبيرة تبتلع الشمعة الخضراء السابقة — إشارة انعكاس هبوطي قوية', candle: { o: curr.open, h: curr.high, l: curr.low, c: curr.close } };
+  }
+  // Inside Bar
+  if (curr.high < prev.high && curr.low > prev.low) {
+    return { name: 'شمعة داخلية (Inside Bar)', nameEn: 'Inside Bar', isBullish: curr.close > curr.open, description: 'تردد في السوق — انتظر الاختراق لتحديد الاتجاه التالي', candle: { o: curr.open, h: curr.high, l: curr.low, c: curr.close } };
+  }
+  // Doji
+  if (body / range < 0.05) {
+    return { name: 'دوجي (Doji)', nameEn: 'Doji', isBullish: false, description: 'توازن تام بين المشترين والبائعين — إشارة تردد وتوقع حركة قوية قريباً', candle: { o: curr.open, h: curr.high, l: curr.low, c: curr.close } };
+  }
+  return { name: 'شمعة عادية', nameEn: 'Standard Candle', isBullish: curr.close > curr.open, description: 'لا يوجد نمط انعكاسي واضح في الشمعة الأخيرة', candle: { o: curr.open, h: curr.high, l: curr.low, c: curr.close } };
+}
 
 export default function HiddenCandlePage() {
-  const { currentPrice, candles, isLoading } = useMarketData();
-  const tool = slugToTool('hidden-candle');
+  const [symbol, setSymbol] = useState('BTCUSDT');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [pattern, setPattern] = useState<CandlePattern | null>(null);
 
-  // Predict next candle based on last 3
-  const predicted = useMemo(() => {
-    if (!candles || candles.length < 3 || !currentPrice) return null;
+  const handleScan = useCallback(async () => {
+    setError(''); setLoading(true);
+    try {
+      const klines = await fetchKlines(symbol.toUpperCase().trim(), '1d', 10);
+      if (klines.length < 3) throw new Error('بيانات غير كافية');
+      setPattern(detectPattern(klines));
+    } catch (e: any) { setError(e.message); }
+    finally { setLoading(false); }
+  }, [symbol]);
 
-    const last3 = candles.slice(-3);
-    
-    // Average True Range of last 3
-    let totalRange = 0;
-    let netDirection = 0; // Positive = up, Negative = down
-    
-    last3.forEach(c => {
-      totalRange += (c.high - c.low);
-      netDirection += (c.close - c.open);
-    });
+  const fmtP = (p: number) => p.toLocaleString(undefined, { minimumFractionDigits: p > 100 ? 1 : 4, maximumFractionDigits: p > 100 ? 1 : 4 });
 
-    const atr = totalRange / 3;
-    const isBullish = netDirection >= 0;
-    
-    // The predicted open is roughly the current price
-    const pOpen = currentPrice;
-    
-    // Add momentum to predict close
-    const pClose = isBullish ? pOpen + (atr * 0.6) : pOpen - (atr * 0.6);
-    
-    // Wicks
-    const pHigh = Math.max(pOpen, pClose) + (atr * 0.2);
-    const pLow = Math.min(pOpen, pClose) - (atr * 0.2);
+  const renderCandle = (c: { o: number; h: number; l: number; c: number }, isBull: boolean) => {
+    const min = c.l; const max = c.h; const range = max - min || 1;
+    const bodyTop    = ((max - Math.max(c.o, c.c)) / range) * 200;
+    const bodyH      = (Math.abs(c.o - c.c) / range) * 200;
+    const wickTopH   = ((max - Math.max(c.o, c.c)) / range) * 200;
+    const wickBottomH = ((Math.min(c.o, c.c) - min) / range) * 200;
+    const color = isBull ? '#10b981' : '#ef4444';
+    return (
+      <svg viewBox="0 0 60 240" className="h-40 w-16 mx-auto">
+        <line x1="30" y1="0" x2="30" y2={wickTopH} stroke={color} strokeWidth="2" />
+        <rect x="15" y={wickTopH} width="30" height={Math.max(4, bodyH)} fill={color} rx="2" />
+        <line x1="30" y1={wickTopH + Math.max(4, bodyH)} x2="30" y2="240" stroke={color} strokeWidth="2" />
+      </svg>
+    );
+  };
 
-    return { open: pOpen, high: pHigh, low: pLow, close: pClose, isBullish };
-  }, [candles, currentPrice]);
+  const verdict = !pattern ? '' :
+    pattern.name === 'شمعة عادية'
+      ? 'لا يوجد نمط كيندل مخفي واضح — الاتجاه مستمر. لا تقاوم الترند الحالي.'
+      : pattern.isBullish
+      ? `✅ ${pattern.name}: ${pattern.description}. ابحث عن تأكيد شرائي في الشمعة التالية.`
+      : `⚠️ ${pattern.name}: ${pattern.description}. كن حذراً وانتظر تأكيد الحركة.`;
 
+  const patternColor = pattern?.isBullish ? '#10b981' : '#ef4444';
+
+const tool = slugToTool('hidden-candle');
   if (!tool) return notFound();
 
-  const formatPrice = (p: number) => p.toLocaleString(undefined, { minimumFractionDigits: p > 1000 ? 1 : 4, maximumFractionDigits: p > 1000 ? 1 : 4 });
-
-  return (
+    return (
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
       <ToolPageHeader tool={tool} />
-
-      {/* Asset selector — inside tool content */}
-      <ContextAssetBar />
-
-      {/* Header */}
       <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-black text-fuchsia-500/70 tracking-widest uppercase border border-fuchsia-500/20 bg-fuchsia-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-            <EyeOff className="w-3 h-3" /> Prediction
-          </span>
-        </div>
-        <h1 className="text-xl font-black text-white tracking-tight mt-1">الشمعة المخفية</h1>
-        <p className="text-sm text-white/40 font-mono leading-relaxed">
-          توقع شكل وأهداف الشمعة القادمة قبل أن تتشكل في السوق
-        </p>
+        <span className="text-sm font-black text-indigo-500/70 tracking-widest uppercase border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-1 rounded-full w-fit flex items-center gap-1"><Eye className="w-3 h-3" /> Candle Patterns</span>
+        <h1 className="text-xl font-black text-white mt-1">كاشف النماذج الشمعية المخفية</h1>
+        <p className="text-sm text-white/40 font-mono">تحليل شكل الشمعة الأخيرة لرصد إشارات الانعكاس</p>
       </div>
-
-      <div className="px-5 flex flex-col gap-5 mt-4">
-        {isLoading || !predicted ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-6">
-            <RefreshCcw className="w-8 h-8 text-fuchsia-500 animate-spin" />
-            <p className="text-fuchsia-500/80 font-bold tracking-widest uppercase text-sm animate-pulse">جاري توقع الشمعة القادمة...</p>
-          </div>
-        ) : (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col gap-6 rounded-3xl border border-white/[0.05] bg-[#0d0d0d] p-6 shadow-xl relative overflow-hidden"
-          >
-            <div className="flex justify-center mb-4">
-              <h2 className="text-base font-bold text-white/70 border-b border-white/10 pb-2">
-                الهدف المتوقع للشمعة القادمة
-              </h2>
-            </div>
-
-            {/* Abstract Holographic Candlestick */}
-            <div className="flex items-center justify-center py-8 relative">
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-fuchsia-500/10 blur-[60px] rounded-full pointer-events-none" />
-              
-              <div className="relative flex flex-col items-center justify-center w-32 h-48">
-                {/* Wicks */}
-                <motion.div 
-                  initial={{ height: 0 }}
-                  animate={{ height: '100%' }}
-                  transition={{ duration: 1, delay: 0.5 }}
-                  className={`absolute w-1 ${predicted.isBullish ? 'bg-emerald-500/50' : 'bg-red-500/50'} z-0 shadow-[0_0_10px_currentColor]`}
-                />
-                
-                {/* Body */}
-                <motion.div 
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: '60%', opacity: 1 }}
-                  transition={{ duration: 0.8, type: 'spring' }}
-                  className={`relative w-16 ${predicted.isBullish ? 'bg-emerald-500/30 border-emerald-400' : 'bg-red-500/30 border-red-400'} border-2 border-dashed rounded-sm backdrop-blur-sm z-10 flex items-center justify-center shadow-[0_0_20px_currentColor]`}
-                >
-                  <span className="text-sm font-black text-white/80 tracking-widest uppercase opacity-70">
-                    مخفية
-                  </span>
-                </motion.div>
+      <div className="px-5 flex flex-col gap-5">
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 flex flex-col gap-4">
+          <SymbolDropdown value={symbol} onChange={setSymbol} />
+          <AnimatePresence>{error && <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-3"><AlertCircle className="w-4 h-4 text-red-400" /><p className="text-sm text-red-300">{error}</p></motion.div>}</AnimatePresence>
+          <button onClick={handleScan} disabled={loading} className="w-full flex items-center justify-center gap-3 rounded-xl py-4 font-black text-base text-white disabled:opacity-50 transition-all" style={{ background: loading ? '#1a1a1a' : 'linear-gradient(135deg,#6366f1,#4338ca)', boxShadow: !loading ? '0 0 20px rgba(99,102,241,0.25)' : 'none' }}>
+            {loading ? <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-6 h-6" />}
+            {loading ? 'جاري التحليل...' : 'فحص الشمعة الأخيرة'}
+          </button>
+        </div>
+        <AnimatePresence>
+          {pattern && (
+            <motion.div initial={{opacity:0,scale:0.95}} animate={{opacity:1,scale:1}} exit={{opacity:0}} className="flex flex-col gap-5">
+              {/* Pattern Visual */}
+              <div className="rounded-3xl border p-8 flex flex-col items-center gap-4" style={{ borderColor: patternColor + '40', background: patternColor + '08' }}>
+                {renderCandle(pattern.candle, pattern.isBullish)}
+                <div className="text-center">
+                  <p className="text-xl font-black text-white mb-1">{pattern.name}</p>
+                  <p className="text-sm text-white/50">{pattern.nameEn}</p>
+                </div>
               </div>
-
-              {/* Price Labels */}
-              <div className="absolute right-4 top-0 flex items-center gap-3">
-                <span className="text-sm text-white/40 font-bold uppercase tracking-widest">أعلى سعر متوقع</span>
-                <span className="text-base font-mono font-black text-white/90">{formatPrice(predicted.high)}</span>
+              {/* OHLC */}
+              <div className="grid grid-cols-4 gap-2">
+                {[['Open', fmtP(pattern.candle.o)], ['High', fmtP(pattern.candle.h)], ['Low', fmtP(pattern.candle.l)], ['Close', fmtP(pattern.candle.c)]].map(([label, val]) => (
+                  <div key={label} className="rounded-xl bg-white/5 border border-white/[0.06] p-3 flex flex-col gap-1">
+                    <p className="text-xs text-white/30 font-mono">{label}</p>
+                    <p className="text-sm font-black text-white font-mono">{val}</p>
+                  </div>
+                ))}
               </div>
-              
-              <div className="absolute left-4 bottom-0 flex items-center gap-3">
-                <span className="text-base font-mono font-black text-white/90">{formatPrice(predicted.low)}</span>
-                <span className="text-sm text-white/40 font-bold uppercase tracking-widest">أدنى سعر متوقع</span>
+              {/* Verdict */}
+              <div className="rounded-2xl border p-5" style={{ borderColor: patternColor + '30', background: patternColor + '08' }}>
+                <p className="text-sm font-black uppercase tracking-widest mb-2" style={{ color: patternColor }}>الدليل الإرشادي</p>
+                <p className="text-sm text-white/70 leading-relaxed">{verdict}</p>
               </div>
-            </div>
-
-            {/* Data Grid */}
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <div className={`rounded-xl p-6 flex flex-col gap-1 items-center justify-center border ${predicted.isBullish ? 'bg-emerald-500/5 border-emerald-500/10' : 'bg-red-500/5 border-red-500/10'}`}>
-                <span className="text-sm text-white/50 uppercase font-bold tracking-widest">سعر الإغلاق المتوقع</span>
-                <span className={`text-xl font-mono font-black ${predicted.isBullish ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {formatPrice(predicted.close)}
-                </span>
-              </div>
-              <div className="rounded-xl p-6 flex flex-col gap-1 items-center justify-center border border-white/5 bg-white/[0.02]">
-                <span className="text-sm text-white/50 uppercase font-bold tracking-widest">الاتجاه المتوقع</span>
-                <span className={`text-lg font-black ${predicted.isBullish ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {predicted.isBullish ? 'صاعد 📈' : 'هابط 📉'}
-                </span>
-              </div>
-            </div>
-
-          </motion.div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

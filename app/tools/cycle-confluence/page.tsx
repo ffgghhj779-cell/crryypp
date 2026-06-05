@@ -1,99 +1,179 @@
 'use client';
 
-import { slugToTool } from '@/lib/tools/registry';
-import { notFound } from 'next/navigation';
+import { useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Hexagon, ScanSearch, AlertCircle, Calendar } from 'lucide-react';
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
-import { Target, RefreshCcw, BellRing } from 'lucide-react';
-import { motion } from 'motion/react';
-import { useState, useEffect } from 'react';
+import { slugToTool } from '@/lib/tools/registry';
+import { fetchKlines } from '@/lib/binance/fetcher';
+import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
+import { notFound } from 'next/navigation';
+
+interface CycleResult {
+  avgCycleDays: number;
+  lastPeakDate: string;
+  lastPeakPrice: number;
+  nextDates: { date: string; label: string; daysLeft: number }[];
+  currentPrice: number;
+}
+
+function detectCycles(klines: { high: number; low: number; close: number; time: number }[]): CycleResult {
+  const currentPrice = klines[klines.length - 1].close;
+
+  // Find swing highs using 5-candle fractal
+  const peaks: { idx: number; price: number; time: number }[] = [];
+  for (let i = 2; i < klines.length - 2; i++) {
+    const c = klines[i];
+    if (c.high > klines[i-1].high && c.high > klines[i-2].high &&
+        c.high > klines[i+1].high && c.high > klines[i+2].high) {
+      peaks.push({ idx: i, price: c.high, time: klines[i].time });
+    }
+  }
+
+  // Avg cycle = average gap between consecutive peaks
+  let avgCycleDays = 90;
+  if (peaks.length >= 2) {
+    const gaps = [];
+    for (let i = 1; i < peaks.length; i++) {
+      gaps.push((peaks[i].time - peaks[i-1].time) / (1000 * 60 * 60 * 24));
+    }
+    avgCycleDays = Math.round(gaps.reduce((s, g) => s + g, 0) / gaps.length);
+  }
+
+  const lastPeak = peaks[peaks.length - 1] ?? { time: klines[klines.length - 1].time, price: klines[klines.length - 1].high };
+  const lastPeakDate  = new Date(lastPeak.time).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+  const now = Date.now();
+
+  const nextDates = [1, 2, 3].map(n => {
+    const ts   = lastPeak.time + n * avgCycleDays * 24 * 60 * 60 * 1000;
+    const daysLeft = Math.round((ts - now) / (1000 * 60 * 60 * 24));
+    return {
+      date: new Date(ts).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }),
+      label: `دورة ${n} (${n * avgCycleDays} يوم)`,
+      daysLeft,
+    };
+  });
+
+  return { avgCycleDays, lastPeakDate, lastPeakPrice: lastPeak.price, nextDates, currentPrice };
+}
+
+const fmtP = (p: number) => p.toLocaleString(undefined, { maximumFractionDigits: p > 1000 ? 1 : 4 });
 
 export default function CycleConfluencePage() {
-  const tool = slugToTool('cycle-confluence');
-  const [loading, setLoading] = useState(true);
+  const [symbol, setSymbol] = useState('BTCUSDT');
+  const [loading, setLoading] = useState(false);
+  const [error, setError]   = useState('');
+  const [result, setResult] = useState<CycleResult | null>(null);
 
-  // Simulate cycle confluence detection
-  const confluence = {
-    detected: true,
-    score: 85,
-    message: 'تنبيه: نقطة توافق زمني قوي قادمة!',
-    details: 'تم رصد تقاطع بين دورة 90 يوم الزمنية ومستوى فيبوناتشي مهم خلال الأسبوع القادم.',
-  };
+  const handleScan = useCallback(async () => {
+    setError(''); setLoading(true);
+    try {
+      const klines = await fetchKlines(symbol.toUpperCase().trim(), '1d', 200);
+      if (klines.length < 20) throw new Error('بيانات غير كافية');
+      setResult(detectCycles(klines));
+    } catch (e: any) { setError(e.message); }
+    finally { setLoading(false); }
+  }, [symbol]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(timer);
-  }, []);
+  const verdict = !result ? '' :
+    `متوسط الدورة السعرية = ${result.avgCycleDays} يوماً. آخر قمة كانت في ${result.lastPeakDate} عند ${fmtP(result.lastPeakPrice)}. ` +
+    (result.nextDates[0].daysLeft > 0
+      ? `التاريخ المتوقع للانعكاس القادم: ${result.nextDates[0].date} (بعد ${result.nextDates[0].daysLeft} يوماً). راقب تصرف السعر عند هذه التواريخ.`
+      : `التاريخ المتوقع الأول قد مرّ — تابع الدورة الثانية في ${result.nextDates[1].date}.`);
 
+const tool = slugToTool('cycle-confluence');
   if (!tool) return notFound();
 
-  return (
+    return (
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
       <ToolPageHeader tool={tool} />
-
-      {/* Header */}
       <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-black text-orange-500/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-            <Target className="w-3 h-3" /> Cycles
-          </span>
-        </div>
-        <h1 className="text-xl font-black text-white tracking-tight mt-1">توافق الدورات (Confluence)</h1>
-        <p className="text-sm text-white/40 font-mono leading-relaxed">
-          اكتشاف التواريخ والمناطق التي تتطابق فيها عدة مؤشرات زمنية وسعرية معاً
-        </p>
+        <span className="text-sm font-black text-orange-500/70 tracking-widest uppercase border border-orange-500/20 bg-orange-500/10 px-2.5 py-1 rounded-full w-fit flex items-center gap-1"><Hexagon className="w-3 h-3" /> Cycle Confluence</span>
+        <h1 className="text-xl font-black text-white mt-1">تقاطع الدورات الزمنية</h1>
+        <p className="text-sm text-white/40 font-mono">كشف متوسط الدورة من القمم الحقيقية وإسقاط التواريخ القادمة</p>
       </div>
+      <div className="px-5 flex flex-col gap-5">
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 flex flex-col gap-4">
+          <SymbolDropdown value={symbol} onChange={setSymbol} />
+          <AnimatePresence>{error && <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="flex items-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-3"><AlertCircle className="w-4 h-4 text-red-400 shrink-0" /><p className="text-sm text-red-300">{error}</p></motion.div>}</AnimatePresence>
+          <button onClick={handleScan} disabled={loading} className="w-full flex items-center justify-center gap-3 rounded-xl py-4 font-black text-base text-white disabled:opacity-50 transition-all"
+            style={{ background: loading ? '#1a1a1a' : 'linear-gradient(135deg,#f97316,#ea580c)', boxShadow: !loading ? '0 0 20px rgba(249,115,22,0.25)' : 'none' }}>
+            {loading ? <span className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ScanSearch className="w-6 h-6" />}
+            {loading ? 'جاري الكشف...' : 'كشف الدورات الزمنية (200 شمعة)'}
+          </button>
+        </div>
 
-      <div className="px-5 flex flex-col gap-5 mt-4">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-6">
-            <RefreshCcw className="w-8 h-8 text-orange-500 animate-spin" />
-            <p className="text-orange-500/80 font-bold tracking-widest uppercase text-sm animate-pulse">جاري فحص توافق الدورات...</p>
-          </div>
-        ) : (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col gap-6"
-          >
-            {confluence.detected ? (
-              <div className="rounded-3xl border border-orange-500/40 bg-orange-500/10 p-8 flex flex-col items-center text-center gap-6 shadow-[0_0_40px_rgba(249,115,22,0.2)] relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/20 blur-[50px] rounded-full pointer-events-none" />
-                
-                <div className="bg-orange-500/20 p-6 rounded-full border border-orange-500/40 relative">
-                  <div className="absolute inset-0 rounded-full border border-orange-400 animate-ping opacity-50" />
-                  <BellRing className="w-12 h-12 text-orange-400" />
+        <AnimatePresence>
+          {result && (
+            <motion.div initial={{opacity:0,scale:0.95}} animate={{opacity:1,scale:1}} exit={{opacity:0}} className="flex flex-col gap-5">
+              {/* Cycle Stats */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl bg-orange-500/5 border border-orange-500/20 p-4">
+                  <p className="text-xs text-orange-400/60 mb-1">متوسط طول الدورة</p>
+                  <p className="text-2xl font-black text-orange-400">{result.avgCycleDays}<span className="text-sm font-bold text-white/40"> يوم</span></p>
                 </div>
-
-                <div className="flex flex-col gap-3 z-10">
-                  <h2 className="text-2xl font-black text-orange-400">{confluence.message}</h2>
-                  <p className="text-base text-white/80 font-bold leading-relaxed">{confluence.details}</p>
+                <div className="rounded-xl bg-white/5 border border-white/[0.08] p-4">
+                  <p className="text-xs text-white/40 mb-1">آخر قمة</p>
+                  <p className="text-sm font-black text-white font-mono">{fmtP(result.lastPeakPrice)}</p>
+                  <p className="text-xs text-white/30">{result.lastPeakDate}</p>
                 </div>
+              </div>
 
-                {/* Strength Meter */}
-                <div className="w-full mt-4 flex flex-col gap-3 z-10">
-                  <div className="flex justify-between items-end">
-                    <span className="text-sm text-white/50 uppercase font-bold tracking-widest">قوة التوافق</span>
-                    <span className="text-lg font-black font-mono text-orange-400 dir-ltr">{confluence.score}%</span>
-                  </div>
-                  <div className="h-3 w-full bg-black/50 rounded-full overflow-hidden border border-white/10">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${confluence.score}%` }}
-                      transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-                      className="h-full bg-gradient-to-l from-orange-400 to-orange-600 rounded-full"
-                    />
+              {/* Visual Timeline */}
+              <div className="rounded-2xl border border-white/[0.08] bg-[#111] p-5">
+                <p className="text-xs font-bold text-white/30 uppercase tracking-widest mb-4">مخطط الدورات القادمة</p>
+                <div className="relative">
+                  {/* Line */}
+                  <div className="absolute top-4 left-0 right-0 h-0.5 bg-white/10" />
+                  <div className="flex justify-between">
+                    {/* Last Peak */}
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-white/20 border-2 border-white/40 flex items-center justify-center z-10">
+                        <span className="text-xs text-white font-black">Q</span>
+                      </div>
+                      <p className="text-xs text-white/40 text-center max-w-16">آخر قمة</p>
+                    </div>
+                    {/* Next dates */}
+                    {result.nextDates.map((nd, i) => (
+                      <motion.div key={i} initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:0.2+i*0.15}}
+                        className="flex flex-col items-center gap-2">
+                        <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center z-10 ${nd.daysLeft < 0 ? 'bg-white/10 border-white/20' : 'bg-orange-500/20 border-orange-500/60'}`}>
+                          <span className="text-xs font-black" style={{ color: nd.daysLeft < 0 ? '#666' : '#f97316' }}>{i+1}</span>
+                        </div>
+                        <p className="text-xs text-white/40 text-center max-w-16">{nd.daysLeft > 0 ? `${nd.daysLeft}y` : 'مرّ'}</p>
+                      </motion.div>
+                    ))}
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="rounded-3xl border border-white/[0.05] bg-[#0d0d0d] p-8 flex flex-col items-center text-center gap-6">
-                <Target className="w-12 h-12 text-white/20" />
-                <h2 className="text-lg font-bold text-white/50">لا يوجد توافق قوي حالياً</h2>
-                <p className="text-sm text-white/30 font-bold">السوق لا يظهر أي تداخل واضح بين الدورات الزمنية في الوقت الحالي.</p>
+
+              {/* Next Dates List */}
+              <div className="flex flex-col gap-3">
+                {result.nextDates.map((nd, i) => (
+                  <motion.div key={i} initial={{opacity:0,x:-15}} animate={{opacity:1,x:0}} transition={{delay:i*0.1}}
+                    className={`rounded-xl border p-4 flex items-center justify-between ${nd.daysLeft > 0 ? 'border-orange-500/20 bg-orange-500/05' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+                    <div className="flex items-center gap-3">
+                      <Calendar className="w-5 h-5" style={{ color: nd.daysLeft > 0 ? '#f97316' : '#555' }} />
+                      <div>
+                        <p className="text-xs text-white/40">{nd.label}</p>
+                        <p className="text-sm font-black text-white">{nd.date}</p>
+                      </div>
+                    </div>
+                    <span className={`text-sm font-black font-mono ${nd.daysLeft > 0 ? 'text-orange-400' : 'text-white/20'}`}>
+                      {nd.daysLeft > 0 ? `+${nd.daysLeft} يوم` : `${nd.daysLeft} يوم`}
+                    </span>
+                  </motion.div>
+                ))}
               </div>
-            )}
-          </motion.div>
-        )}
+
+              {/* Verdict */}
+              <div className="rounded-2xl border border-orange-500/20 bg-orange-500/08 p-5">
+                <p className="text-sm font-black text-orange-400 uppercase tracking-widest mb-2">الدليل الإرشادي</p>
+                <p className="text-sm text-white/70 leading-relaxed">{verdict}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
