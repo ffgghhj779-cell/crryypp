@@ -38,7 +38,7 @@ export default function TrendCompassPage() {
       setIsLoading(true);
       setError('');
       try {
-        const klines = await fetchKlines(symbol, timeframe.toLowerCase(), 200);
+        const klines = await fetchKlines(symbol, timeframe.toLowerCase(), 1000);
         if (mounted) {
           setLiveData(klines);
           if (klines.length > 0) {
@@ -66,10 +66,11 @@ export default function TrendCompassPage() {
     
     setCalculating(true);
     setAnimated(false);
+    setResult(null); // Clear old results to force visual refresh
     
     try {
       invalidateCache(symbol);
-      const klines = await fetchKlines(symbol.toUpperCase().trim(), timeframe.toLowerCase(), 200);
+      const klines = await fetchKlines(symbol.toUpperCase().trim(), timeframe.toLowerCase(), 1000);
       if (klines.length === 0) throw new Error('لا توجد بيانات متاحة لهذا الأصل.');
       
       setLiveData(klines);
