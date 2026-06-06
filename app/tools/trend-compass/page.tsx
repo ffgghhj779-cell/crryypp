@@ -13,7 +13,7 @@ import { ScanSearch, AlertCircle, ChevronDown, Compass, CheckCircle2, XCircle, M
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
 import { slugToTool } from '@/lib/tools/registry';
 import { calculateTrendCompass, TrendCompassResult } from '@/lib/algorithms/trendCompass';
-import { fetchKlines, Kline } from '@/lib/binance/fetcher';
+import { fetchKlines, Kline, invalidateCache } from '@/lib/binance/fetcher';
 import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
 import { notFound } from 'next/navigation';
 
@@ -68,6 +68,7 @@ export default function TrendCompassPage() {
     setAnimated(false);
     
     try {
+      invalidateCache(symbol);
       const klines = await fetchKlines(symbol.toUpperCase().trim(), timeframe.toLowerCase(), 200);
       if (klines.length === 0) throw new Error('لا توجد بيانات متاحة لهذا الأصل.');
       
