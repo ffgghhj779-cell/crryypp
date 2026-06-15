@@ -5,7 +5,7 @@ import { useEffect, useRef, useState, startTransition } from 'react';
 import { AnimatePresence }  from 'motion/react';
 import { createChart, ColorType, AreaSeries } from 'lightweight-charts';
 import { fetchKlines }        from '@/lib/binance';
-import { ChevronRight, TrendingUp, TrendingDown } from 'lucide-react';
+import { ChevronRight, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
 import Link                   from 'next/link';
 import { ANALYSIS_TOOLS }     from '@/components/UnifiedScannerModal';
 import { toolToSlug }         from '@/lib/tools/registry';
@@ -261,43 +261,81 @@ interface CommodityData {
   gold:         CommodityItem | null;
   oil:          CommodityItem | null;
   usdEgp:       CommodityItem | null;
+  eurUsd:       CommodityItem | null;
   egyptianGold: CommodityItem | null;
+}
+
+// ─── Mini sparkline chart for each commodity card ────────────────────────────
+function CommodityMiniChart({ symbol, color }: { symbol: string; color: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    let dead = false;
+    const h = ref.current.clientHeight || 72;
+    const w = ref.current.clientWidth  || 170;
+
+    const chart = createChart(ref.current, {
+      layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: 'transparent' },
+      grid:   { vertLines: { visible: false }, horzLines: { visible: false } },
+      width: w, height: h,
+      timeScale:       { visible: false, borderVisible: false },
+      rightPriceScale: { visible: false, borderVisible: false },
+      crosshair:       { vertLine: { visible: false }, horzLine: { visible: false } },
+      handleScroll: false, handleScale: false,
+    });
+
+    const hex = color;
+    const series = chart.addSeries(AreaSeries, {
+      lineColor:  hex,
+      topColor:   hex + '44',
+      bottomColor: hex + '00',
+      lineWidth:  2 as any,
+      priceLineVisible: false,
+      lastValueVisible: false,
+      crosshairMarkerVisible: false,
+    });
+
+    fetchKlines(symbol, '1d', 30)
+      .then(d => { if (!dead) { series.setData(d as any); chart.timeScale().fitContent(); } })
+      .catch(() => {});
+
+    const obs = new ResizeObserver(() => {
+      if (ref.current && !dead)
+        chart.applyOptions({ width: ref.current.clientWidth, height: ref.current.clientHeight || 72 });
+    });
+    obs.observe(ref.current);
+
+    return () => { dead = true; obs.disconnect(); chart.remove(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [symbol]);
+
+  return <div ref={ref} className="w-full h-full" />;
 }
 
 function CommoditiesPanel() {
   const [data, setData] = useState<CommodityData>({
-    gold: null, oil: null, usdEgp: null, egyptianGold: null,
+    gold: null, oil: null, usdEgp: null, eurUsd: null, egyptianGold: null,
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]         = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>('');
 
   useEffect(() => {
-    const safetyTimer = setTimeout(() => setLoading(false), 12_000);
+    const safetyTimer = setTimeout(() => setLoading(false), 14_000);
 
     async function load() {
       try {
-        // Direct browser fetch — bypasses Vercel server-side IP blocking
-        const [goldData, egpData, oilData] = await Promise.all([
-          fetch('https://api.gold-api.com/price/XAU').then(r => r.ok ? r.json() : null).catch(() => null),
-          fetch('https://open.er-api.com/v6/latest/USD').then(r => r.ok ? r.json() : null).catch(() => null),
-          fetch('https://api.gold-api.com/price/BRENT').then(r => r.ok ? r.json() : null).catch(() => null),
-        ]);
-
-        const goldPrice    = Number(goldData?.price ?? 3345);
-        // gold-api.com returns 'chp' = change percent directly
-        const goldChgPct   = Number(goldData?.chp ?? goldData?.change_pct ?? 0);
-        const egpRate      = Number(egpData?.rates?.EGP ?? 50.85);
-        const oilPrice     = Number(oilData?.price ?? 79.5);
-        const oilChgPct    = Number(oilData?.chp ?? oilData?.change_pct ?? 0);
-        const egpGold      = Math.round((goldPrice / 31.1035) * egpRate * (21 / 24));
-
+        const res = await fetch('/api/commodities', { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const d = await res.json();
 
         startTransition(() => {
           setData({
-            gold:         { price: goldPrice, changePct: goldChgPct },
-            oil:          { price: oilPrice,  changePct: oilChgPct },
-            usdEgp:       { price: egpRate,   changePct: 0 },
-            egyptianGold: { price: egpGold,   changePct: goldChgPct, source: 'calculated' },
+            gold:         d.gold         ?? null,
+            oil:          d.oil          ?? null,
+            usdEgp:       d.usdEgp       ?? null,
+            eurUsd:       d.eurUsd       ?? null,
+            egyptianGold: d.egyptianGold ?? null,
           });
           setLoading(false);
           clearTimeout(safetyTimer);
@@ -314,72 +352,80 @@ function CommoditiesPanel() {
     return () => { clearInterval(t); clearTimeout(safetyTimer); };
   }, []);
 
-
   type CardDef = {
-    id: string;
-    icon: string;
-    labelAr: string;
-    labelEn: string;
-    price: string;
-    unit: string;
-    changePct: number;
-    accentCls: string;
-    glowCls: string;
-    loaded: boolean;
+    id:           string;
+    icon:         string;
+    labelAr:      string;
+    labelEn:      string;
+    price:        string;
+    unit:         string;
+    changePct:    number;
+    accentCls:    string;
+    glowCls:      string;
+    lineColor:    string;
+    klinesSymbol: string;
+    loaded:       boolean;
   };
 
   const cards: CardDef[] = [
     {
-      id: 'gold',
-      icon: '🥇',
-      labelAr: 'الذهب العالمي',
-      labelEn: 'XAU / USD',
+      id: 'gold', icon: '🥇',
+      labelAr: 'الذهب العالمي', labelEn: 'XAU / USD',
       price: data.gold
         ? `$${data.gold.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
         : '---',
       unit: 'للأونصة',
       changePct: data.gold?.changePct ?? 0,
       accentCls: 'border-amber-500/30 bg-gradient-to-br from-amber-950/40 via-black to-zinc-950',
-      glowCls: 'bg-amber-500/10',
+      glowCls:   'bg-amber-500/10',
+      lineColor: '#f59e0b', klinesSymbol: 'XAUUSD',
       loaded: !!data.gold,
     },
     {
-      id: 'egygold',
-      icon: '🇪🇬',
-      labelAr: 'الذهب المصري',
-      labelEn: data.egyptianGold?.source === 'scrape' ? 'عيار 21 · سوق' : 'عيار 21 · محسوب',
+      id: 'egygold', icon: '🇪🇬',
+      labelAr: 'الذهب المصري', labelEn: 'عيار 21 · محسوب',
       price: data.egyptianGold
         ? `${Math.round(data.egyptianGold.price).toLocaleString('en-US')} ج`
         : '---',
       unit: 'جنيه / جرام',
       changePct: data.egyptianGold?.changePct ?? 0,
       accentCls: 'border-emerald-500/30 bg-gradient-to-br from-emerald-950/40 via-black to-zinc-950',
-      glowCls: 'bg-emerald-500/10',
+      glowCls:   'bg-emerald-500/10',
+      lineColor: '#10b981', klinesSymbol: 'EGYXAU',
       loaded: !!data.egyptianGold,
     },
     {
-      id: 'oil',
-      icon: '🛢️',
-      labelAr: 'النفط الخام',
-      labelEn: 'WTI Crude · USD/bbl',
+      id: 'oil', icon: '🛢️',
+      labelAr: 'النفط الخام', labelEn: 'WTI Crude · USD/bbl',
       price: data.oil ? `$${data.oil.price.toFixed(2)}` : '---',
       unit: 'للبرميل',
       changePct: data.oil?.changePct ?? 0,
       accentCls: 'border-slate-500/30 bg-gradient-to-br from-slate-900/60 via-black to-zinc-950',
-      glowCls: 'bg-slate-500/10',
+      glowCls:   'bg-slate-500/10',
+      lineColor: '#94a3b8', klinesSymbol: 'WTIUSD',
       loaded: !!data.oil,
     },
     {
-      id: 'usdegp',
-      icon: '💵',
-      labelAr: 'سعر الدولار',
-      labelEn: 'USD / EGP',
+      id: 'usdegp', icon: '💵',
+      labelAr: 'سعر الدولار', labelEn: 'USD / EGP',
       price: data.usdEgp ? `${data.usdEgp.price.toFixed(2)} ج` : '---',
       unit: 'جنيه مصري',
       changePct: data.usdEgp?.changePct ?? 0,
       accentCls: 'border-blue-500/30 bg-gradient-to-br from-blue-950/40 via-black to-zinc-950',
-      glowCls: 'bg-blue-500/10',
+      glowCls:   'bg-blue-500/10',
+      lineColor: '#3b82f6', klinesSymbol: 'USDEGP',
       loaded: !!data.usdEgp,
+    },
+    {
+      id: 'eurusd', icon: '💶',
+      labelAr: 'اليورو / دولار', labelEn: 'EUR / USD',
+      price: data.eurUsd ? data.eurUsd.price.toFixed(4) : '---',
+      unit: 'دولار للأورو',
+      changePct: data.eurUsd?.changePct ?? 0,
+      accentCls: 'border-violet-500/30 bg-gradient-to-br from-violet-950/40 via-black to-zinc-950',
+      glowCls:   'bg-violet-500/10',
+      lineColor: '#8b5cf6', klinesSymbol: 'EURUSD',
+      loaded: !!data.eurUsd,
     },
   ];
 
@@ -397,31 +443,47 @@ function CommoditiesPanel() {
         </div>
       </div>
 
-      {/* 2x2 cards grid */}
+      {/* Cards: 2-column grid */}
       <div className="grid grid-cols-2 gap-3">
         {cards.map((card) => {
           const pos = card.changePct >= 0;
           return (
-            <div key={card.id} className={`relative overflow-hidden rounded-2xl border p-4 ${card.accentCls} shadow-lg`}>
+            <div key={card.id} className={`relative overflow-hidden rounded-2xl border ${card.accentCls} shadow-lg`}>
               <div className={`pointer-events-none absolute -top-6 -right-6 w-24 h-24 ${card.glowCls} blur-2xl rounded-full`} />
-              <div className="flex items-start justify-between mb-3 relative z-10">
-                <div>
-                  <p className="text-white/35 text-xs font-mono tracking-widest leading-none mb-0.5">{card.labelEn}</p>
-                  <p className="text-white/85 text-sm font-bold leading-tight">{card.labelAr}</p>
+
+              {/* Top section */}
+              <div className="p-4 pb-2">
+                <div className="flex items-start justify-between mb-2 relative z-10">
+                  <div>
+                    <p className="text-white/35 text-xs font-mono tracking-widest leading-none mb-0.5">{card.labelEn}</p>
+                    <p className="text-white/85 text-sm font-bold leading-tight">{card.labelAr}</p>
+                  </div>
+                  <span className="text-xl leading-none">{card.icon}</span>
                 </div>
-                <span className="text-2xl leading-none">{card.icon}</span>
+
+                {/* Price */}
+                <div className="relative z-10">
+                  {loading && !card.loaded ? (
+                    <div className="h-6 w-24 rounded-lg bg-white/5 animate-pulse mb-1" />
+                  ) : (
+                    <p className="text-white font-black font-mono tabular-nums text-lg leading-none tracking-tight mb-0.5">
+                      {card.price}
+                    </p>
+                  )}
+                  <p className="text-white/25 text-xs font-mono">{card.unit}</p>
+                </div>
               </div>
-              <div className="relative z-10">
-                {loading && !card.loaded ? (
-                  <div className="h-7 w-28 rounded-lg bg-white/5 animate-pulse mb-1" />
-                ) : (
-                  <p className="text-white font-black font-mono tabular-nums text-xl leading-none tracking-tight mb-1">{card.price}</p>
-                )}
-                <p className="text-white/25 text-xs font-mono">{card.unit}</p>
+
+              {/* Sparkline chart — full width, no padding */}
+              <div className="h-[72px] w-full overflow-hidden opacity-75">
+                <CommodityMiniChart symbol={card.klinesSymbol} color={card.lineColor} />
               </div>
-              <div className="flex items-center justify-between mt-3 relative z-10">
-                <span className={`inline-flex items-center gap-1 text-sm font-bold font-mono tabular-nums px-2 py-0.5 rounded-lg border ${
-                  pos ? 'text-emerald-400 border-emerald-500/25 bg-emerald-500/10' : 'text-red-400 border-red-500/25 bg-red-500/10'
+
+              {/* Change % */}
+              <div className="flex items-center justify-between px-4 py-2 relative z-10">
+                <span className={`inline-flex items-center gap-1 text-xs font-bold font-mono tabular-nums px-2 py-0.5 rounded-lg border ${
+                  pos ? 'text-emerald-400 border-emerald-500/25 bg-emerald-500/10'
+                      : 'text-red-400 border-red-500/25 bg-red-500/10'
                 }`}>
                   {pos ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                   {pos ? '+' : ''}{card.changePct.toFixed(2)}%

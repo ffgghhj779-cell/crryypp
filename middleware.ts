@@ -18,7 +18,8 @@ const PUBLIC_PATHS = new Set([
   '/api/global',
   '/api/fng',
   '/api/calendar',
-  '/api/klines', // Needed for commodity historical data
+  '/api/klines',       // Needed for commodity historical data
+  '/api/commodities',  // Needed for live commodity price panel
 ]);
 
 // Telegram WebApp WebViews include one of these strings in their User-Agent.
