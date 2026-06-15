@@ -276,7 +276,7 @@ function CommodityMiniChart({ symbol, color }: { symbol: string; color: string }
     const w = ref.current.clientWidth  || 170;
 
     const chart = createChart(ref.current, {
-      layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: 'transparent' },
+      layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: 'transparent', attributionLogo: false },
       grid:   { vertLines: { visible: false }, horzLines: { visible: false } },
       width: w, height: h,
       timeScale:       { visible: false, borderVisible: false },
