@@ -2,10 +2,10 @@
 
 import { useBinanceTicker } from '@/hooks/useBinanceTicker';
 import { useEffect, useRef, useState, startTransition } from 'react';
-import { AnimatePresence }  from 'motion/react';
-import { createChart, ColorType, AreaSeries } from 'lightweight-charts';
+import { motion, AnimatePresence }  from 'motion/react';
+import { createChart, ColorType, AreaSeries, CandlestickSeries } from 'lightweight-charts';
 import { fetchKlines }        from '@/lib/binance';
-import { ChevronRight, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { ChevronRight, TrendingUp, TrendingDown, RefreshCw, X } from 'lucide-react';
 import Link                   from 'next/link';
 import { ANALYSIS_TOOLS }     from '@/components/UnifiedScannerModal';
 import { toolToSlug }         from '@/lib/tools/registry';
@@ -313,7 +313,115 @@ function CommodityMiniChart({ symbol, color }: { symbol: string; color: string }
   return <div ref={ref} className="w-full h-full" />;
 }
 
+type CardDef = {
+  id:           string;
+  icon:         string;
+  labelAr:      string;
+  labelEn:      string;
+  price:        string;
+  unit:         string;
+  changePct:    number;
+  accentCls:    string;
+  glowCls:      string;
+  lineColor:    string;
+  klinesSymbol: string;
+  loaded:       boolean;
+};
+
+// ─── Detailed Full Chart Modal ───────────────────────────────────────────────
+function DetailedCommodityChartModal({ card, onClose }: { card: CardDef; onClose: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    let dead = false;
+    const chart = createChart(ref.current, {
+      layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: '#9ca3af', attributionLogo: false },
+      grid:   { vertLines: { color: '#1f2937' }, horzLines: { color: '#1f2937' } },
+      timeScale:       { borderVisible: false, timeVisible: true },
+      rightPriceScale: { borderVisible: false },
+      crosshair: { mode: 0 },
+    });
+
+    const series = chart.addSeries(CandlestickSeries, {
+      upColor: '#10b981', downColor: '#ef4444', borderVisible: false,
+      wickUpColor: '#10b981', wickDownColor: '#ef4444',
+    });
+
+    fetchKlines(card.klinesSymbol, '1h', 200)
+      .then(d => {
+        if (dead) return;
+        series.setData(d as any);
+        chart.timeScale().fitContent();
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!dead) setLoading(false);
+      });
+
+    const obs = new ResizeObserver(() => {
+      if (ref.current && !dead) chart.applyOptions({ width: ref.current.clientWidth, height: ref.current.clientHeight });
+    });
+    obs.observe(ref.current);
+
+    return () => { dead = true; obs.disconnect(); chart.remove(); };
+  }, [card.klinesSymbol]);
+
+  const pos = card.changePct >= 0;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      className="fixed inset-0 z-50 flex flex-col bg-black/90 backdrop-blur-md sm:p-6"
+    >
+      <div className="flex-1 w-full max-w-5xl mx-auto flex flex-col bg-zinc-950 sm:rounded-3xl sm:border border-zinc-800 overflow-hidden shadow-2xl relative mt-4 sm:mt-0 h-[calc(100%-2rem)]">
+        <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${pos ? 'from-emerald-500' : 'from-red-500'} to-transparent z-10`} />
+        
+        {/* Modal Header */}
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-zinc-800/50 relative z-10">
+          <div className="flex items-center gap-4">
+            <span className="text-4xl">{card.icon}</span>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-white font-bold text-lg sm:text-xl">{card.labelAr}</h2>
+                <span className="text-zinc-500 font-mono text-xs px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800">{card.labelEn}</span>
+              </div>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="text-2xl font-black font-mono tracking-tight text-white">{card.price}</span>
+                <span className="text-xs text-zinc-500 font-mono">{card.unit}</span>
+                <span className={`inline-flex items-center gap-1 text-xs font-bold font-mono px-2 py-0.5 rounded-lg ml-2 ${
+                  pos ? 'text-emerald-400 bg-emerald-500/10' : 'text-red-400 bg-red-500/10'
+                }`}>
+                  {pos ? '+' : ''}{card.changePct.toFixed(2)}%
+                </span>
+              </div>
+            </div>
+          </div>
+          <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-full bg-zinc-900 hover:bg-zinc-800 text-white transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Modal Chart Body */}
+        <div className="flex-1 relative w-full p-4 sm:p-6 bg-gradient-to-b from-zinc-900/20 to-zinc-950 min-h-0">
+          {loading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-950/50 backdrop-blur-sm z-10">
+              <span className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-3" />
+              <p className="text-zinc-400 font-mono text-xs animate-pulse">جاري سحب بيانات الشموع...</p>
+            </div>
+          )}
+          <div ref={ref} className="w-full h-full" />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 function CommoditiesPanel() {
+  const [selectedCard, setSelectedCard] = useState<CardDef | null>(null);
   const [data, setData] = useState<CommodityData>({
     gold: null, oil: null, usdEgp: null, eurUsd: null, egyptianGold: null,
   });
@@ -351,21 +459,6 @@ function CommoditiesPanel() {
     const t = setInterval(load, 60_000);
     return () => { clearInterval(t); clearTimeout(safetyTimer); };
   }, []);
-
-  type CardDef = {
-    id:           string;
-    icon:         string;
-    labelAr:      string;
-    labelEn:      string;
-    price:        string;
-    unit:         string;
-    changePct:    number;
-    accentCls:    string;
-    glowCls:      string;
-    lineColor:    string;
-    klinesSymbol: string;
-    loaded:       boolean;
-  };
 
   const cards: CardDef[] = [
     {
@@ -448,7 +541,11 @@ function CommoditiesPanel() {
         {cards.map((card) => {
           const pos = card.changePct >= 0;
           return (
-            <div key={card.id} className={`relative overflow-hidden rounded-2xl border ${card.accentCls} shadow-lg`}>
+            <div 
+              key={card.id} 
+              onClick={() => setSelectedCard(card)}
+              className={`relative overflow-hidden rounded-2xl border ${card.accentCls} shadow-lg cursor-pointer hover:brightness-110 active:scale-[0.98] transition-all`}
+            >
               <div className={`pointer-events-none absolute -top-6 -right-6 w-24 h-24 ${card.glowCls} blur-2xl rounded-full`} />
 
               {/* Top section */}
@@ -494,6 +591,15 @@ function CommoditiesPanel() {
           );
         })}
       </div>
+
+      <AnimatePresence>
+        {selectedCard && (
+          <DetailedCommodityChartModal 
+            card={selectedCard} 
+            onClose={() => setSelectedCard(null)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
