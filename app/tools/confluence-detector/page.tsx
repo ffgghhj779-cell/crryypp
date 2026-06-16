@@ -24,6 +24,8 @@ export default function ConfluenceDetectorPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const [klines, setKlines] = useState<any[]>([]);
+
   const tool = slugToTool('confluence-detector');
   if (!tool) return notFound();
 
@@ -31,15 +33,16 @@ export default function ConfluenceDetectorPage() {
     setError('');
     setLoading(true);
     try {
-      const klines = await fetchKlines(symbol.toUpperCase().trim(), '1d', 100);
-      if (klines.length < 10) throw new Error('بيانات غير كافية');
+      const fetchedKlines = await fetchKlines(symbol.toUpperCase().trim(), '1d', 100);
+      if (fetchedKlines.length < 10) throw new Error('بيانات غير كافية');
 
-      const cp = klines[klines.length - 1].close;
+      setKlines(fetchedKlines);
+      const cp = fetchedKlines[fetchedKlines.length - 1].close;
       setCurrentPrice(cp);
 
       // ─── Swing High/Low from last 100 candles ────────────────────────
-      const swingHigh = Math.max(...klines.map(k => k.high));
-      const swingLow  = Math.min(...klines.map(k => k.low));
+      const swingHigh = Math.max(...fetchedKlines.map(k => k.high));
+      const swingLow  = Math.min(...fetchedKlines.map(k => k.low));
       const range = swingHigh - swingLow;
 
       // ─── Fibonacci Levels ─────────────────────────────────────────────
@@ -50,7 +53,7 @@ export default function ConfluenceDetectorPage() {
       }));
 
       // ─── Pivot Points (from previous completed candle) ────────────────
-      const prev = klines[klines.length - 2];
+      const prev = fetchedKlines[fetchedKlines.length - 2];
       const pp = (prev.high + prev.low + prev.close) / 3;
       const r1 = 2 * pp - prev.low;
       const r2 = pp + (prev.high - prev.low);
@@ -65,7 +68,7 @@ export default function ConfluenceDetectorPage() {
       ];
 
       // ─── VWAP (last 20 candles) ───────────────────────────────────────
-      const last20 = klines.slice(-20);
+      const last20 = fetchedKlines.slice(-20);
       const vwapNum = last20.reduce((acc, k) => acc + ((k.high + k.low + k.close) / 3) * k.volume, 0);
       const vwapDen = last20.reduce((acc, k) => acc + k.volume, 0);
       const vwap = vwapNum / (vwapDen || 1);
@@ -169,6 +172,28 @@ export default function ConfluenceDetectorPage() {
         <AnimatePresence>
           {levels.length > 0 && (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-3">
+              
+              {/* ToolChart Component */}
+              <div className="rounded-2xl bg-[#050505] p-4 border border-purple-500/20 shadow-lg shadow-purple-500/5 mb-2">
+                <div className="flex justify-between items-center mb-4">
+                  <p className="text-sm font-bold text-purple-500 uppercase tracking-widest flex items-center gap-2">
+                    <Crosshair className="w-4 h-4" /> Confluence Zones
+                  </p>
+                  <p className="text-xs font-mono text-white/40">{symbol.toUpperCase()} • 1D</p>
+                </div>
+                <import("@/components/tools/ToolChart").ToolChart 
+                  klines={klines}
+                  height={300}
+                  priceLines={levels.map(l => ({
+                    price: l.price,
+                    title: `${l.strength} Stars`,
+                    color: l.type === 'resistance' ? '#ef4444' : '#10b981',
+                    lineStyle: 0,
+                    lineWidth: Math.min(l.strength, 4) as 1 | 2 | 3 | 4
+                  }))}
+                />
+              </div>
+
               <h2 className="text-base font-bold text-purple-400 pr-2 border-r-2 border-purple-500">
                 أقوى مستويات التوافق
               </h2>

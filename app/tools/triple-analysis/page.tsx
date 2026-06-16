@@ -84,7 +84,7 @@ export default function TripleAnalysisPage() {
                         <div className="h-2 w-full bg-black rounded-full overflow-hidden">
                           <div 
                             className={`h-full ${isBullish ? 'bg-green-500' : isBearish ? 'bg-red-500' : 'bg-gray-500'}`} 
-                            style={{ width: \`\${pillar.score}%\` }}
+                            style={{ width: `${pillar.score}%` }}
                           />
                         </div>
                       </div>

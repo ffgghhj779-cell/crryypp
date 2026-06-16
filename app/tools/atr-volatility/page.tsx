@@ -13,15 +13,17 @@ import { ScanSearch, AlertCircle, Activity, ChevronDown, ShieldAlert, Zap, Trend
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
 import { slugToTool } from '@/lib/tools/registry';
 import { calculateVolatility, VolatilityResult } from '@/lib/algorithms/volatility';
-import { fetchKlines } from '@/lib/binance/fetcher';
+import { fetchKlines, Kline } from '@/lib/binance/fetcher';
 import { notFound } from 'next/navigation';
 import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
+import { ToolChart } from '@/components/tools/ToolChart';
 
 export default function AtrVolatilityPage() {
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [timeframe, setTimeframe] = useState('1d');
   
   const [result, setResult] = useState<VolatilityResult | null>(null);
+  const [klines, setKlines] = useState<Kline[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [animated, setAnimated] = useState(false);
@@ -37,10 +39,11 @@ export default function AtrVolatilityPage() {
     setAnimated(false);
     
     try {
-      const klines = await fetchKlines(symbol.toUpperCase().trim(), timeframe.toLowerCase(), 200); // Need more klines for SMA(ATR, 20) of ATR(14)
-      if (klines.length === 0) throw new Error('لا توجد بيانات متاحة لهذا الأصل.');
+      const fetchedKlines = await fetchKlines(symbol.toUpperCase().trim(), timeframe.toLowerCase(), 200); 
+      if (fetchedKlines.length === 0) throw new Error('لا توجد بيانات متاحة لهذا الأصل.');
       
-      const res = calculateVolatility(symbol.toUpperCase().trim(), klines);
+      const res = calculateVolatility(symbol.toUpperCase().trim(), fetchedKlines);
+      setKlines(fetchedKlines);
       setResult(res);
       setTimeout(() => setAnimated(true), 100);
     } catch (err: any) {
@@ -140,59 +143,25 @@ export default function AtrVolatilityPage() {
               transition={{ type: 'spring', stiffness: 100, damping: 18 }}
               className="flex flex-col gap-6"
             >
-              {/* Visual Speedometer/Gauge Chart */}
-              <div className="rounded-2xl border border-white/[0.08] bg-[#111] p-6 flex flex-col items-center shadow-[0_0_30px_rgba(245,158,11,0.05)] relative overflow-hidden">
-                <p className="text-sm font-bold text-white/50 uppercase tracking-widest mb-6">مؤشر سرعة السوق (Speedometer)</p>
-                
-                <div className="relative w-64 h-32 overflow-hidden flex justify-center mb-2">
-                  {/* Gauge Background SVG */}
-                  <svg className="w-full h-full" viewBox="0 0 200 100">
-                    <defs>
-                      <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#10b981" /> {/* Green - Low */}
-                        <stop offset="50%" stopColor="#f59e0b" /> {/* Yellow/Orange - Normal */}
-                        <stop offset="100%" stopColor="#ef4444" /> {/* Red - Extreme */}
-                      </linearGradient>
-                    </defs>
-                    {/* Background Arc */}
-                    <path
-                      d="M 20 100 A 80 80 0 0 1 180 100"
-                      fill="none"
-                      stroke="#222"
-                      strokeWidth="20"
-                      strokeLinecap="round"
-                    />
-                    {/* Colored Arc */}
-                    <path
-                      d="M 20 100 A 80 80 0 0 1 180 100"
-                      fill="none"
-                      stroke="url(#gaugeGradient)"
-                      strokeWidth="20"
-                      strokeLinecap="round"
-                    />
-                    
-                    {/* The Needle */}
-                    <motion.g
-                      initial={{ rotate: -90 }}
-                      animate={animated ? { rotate: -90 + (180 * result.volatilityPct) / 100 } : { rotate: -90 }}
-                      transition={{ type: 'spring', stiffness: 60, damping: 15, delay: 0.3 }}
-                      style={{ originX: "100px", originY: "100px" }}
-                    >
-                      <path d="M 97 100 L 100 25 L 103 100 Z" fill="#fff" />
-                      <circle cx="100" cy="100" r="6" fill="#fff" />
-                    </motion.g>
-                  </svg>
-                  
-                  <div className="absolute bottom-0 text-3xl font-black font-mono text-white tracking-tighter">
-                    {result.volatilityPct}%
-                  </div>
-                </div>
 
-                <div className="w-full flex justify-between text-sm font-bold text-white/40 uppercase tracking-widest mt-2 px-5">
-                  <span className="text-emerald-500/70">Low</span>
-                  <span className="text-amber-500/70">Normal</span>
-                  <span className="text-red-500/70">Extreme</span>
+              {/* ToolChart Component */}
+              <div className="rounded-2xl bg-black p-4 border border-amber-500/20 shadow-lg shadow-amber-500/5">
+                <div className="flex justify-between items-center mb-4">
+                  <p className="text-sm font-bold text-amber-500 uppercase tracking-widest flex items-center gap-2">
+                    <Activity className="w-4 h-4" /> ATR Price Targets
+                  </p>
+                  <p className="text-xs font-mono text-white/40">{result.symbol} • {timeframe.toUpperCase()}</p>
                 </div>
+                <ToolChart 
+                  klines={klines}
+                  height={300}
+                  priceLines={[
+                    { price: result.targetUp1, color: '#10b981', title: '+1.5 ATR', lineStyle: 2 },
+                    { price: result.targetUp2, color: '#10b981', title: '+2.5 ATR', lineStyle: 2 },
+                    { price: result.targetDn1, color: '#ef4444', title: '-1.5 ATR', lineStyle: 2 },
+                    { price: result.targetDn2, color: '#ef4444', title: '-2.5 ATR', lineStyle: 2 },
+                  ]}
+                />
               </div>
 
               {/* Status Cards (CSS Grid) */}
@@ -238,7 +207,7 @@ export default function AtrVolatilityPage() {
                     <ShieldAlert className="w-3 h-3" /> نطاق الوقف الآمن (SL)
                   </span>
                   <span className="text-base font-black text-rose-300 leading-snug">
-                    أبعد وقفك بمقدار <span className="font-mono bg-rose-500/20 px-1 rounded border border-rose-500/30">${priceStr(result.safeStopLossDist)}</span> عن نقطة الدخول
+                    أبعد وقفك بمقدار <span className="font-mono bg-rose-500/20 px-1 rounded border border-rose-500/30">${priceStr(result.safeStopLossDist)}</span>
                   </span>
                   <span className="text-sm text-rose-500/60 mt-2 font-bold tracking-widest">معدل الحماية: 1.5x ATR</span>
                 </motion.div>

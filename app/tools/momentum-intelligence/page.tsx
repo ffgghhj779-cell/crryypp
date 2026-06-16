@@ -5,9 +5,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Brain, ScanSearch, AlertCircle } from 'lucide-react';
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
 import { slugToTool } from '@/lib/tools/registry';
-import { fetchKlines } from '@/lib/binance/fetcher';
+import { fetchKlines, Kline } from '@/lib/binance/fetcher';
 import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
 import { notFound } from 'next/navigation';
+import { ToolChart } from '@/components/tools/ToolChart';
 
 function calcRSI(closes: number[], p = 14) {
   if (closes.length < p + 1) return 50;
@@ -61,18 +62,38 @@ export default function MomentumIntelligencePage() {
   const [error, setError]   = useState('');
   const [result, setResult] = useState<MomResult | null>(null);
 
+  const [klines, setKlines] = useState<Kline[]>([]);
+  const [indicatorData, setIndicatorData] = useState<any>(null);
+
   const handleScan = useCallback(async () => {
     setError(''); setLoading(true);
     try {
-      const klines = await fetchKlines(symbol.toUpperCase().trim(), '1d', 100);
-      if (klines.length < 30) throw new Error('بيانات غير كافية');
-      const closes = klines.map(k => k.close);
+      const fetchedKlines = await fetchKlines(symbol.toUpperCase().trim(), '1d', 100);
+      if (fetchedKlines.length < 30) throw new Error('بيانات غير كافية');
+      const closes = fetchedKlines.map(k => k.close);
+      
       const rsi   = calcRSI(closes);
       const macd  = calcMACD(closes);
-      const stoch = calcStoch(klines);
+      const stoch = calcStoch(fetchedKlines);
       const roc   = calcROC(closes);
+      
+      // Calculate arrays for chart
+      const rsiArr = [];
+      for (let i = 30; i < closes.length; i++) {
+        rsiArr.push({ time: fetchedKlines[i].time, value: calcRSI(closes.slice(0, i + 1)) });
+      }
+
+      const macdHistArr = [];
+      for (let i = 30; i < closes.length; i++) {
+        const m = calcMACD(closes.slice(0, i + 1));
+        macdHistArr.push({ time: fetchedKlines[i].time, value: m.hist, color: m.hist >= 0 ? '#10b981' : '#ef4444' });
+      }
+
       const bullCount = [rsi > 50, macd.hist > 0, stoch.k > 50, roc > 0].filter(Boolean).length;
       const bearCount = 4 - bullCount;
+      
+      setKlines(fetchedKlines);
+      setIndicatorData({ rsiArr, macdHistArr });
       setResult({ rsi, macd, stoch, roc, bullCount, bearCount });
     } catch (e: any) { setError(e.message); }
     finally { setLoading(false); }
@@ -119,6 +140,25 @@ const tool = slugToTool('momentum-intelligence');
         <AnimatePresence>
           {result && (
             <motion.div initial={{opacity:0,scale:0.95}} animate={{opacity:1,scale:1}} exit={{opacity:0}} className="flex flex-col gap-4">
+              
+              {/* ToolChart Component */}
+              <div className="rounded-2xl bg-[#050505] p-4 border border-purple-500/20 shadow-lg shadow-purple-500/5">
+                <div className="flex justify-between items-center mb-4">
+                  <p className="text-sm font-bold text-purple-500 uppercase tracking-widest flex items-center gap-2">
+                    <Brain className="w-4 h-4" /> Momentum View
+                  </p>
+                  <p className="text-xs font-mono text-white/40">{symbol.toUpperCase()} • 1D</p>
+                </div>
+                <ToolChart 
+                  klines={klines}
+                  height={300}
+                  overlays={[
+                    { type: 'line', data: indicatorData.rsiArr, color: '#c084fc', title: 'RSI(14)', priceScaleId: 'left', lineWidth: 2 },
+                    { type: 'histogram', data: indicatorData.macdHistArr, title: 'MACD Hist', priceScaleId: 'left' }
+                  ]}
+                />
+              </div>
+
               {/* Overall Score */}
               <div className="rounded-2xl border p-6 flex items-center justify-between" style={{ borderColor: overallColor + '40', background: overallColor + '0a' }}>
                 <div>
