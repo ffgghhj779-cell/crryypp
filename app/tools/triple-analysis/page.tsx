@@ -4,134 +4,97 @@ import { useMarketData } from '@/context/MarketDataContext';
 import { slugToTool } from '@/lib/tools/registry';
 import { notFound } from 'next/navigation';
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
-import { Activity, RefreshCcw, TrendingUp, BarChart2, Zap } from 'lucide-react';
+import { RefreshCcw, LayoutTemplate } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useMemo } from 'react';
 import { ContextAssetBar } from '@/components/tools/ContextAssetBar';
+import { calculateTripleAnalysis } from '@/lib/algorithms/tripleAnalysis';
 
 export default function TripleAnalysisPage() {
-  const { currentPrice, isLoading } = useMarketData();
+  const { symbol, candles, isLoading } = useMarketData();
   const tool = slugToTool('triple-analysis');
 
-  // Mock 3 pillars of analysis
-  const analysis = useMemo(() => {
-    if (!currentPrice) return null;
-
-    const seed = Math.floor(currentPrice);
-    
-    const trend = seed % 2 === 0 ? 1 : -1; // 1 = Bull, -1 = Bear
-    const volume = seed % 3 !== 0 ? 1 : -1;
-    const momentum = seed % 5 !== 0 ? 1 : -1;
-
-    return { trend, volume, momentum };
-  }, [currentPrice]);
+  const result = useMemo(() => {
+    if (!candles || candles.length < 50) return null;
+    return calculateTripleAnalysis(symbol, candles);
+  }, [candles, symbol]);
 
   if (!tool) return notFound();
 
-  let totalScore = 0;
-  if (analysis) {
-    totalScore = analysis.trend + analysis.volume + analysis.momentum;
-  }
-
-  let finalAction = '';
-  let actionColor = '';
-  let actionBg = '';
-  let desc = '';
-
-  if (totalScore >= 2) {
-    finalAction = 'شراء';
-    actionColor = 'text-emerald-400';
-    actionBg = 'bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_30px_rgba(16,185,129,0.2)]';
-    desc = 'التوافق الثلاثي إيجابي. الاتجاه والسيولة والزخم تدعم الصعود.';
-  } else if (totalScore <= -2) {
-    finalAction = 'بيع';
-    actionColor = 'text-red-400';
-    actionBg = 'bg-red-500/10 border-red-500/30 shadow-[0_0_30px_rgba(239,68,68,0.2)]';
-    desc = 'التوافق الثلاثي سلبي. الأفضل التخارج أو البيع حالياً.';
-  } else {
-    finalAction = 'انتظار';
-    actionColor = 'text-yellow-400';
-    actionBg = 'bg-yellow-500/10 border-yellow-500/30 shadow-[0_0_30px_rgba(234,179,8,0.1)]';
-    desc = 'إشارات متعارضة. لا يوجد توافق بين الاتجاه والسيولة. يفضل الانتظار.';
-  }
-
   return (
-    <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
+    <div className="flex flex-col h-full bg-[#050505] overflow-y-auto pb-10" dir="rtl">
       <ToolPageHeader tool={tool} />
 
-      {/* Asset selector — inside tool content */}
       <ContextAssetBar />
 
-      {/* Header */}
       <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-black text-purple-500/70 tracking-widest uppercase border border-purple-500/20 bg-purple-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-            <Activity className="w-3 h-3" /> Confluence
-          </span>
-        </div>
-        <h1 className="text-xl font-black text-white tracking-tight mt-1">التحليل الثلاثي البسيط</h1>
-        <p className="text-sm text-white/40 font-mono leading-relaxed">
-          دمج (الاتجاه + السيولة + الزخم) للحصول على قرار واحد مبسط
-        </p>
-      </div>
-
-      <div className="px-5 flex flex-col gap-5 mt-4">
-        {isLoading || !analysis ? (
+        <h1 className="text-xl font-black text-white tracking-tight mt-1 text-center mb-4">التحليل الثلاثي (3 Pillars)</h1>
+        
+        {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-6">
-            <RefreshCcw className="w-8 h-8 text-purple-500 animate-spin" />
-            <p className="text-purple-500/80 font-bold tracking-widest uppercase text-sm animate-pulse">جاري دمج البيانات...</p>
+            <RefreshCcw className="w-8 h-8 text-[#ff6a00] animate-spin" />
+            <p className="text-[#ff6a00]/80 font-bold tracking-widest uppercase text-sm animate-pulse">جاري دمج الركائز الثلاث...</p>
+          </div>
+        ) : !result ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-6">
+            <p className="text-[#ff6a00]/80 font-bold tracking-widest uppercase text-sm">بيانات غير كافية للتحليل.</p>
           </div>
         ) : (
           <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col gap-6"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col gap-4 mt-2"
           >
-            {/* 3 Pillars Grid */}
-            <div className="grid gap-3">
-              <div className={`rounded-2xl border p-6 flex items-center justify-between ${analysis.trend > 0 ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
-                <div className="flex items-center gap-3">
-                  <TrendingUp className={`w-5 h-5 ${analysis.trend > 0 ? 'text-emerald-400' : 'text-red-400'}`} />
-                  <span className="text-base font-bold text-white/80">حالة الاتجاه (Trend)</span>
-                </div>
-                <span className={`text-sm font-black ${analysis.trend > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {analysis.trend > 0 ? 'صاعد إيجابي' : 'هابط سلبي'}
-                </span>
-              </div>
-
-              <div className={`rounded-2xl border p-6 flex items-center justify-between ${analysis.volume > 0 ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
-                <div className="flex items-center gap-3">
-                  <BarChart2 className={`w-5 h-5 ${analysis.volume > 0 ? 'text-emerald-400' : 'text-red-400'}`} />
-                  <span className="text-base font-bold text-white/80">السيولة (Volume)</span>
-                </div>
-                <span className={`text-sm font-black ${analysis.volume > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {analysis.volume > 0 ? 'شراء قوي' : 'بيع قوي'}
-                </span>
-              </div>
-
-              <div className={`rounded-2xl border p-6 flex items-center justify-between ${analysis.momentum > 0 ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
-                <div className="flex items-center gap-3">
-                  <Zap className={`w-5 h-5 ${analysis.momentum > 0 ? 'text-emerald-400' : 'text-red-400'}`} />
-                  <span className="text-base font-bold text-white/80">الزخم (Momentum)</span>
-                </div>
-                <span className={`text-sm font-black ${analysis.momentum > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {analysis.momentum > 0 ? 'تسارع للأعلى' : 'تسارع للأسفل'}
-                </span>
-              </div>
+            
+            {/* Overall Score Card */}
+            <div className="border border-white/10 rounded-xl bg-black p-5 flex flex-col items-center relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-gray-500 to-green-500" />
+              <p className="text-xs text-white/50 font-mono mb-2 uppercase tracking-widest">Aggregate Score</p>
+              <p className="text-6xl font-black text-white leading-none mb-4">{result.overallScore}</p>
+              <p className="text-sm font-bold text-[#ff6a00] text-center leading-relaxed">
+                {result.verdict}
+              </p>
             </div>
 
-            {/* Final Verdict */}
-            <div className={`mt-4 rounded-3xl border p-8 flex flex-col items-center text-center gap-3 relative overflow-hidden ${actionBg}`}>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[40px] rounded-full pointer-events-none" />
-              
-              <span className="text-sm text-white/60 font-bold uppercase tracking-widest z-10">القرار النهائي بناءً على التحليل:</span>
-              <h2 className={`text-4xl font-black tracking-tight z-10 ${actionColor}`}>
-                {finalAction}
-              </h2>
-              
-              <div className="mt-2 px-5 py-4 bg-black/30 rounded-xl border border-white/5 z-10">
-                <p className="text-sm text-white/70 font-bold">{desc}</p>
-              </div>
+            <div className="grid grid-cols-1 gap-4 mt-2">
+              {result.pillars.map((pillar, idx) => {
+                const isBullish = pillar.status === 'Bullish';
+                const isBearish = pillar.status === 'Bearish';
+                const colorClass = isBullish ? 'text-green-500' : isBearish ? 'text-red-500' : 'text-gray-400';
+                const borderClass = isBullish ? 'border-green-500/30' : isBearish ? 'border-red-500/30' : 'border-gray-500/30';
+                const bgClass = isBullish ? 'bg-green-500/5' : isBearish ? 'bg-red-500/5' : 'bg-gray-500/5';
+
+                return (
+                  <motion.div 
+                    key={pillar.name}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 * idx }}
+                    className={`border ${borderClass} ${bgClass} rounded-xl p-4 flex flex-col relative`}
+                  >
+                    <div className="flex justify-between items-center mb-3 border-b border-white/5 pb-2">
+                      <p className="text-lg font-black text-white">{pillar.name}</p>
+                      <div className={`px-2 py-1 rounded text-xs font-bold ${isBullish ? 'bg-green-500/20 text-green-400' : isBearish ? 'bg-red-500/20 text-red-400' : 'bg-gray-500/20 text-gray-300'}`}>
+                        {pillar.status}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-4 mb-2">
+                      <div className="flex-1">
+                        <div className="h-2 w-full bg-black rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${isBullish ? 'bg-green-500' : isBearish ? 'bg-red-500' : 'bg-gray-500'}`} 
+                            style={{ width: \`\${pillar.score}%\` }}
+                          />
+                        </div>
+                      </div>
+                      <p className={`text-xl font-black ${colorClass}`}>{pillar.score}</p>
+                    </div>
+
+                    <p className="text-xs text-white/60 font-mono mt-1">{pillar.details}</p>
+                  </motion.div>
+                );
+              })}
             </div>
 
           </motion.div>
