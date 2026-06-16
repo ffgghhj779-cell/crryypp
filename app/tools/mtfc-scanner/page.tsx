@@ -2,315 +2,246 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Activity, ScanSearch, AlertCircle } from 'lucide-react';
+import { ScanSearch, Activity, Layers, AlertCircle, FolderOpen } from 'lucide-react';
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
 import { slugToTool } from '@/lib/tools/registry';
 import { fetchKlines } from '@/lib/binance/fetcher';
-import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
+import { calculateMTFCScanner, MTFCResult } from '@/lib/algorithms/mtfcScanner';
 import { notFound } from 'next/navigation';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface TFResult {
-  tf: string;
-  tfLabel: string;
-  ema20: number;
-  ema50: number;
-  rsi: number;
-  trend: 'bullish' | 'bearish';
-}
-
-// ─── Math Helpers ─────────────────────────────────────────────────────────────
-
-function calcEMA(closes: number[], period: number): number {
-  const k = 2 / (period + 1);
-  let ema = closes[0];
-  for (let i = 1; i < closes.length; i++) {
-    ema = closes[i] * k + ema * (1 - k);
-  }
-  return ema;
-}
-
-function calcRSI(closes: number[], period: number): number {
-  let gains = 0, losses = 0;
-  for (let i = 1; i <= period; i++) {
-    const diff = closes[i] - closes[i - 1];
-    if (diff > 0) gains += diff; else losses += Math.abs(diff);
-  }
-  const avgGain = gains / period;
-  const avgLoss = losses / period || 0.001;
-  return 100 - (100 / (1 + avgGain / avgLoss));
-}
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const TIMEFRAMES: { tf: string; label: string }[] = [
-  { tf: '1h',  label: 'ساعة' },
-  { tf: '4h',  label: '4 ساعات' },
-  { tf: '1d',  label: 'يوم' },
-  { tf: '1w',  label: 'أسبوع' },
-];
-
-function fmt(n: number): string {
-  if (n >= 10000) return n.toLocaleString(undefined, { maximumFractionDigits: 0 });
-  if (n >= 1)     return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  return n.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 4 });
-}
-
-// ─── Component ────────────────────────────────────────────────────────────────
-
 export default function MtfcScannerPage() {
-  const [symbol, setSymbol]       = useState('BTCUSDT');
-  const [results, setResults]     = useState<TFResult[]>([]);
-  const [loading, setLoading]     = useState(false);
-  const [error, setError]         = useState<string | null>(null);
-  const [alignment, setAlignment] = useState<number | null>(null);
+  const [symbol, setSymbol] = useState('BTCUSDT');
+  const [result, setResult] = useState<MTFCResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [animated, setAnimated] = useState(false);
 
   const tool = slugToTool('mtfc-scanner');
   if (!tool) return notFound();
 
   async function handleScan() {
+    if (!symbol.trim()) {
+      setError('أدخل اسم الأصل.');
+      return;
+    }
+    
     setLoading(true);
     setError(null);
-    setResults([]);
-    setAlignment(null);
+    setResult(null);
+    setAnimated(false);
 
-    const gathered: TFResult[] = [];
+    try {
+      const formattedSymbol = symbol.toUpperCase().trim();
+      const [klines1H, klines4H, klines1D] = await Promise.all([
+        fetchKlines(formattedSymbol, '1h', 200),
+        fetchKlines(formattedSymbol, '4h', 200),
+        fetchKlines(formattedSymbol, '1d', 200),
+      ]);
 
-    for (const { tf, label } of TIMEFRAMES) {
-      try {
-        const klines = await fetchKlines(symbol, tf, 100);
-        const closes = klines.map(k => k.close);
-        const ema20  = calcEMA(closes, 20);
-        const ema50  = calcEMA(closes, 50);
-        const rsi    = calcRSI(closes, 14);
-        const trend  = ema20 > ema50 ? 'bullish' : 'bearish';
-        gathered.push({ tf, tfLabel: label, ema20, ema50, rsi, trend });
-      } catch {
-        gathered.push({ tf, tfLabel: label, ema20: 0, ema50: 0, rsi: 50, trend: 'bearish' });
+      if (klines1H.length < 50 || klines4H.length < 50 || klines1D.length < 50) {
+        throw new Error('بيانات غير كافية لتحليل التقاء الفريمات (MTFC).');
       }
+
+      const res = calculateMTFCScanner(formattedSymbol, klines1H, klines4H, klines1D);
+      setResult(res);
+      setTimeout(() => setAnimated(true), 100);
+    } catch (err: any) {
+      setError(err.message || 'حدث خطأ أثناء جلب البيانات أو تحليلها.');
+    } finally {
+      setLoading(false);
     }
-
-    const bullCount = gathered.filter(r => r.trend === 'bullish').length;
-    setResults(gathered);
-    setAlignment(bullCount);
-    setLoading(false);
   }
-
-  const bullCount = results.filter(r => r.trend === 'bullish').length;
-
-  function getVerdict(count: number) {
-    if (count === 4) return { dot: 'bg-emerald-400', text: 'توافق كامل — فرصة اتجاهية قوية جداً', color: 'emerald' };
-    if (count === 3) return { dot: 'bg-green-400',   text: 'توافق عالي — ميل للاتجاه الغالب',      color: 'green'   };
-    if (count === 2) return { dot: 'bg-yellow-400',  text: 'تعارض جزئي — انتظار واحتذر',           color: 'yellow'  };
-    return           { dot: 'bg-red-500',            text: 'لا توافق — ابتعدِ عن السوق',            color: 'red'     };
-  }
-
-  const verdict = alignment !== null ? getVerdict(bullCount) : null;
 
   return (
-    <div className="flex flex-col h-full bg-[#080810] overflow-y-auto pb-12" dir="rtl">
+    <div className="flex flex-col h-full bg-[#050505] overflow-y-auto pb-10" dir="rtl">
       <ToolPageHeader tool={tool} />
 
-      {/* Page Header */}
-      <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-black text-orange-400/80 tracking-widest uppercase border border-orange-500/25 bg-orange-500/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-            <Activity className="w-3 h-3" /> Multi-Timeframe
-          </span>
+      {/* Input Section */}
+      <div className="px-5 pt-5 pb-4 flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-black text-[#ff6a00] uppercase tracking-widest flex items-center justify-center">
+            ماسح التقاء الفريمات المتعددة
+          </p>
+          <p className="text-[10px] text-center font-black text-[#ff6a00]/70 uppercase tracking-[0.2em]">
+            MULTI-TIMEFRAME CONFLUENCE SCANNER
+          </p>
         </div>
-        <h1 className="text-xl font-black text-white tracking-tight mt-1">ماسح التوافق متعدد الأطر (MTFC)</h1>
-        <p className="text-sm text-white/40 font-mono leading-relaxed">
-          تحليل EMA20 / EMA50 / RSI عبر 4 أطر زمنية لرصد التوافق الاتجاهي الحقيقي
-        </p>
-      </div>
 
-      <div className="px-5 flex flex-col gap-4">
-        {/* Controls */}
-        <div className="flex flex-col gap-3">
-          <SymbolDropdown value={symbol} onChange={setSymbol} />
+        <div className="flex flex-col gap-3 mt-4">
+          <input
+            type="text"
+            value={symbol}
+            onChange={(e) => setSymbol(e.target.value)}
+            placeholder="BTCUSDT"
+            className="w-full bg-[#111] border border-[#ff6a00]/20 rounded-lg px-4 py-3 text-center text-white font-bold tracking-widest uppercase focus:outline-none focus:border-[#ff6a00] transition-colors"
+          />
           <button
-            id="mtfc-scan-btn"
             onClick={handleScan}
             disabled={loading}
-            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-black text-base tracking-wider bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white shadow-lg shadow-orange-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-[#ff6a00] hover:bg-[#ff8533] disabled:opacity-50 text-black font-black uppercase tracking-widest py-3 rounded-lg transition-all"
           >
-            {loading ? (
-              <>
-                <ScanSearch className="w-5 h-5 animate-pulse" />
-                جاري تحليل الأطر...
-              </>
-            ) : (
-              <>
-                <ScanSearch className="w-5 h-5" />
-                تحليل الأطر الزمنية
-              </>
-            )}
+            {loading ? '...' : 'START'}
           </button>
         </div>
 
-        {/* Error */}
-        {error && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 flex items-center gap-3 text-sm text-red-400 font-bold">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            {error}
-          </div>
-        )}
-
-        {/* Results */}
         <AnimatePresence>
-          {results.length > 0 && (
-            <motion.div
-              key="results"
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col gap-4"
-            >
-              {/* Table */}
-              <div className="rounded-2xl border border-white/[0.07] bg-[#0d0d18] overflow-hidden">
-                {/* Header */}
-                <div className="grid grid-cols-5 bg-white/[0.03] border-b border-white/[0.06] px-4 py-3">
-                  {['الإطار', 'EMA20', 'EMA50', 'RSI', 'الاتجاه'].map(h => (
-                    <span key={h} className="text-[10px] font-black text-white/35 uppercase tracking-widest text-center">{h}</span>
-                  ))}
-                </div>
-
-                {results.map((r, idx) => (
-                  <motion.div
-                    key={r.tf}
-                    initial={{ opacity: 0, x: -12 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.07 }}
-                    className={`grid grid-cols-5 px-4 py-4 items-center border-b border-white/[0.04] last:border-b-0 ${
-                      r.trend === 'bullish' ? 'bg-emerald-500/[0.04]' : 'bg-red-500/[0.04]'
-                    }`}
-                  >
-                    {/* Timeframe */}
-                    <div className="flex flex-col items-center gap-0.5">
-                      <span className="text-white font-black text-sm">{r.tf.toUpperCase()}</span>
-                      <span className="text-white/30 text-[9px] font-mono">{r.tfLabel}</span>
-                    </div>
-
-                    {/* EMA20 */}
-                    <span className="text-center text-blue-300 font-mono text-[11px] font-bold">{fmt(r.ema20)}</span>
-
-                    {/* EMA50 */}
-                    <span className="text-center text-violet-300 font-mono text-[11px] font-bold">{fmt(r.ema50)}</span>
-
-                    {/* RSI */}
-                    <div className="flex flex-col items-center gap-1">
-                      <span className={`font-mono text-xs font-black ${
-                        r.rsi > 70 ? 'text-red-400' : r.rsi < 30 ? 'text-emerald-400' : 'text-white/70'
-                      }`}>
-                        {r.rsi.toFixed(1)}
-                      </span>
-                      <div className="w-10 h-1 rounded-full bg-white/10 overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${
-                            r.rsi > 70 ? 'bg-red-500' : r.rsi < 30 ? 'bg-emerald-500' : 'bg-amber-400'
-                          }`}
-                          style={{ width: `${Math.min(r.rsi, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Trend */}
-                    <div className="flex items-center justify-center">
-                      {r.trend === 'bullish' ? (
-                        <span className="text-emerald-400 font-black text-xs bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-lg">
-                          ↑ صاعد
-                        </span>
-                      ) : (
-                        <span className="text-red-400 font-black text-xs bg-red-500/15 border border-red-500/30 px-2 py-0.5 rounded-lg">
-                          ↓ هابط
-                        </span>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Alignment counter */}
-              <div className="rounded-xl border border-white/[0.07] bg-[#0d0d18] p-4 flex items-center justify-between">
-                <span className="text-white/50 font-bold text-sm">أطر صاعدة</span>
-                <div className="flex items-center gap-3">
-                  <div className="flex gap-1.5">
-                    {TIMEFRAMES.map(({ tf }) => {
-                      const r = results.find(x => x.tf === tf);
-                      return (
-                        <div
-                          key={tf}
-                          className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black border ${
-                            r?.trend === 'bullish'
-                              ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
-                              : 'bg-red-500/20 border-red-500/50 text-red-300'
-                          }`}
-                        >
-                          {tf.toUpperCase()}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <span className={`text-3xl font-black tabular-nums ${
-                    bullCount >= 3 ? 'text-emerald-400' : bullCount === 2 ? 'text-yellow-400' : 'text-red-400'
-                  }`}>
-                    {bullCount}/4
-                  </span>
-                </div>
-              </div>
-
-              {/* Verdict Card */}
-              {verdict && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.25 }}
-                  className={`rounded-2xl border p-5 shadow-xl ${
-                    verdict.color === 'emerald' || verdict.color === 'green'
-                      ? 'bg-emerald-500/10 border-emerald-500/35 shadow-emerald-500/10'
-                      : verdict.color === 'yellow'
-                      ? 'bg-yellow-500/10 border-yellow-500/35 shadow-yellow-500/10'
-                      : 'bg-red-500/10 border-red-500/35 shadow-red-500/10'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    {/* Colored dot */}
-                    <div className={`w-3 h-3 rounded-full mt-1.5 shrink-0 shadow-lg ${verdict.dot}`} />
-                    <div>
-                      <p className="text-[10px] font-black text-white/35 uppercase tracking-widest mb-1">الحكم الإرشادي</p>
-                      <p className={`text-base font-black leading-snug ${
-                        verdict.color === 'emerald' || verdict.color === 'green'
-                          ? 'text-emerald-300'
-                          : verdict.color === 'yellow'
-                          ? 'text-yellow-300'
-                          : 'text-red-300'
-                      }`}>
-                        {verdict.text}
-                      </p>
-                      <p className="text-xs text-white/35 font-mono mt-1">
-                        {bullCount} من 4 أطر زمنية تشير للاتجاه الصاعد
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
+          {error && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="flex items-center gap-3 rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-3">
+              <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+              <p className="text-sm text-red-300">{error}</p>
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Empty state */}
-        {!loading && results.length === 0 && !error && (
-          <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
-            <div className="w-16 h-16 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
-              <ScanSearch className="w-7 h-7 text-orange-500/60" />
-            </div>
-            <p className="text-white/30 text-sm font-bold max-w-xs leading-relaxed">
-              اختر الرمز واضغط &quot;تحليل الأطر الزمنية&quot; لرؤية بيانات حقيقية من Binance
-            </p>
-          </div>
-        )}
       </div>
+
+      {/* Results Section */}
+      {result && (
+        <div className="px-5 flex flex-col gap-6 mt-4">
+          
+          {/* GRADE Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="border border-[#ff6a00] rounded-xl bg-black p-5 flex flex-col items-center relative overflow-hidden"
+          >
+            <p className="text-xs text-[#ff6a00] font-mono mb-2">التقييم الفني للتطابق المتعدد // CONFLUENCE</p>
+            <p className="text-[10px] text-white/50 tracking-widest uppercase mb-1">GRADE</p>
+            <p className="text-6xl font-black text-white leading-none mb-4">{result.grade}</p>
+            <p className="text-sm font-bold text-white mb-6">{result.verdictTitle}</p>
+            
+            <div className="w-full h-2 bg-[#222] rounded-full overflow-hidden mb-2">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: animated ? `${result.score}%` : '0%' }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                className="h-full bg-[#ff6a00]"
+              />
+            </div>
+            
+            <div className="flex justify-between w-full">
+              <p className="text-xs text-[#ff6a00] font-bold">{result.score}/100</p>
+              <p className="text-xs text-white/40 font-mono">نقاط التقييم التراكمي (SCORE)</p>
+            </div>
+          </motion.div>
+
+          {/* MTF CONFLUENCE MAP Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="border border-white/10 rounded-xl bg-black p-4 flex flex-col gap-4 relative"
+          >
+            <div className="flex justify-between items-center border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-xs text-white/50 font-bold tracking-widest uppercase">LIVE</span>
+              </div>
+              <p className="text-xs text-[#ff6a00] font-black uppercase tracking-widest">
+                MTF CONFLUENCE MAP // {result.symbol}
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-5">
+              {result.timeframes.map((tf, i) => (
+                <div key={tf.timeframe} className="flex gap-3 h-20 items-stretch">
+                  <div className="bg-[#ff6a00] text-black font-black text-xs w-8 flex items-center justify-center shrink-0 rounded-sm">
+                    {tf.timeframe}
+                  </div>
+                  <div className="flex-1 relative bg-[#111] border border-white/5 rounded-sm overflow-hidden">
+                    {/* Background Band (30-70) */}
+                    <div className="absolute top-[30%] bottom-[30%] left-0 right-0 bg-[#ff6a00]/5 border-y border-[#ff6a00]/20 border-dashed" />
+                    {/* Line Chart */}
+                    <svg className="w-full h-full absolute inset-0" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      {tf.chartData.length > 0 && (
+                        <motion.path 
+                          d={`M ${tf.chartData.map((p, idx) => `${(idx / (tf.chartData.length - 1)) * 100} ${100 - p.value}`).join(' L ')}`}
+                          fill="none" 
+                          stroke="#fff" 
+                          strokeWidth="1.5" 
+                          initial={{ pathLength: 0 }}
+                          animate={{ pathLength: animated ? 1 : 0 }}
+                          transition={{ duration: 1.5, delay: 0.2 + i * 0.1 }}
+                        />
+                      )}
+                    </svg>
+                  </div>
+                  <div className="w-8 flex flex-col items-center justify-center shrink-0">
+                    <p className="text-[10px] text-white/50">{tf.confluenceCount}/4</p>
+                    <span className="text-[#10b981] text-xs">✔</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex items-center gap-2 mt-2 pt-3 border-t border-white/10">
+              <FolderOpen className="w-4 h-4 text-[#ff6a00]" />
+              <p className="text-xs text-white/40 font-mono flex-1 text-left">مؤشرات التقاء الفريمات (RSI/OB/FVG)</p>
+            </div>
+          </motion.div>
+
+          {/* BREAKDOWN Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex flex-col gap-4"
+          >
+            <div className="text-center mb-2">
+              <p className="text-sm text-[#ff6a00] font-bold">تحليل وتجزئة الشروط الهيكلية لكل إطار زمني //</p>
+              <p className="text-xs text-[#ff6a00]/60 tracking-widest uppercase">BREAKDOWN</p>
+            </div>
+
+            {result.timeframes.map((tf) => (
+              <div key={tf.timeframe} className="border border-white/10 rounded-xl bg-black p-4 flex flex-col">
+                <div className="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                  <p className="text-xs font-mono text-white/60">{tf.confluenceCount}/4 توافقات مسجلة</p>
+                  <p className="text-sm font-black text-white">{tf.timeframe} TIMEFRAME</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-px bg-white/10 border border-white/10">
+                  {/* Row 1 */}
+                  <div className="bg-black p-3 flex justify-between items-center">
+                    <p className="text-xs text-white/50">التباعد التقني (DIV)</p>
+                    <p className={`text-xs font-bold ${tf.div.active ? 'text-white' : 'text-white/20'}`}>{tf.div.text}</p>
+                  </div>
+                  <div className="bg-black p-3 flex justify-between items-center">
+                    <p className="text-xs text-white/50">تمركز السيولة (OB)</p>
+                    <p className={`text-xs font-bold ${tf.ob.active ? 'text-white' : 'text-white/20'}`}>{tf.ob.text}</p>
+                  </div>
+                  {/* Row 2 */}
+                  <div className="bg-black p-3 flex justify-between items-center">
+                    <p className="text-xs text-white/50">الفجوة العادلة (FVG)</p>
+                    <p className={`text-xs font-bold ${tf.fvg.active ? 'text-white' : 'text-white/20'}`}>{tf.fvg.text}</p>
+                  </div>
+                  <div className="bg-black p-3 flex justify-between items-center">
+                    <p className="text-xs text-white/50">نسبة الارتداد (FIB)</p>
+                    <p className={`text-xs font-bold ${tf.fib.active ? 'text-white' : 'text-white/20'}`}>{tf.fib.text}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </motion.div>
+
+          {/* VERDICT Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="border border-[#ff6a00] rounded-xl bg-black p-5 flex flex-col relative"
+          >
+            <div className="absolute top-0 right-0 w-1 h-full bg-[#ff6a00]" />
+            <p className="text-xs text-[#ff6a00] font-mono mb-4 text-right">الخلاصة التوجيهية الاستراتيجية // VERDICT</p>
+            <p className="text-xl font-black text-white text-right leading-tight mb-4">
+              يفضل الانتظار لتقييم الاتجاه قبل طرح صفقات
+            </p>
+            <p className="text-sm text-white/60 text-right leading-relaxed font-medium">
+              {result.verdictText}
+            </p>
+          </motion.div>
+
+        </div>
+      )}
     </div>
   );
 }
