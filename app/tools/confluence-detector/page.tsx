@@ -8,6 +8,7 @@ import { slugToTool } from '@/lib/tools/registry';
 import { fetchKlines } from '@/lib/binance/fetcher';
 import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
 import { notFound } from 'next/navigation';
+import { ToolChart } from '@/components/tools/ToolChart';
 
 interface ConfluenceLevel {
   price: number;
@@ -181,7 +182,7 @@ export default function ConfluenceDetectorPage() {
                   </p>
                   <p className="text-xs font-mono text-white/40">{symbol.toUpperCase()} • 1D</p>
                 </div>
-                <import("@/components/tools/ToolChart").ToolChart 
+                <ToolChart 
                   klines={klines}
                   height={300}
                   priceLines={levels.map(l => ({
