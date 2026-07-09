@@ -1,25 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ScanSearch, AlertCircle, Grid, Clock, Target, Focus } from 'lucide-react';
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
 import { slugToTool } from '@/lib/tools/registry';
 import { calculateFibMatrix, FibMatrixResult, Pivot } from '@/lib/algorithms/fibMatrix';
-import { fetchKlines } from '@/lib/binance/fetcher';
+import { fetchKlines, type Kline } from '@/lib/binance/fetcher';
 import { notFound } from 'next/navigation';
 import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
+import { ToolChart, ChartMarker, HorizontalLine } from '@/components/tools/ToolChart';
 
 export default function FibMatrixPage() {
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<FibMatrixResult | null>(null);
+  const [klines, setKlines] = useState<Kline[]>([]);
   const [animated, setAnimated] = useState(false);
 
-  const tool = slugToTool('fibonacci-matrix');
-  if (!tool) return notFound();
-
+  
   const handleCalculate = async () => {
     setError('');
     if (!symbol.trim()) return setError('أدخل اسم الأصل.');
@@ -47,6 +47,7 @@ export default function FibMatrixPage() {
       const currentBarIndex = klines.length - 1;
 
       const res = calculateFibMatrix(swingHigh, swingLow, currentBarIndex);
+      setKlines(klines);
       setResult(res);
       setTimeout(() => setAnimated(true), 100);
     } catch (err: any) {
@@ -58,6 +59,47 @@ export default function FibMatrixPage() {
 
   const priceStr = (val: number) =>
     val.toLocaleString(undefined, { maximumFractionDigits: val > 100 ? 1 : 5 });
+
+  const chartLines: HorizontalLine[] = useMemo(() => {
+    if (!result) return [];
+    return result.priceLevels.map(p => ({
+      price: p.value,
+      color: '#f59e0b',
+      title: `Fib ${p.ratio}`,
+      lineStyle: 2,
+    }));
+  }, [result]);
+
+  const chartMarkers: ChartMarker[] = useMemo(() => {
+    if (!result || klines.length === 0) return [];
+    
+    // Base high/low
+    const markers: ChartMarker[] = [
+      { time: klines[result.baseHigh.index]?.time || 0, position: 'aboveBar', shape: 'arrowDown', color: '#ef4444', text: 'H', size: 1 },
+      { time: klines[result.baseLow.index]?.time || 0, position: 'belowBar', shape: 'arrowUp', color: '#10b981', text: 'L', size: 1 },
+    ];
+    
+    // Time levels
+    result.timeLevels.forEach(t => {
+      // It might project into the future, but we only have history klines.
+      // If it's outside our klines array, we can't easily mark it on the time scale with ToolChart right now,
+      // but we can mark the ones that fall within our fetched data.
+      if (t.value < klines.length) {
+        markers.push({
+          time: klines[t.value].time,
+          position: 'aboveBar',
+          shape: 'square',
+          color: '#8b5cf6',
+          text: `T ${t.ratio}`,
+        });
+      }
+    });
+
+    return markers.filter(m => m.time !== 0);
+  }, [result, klines]);
+
+  const tool = slugToTool('fibonacci-matrix');
+  if (!tool) return notFound();
 
   return (
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
@@ -134,9 +176,14 @@ export default function FibMatrixPage() {
               </div>
 
               {/* Visual Matrix Chart */}
-              <div className="rounded-2xl border border-amber-500/20 bg-[#111] p-6 flex flex-col shadow-[0_0_30px_rgba(245,158,11,0.08)] relative overflow-hidden h-[440px]">
-                <p className="text-sm font-bold text-amber-500/50 uppercase tracking-widest mb-2 z-10">Time & Price Matrix Intersection — بيانات حقيقية</p>
-                <FibMatrixSVGChart result={result} animated={animated} />
+              <div className="rounded-2xl border border-amber-500/20 bg-[#111] p-6 flex flex-col shadow-[0_0_30px_rgba(245,158,11,0.08)] relative overflow-hidden">
+                <p className="text-sm font-bold text-amber-500/50 uppercase tracking-widest mb-4 z-10">Time & Price Matrix Intersection — بيانات حقيقية</p>
+                <ToolChart 
+                  klines={klines} 
+                  height={360} 
+                  priceLines={chartLines} 
+                  markers={chartMarkers} 
+                />
               </div>
 
               {/* Insights Panel */}
@@ -199,111 +246,5 @@ export default function FibMatrixPage() {
         </AnimatePresence>
       </div>
     </div>
-  );
-}
-
-// ─── SVG Chart Component ──────────────────────────────────────────────────────
-
-function FibMatrixSVGChart({ result, animated }: { result: FibMatrixResult; animated: boolean }) {
-  const allPrices = [
-    result.baseHigh.price,
-    result.baseLow.price,
-    ...result.priceLevels.map(p => p.value),
-  ];
-  const allTimes = [
-    result.baseHigh.index,
-    result.baseLow.index,
-    ...result.timeLevels.map(t => t.value),
-  ];
-
-  const minPrice = Math.min(...allPrices);
-  const maxPrice = Math.max(...allPrices);
-  const priceRange = maxPrice - minPrice || 1;
-  const pricePad = priceRange * 0.1;
-  const yMin = minPrice - pricePad;
-  const yMax = maxPrice + pricePad;
-  const yRange = yMax - yMin;
-
-  const minTime = Math.min(...allTimes);
-  const maxTime = Math.max(...allTimes);
-  const timeRange = maxTime - minTime || 1;
-  const timePad = timeRange * 0.1;
-  const xMin = minTime - timePad;
-  const xMax = maxTime + timePad;
-  const xRange = xMax - xMin;
-
-  const width = 800;
-  const height = 400;
-
-  const scaleX = (index: number) => ((index - xMin) / xRange) * width;
-  const scaleY = (price: number) => height - ((price - yMin) / yRange) * height;
-
-  return (
-    <svg className="w-full h-full z-10 absolute inset-0 pt-8 px-2" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
-      <defs>
-        <filter id="matrixGlow">
-          <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-          <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
-        <filter id="killZoneGlow">
-          <feGaussianBlur stdDeviation="6" result="coloredBlur" />
-          <feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
-      </defs>
-
-      {/* Impulse Reference Line */}
-      <motion.line
-        x1={scaleX(result.baseLow.index)} y1={scaleY(result.baseLow.price)}
-        x2={scaleX(result.baseHigh.index)} y2={scaleY(result.baseHigh.price)}
-        stroke="rgba(255,255,255,0.2)" strokeWidth="2" strokeDasharray="10,10"
-        initial={{ pathLength: 0 }} animate={animated ? { pathLength: 1 } : { pathLength: 0 }}
-        transition={{ duration: 1 }}
-      />
-
-      {/* Horizontal Price Levels */}
-      {result.priceLevels.map((p, i) => {
-        const y = scaleY(p.value);
-        return (
-          <motion.g key={`p-${i}`} initial={{ opacity: 0 }} animate={animated ? { opacity: 1 } : { opacity: 0 }} transition={{ delay: 0.5 + i * 0.1 }}>
-            <line x1="0" y1={y} x2={width} y2={y} stroke="rgba(245,158,11,0.4)" strokeWidth="1" filter="url(#matrixGlow)" />
-            <rect x="0" y={y - 10} width="55" height="20" fill="rgba(245,158,11,0.1)" />
-            <text x="5" y={y + 4} fill="#fcd34d" fontSize="12" fontFamily="monospace" fontWeight="bold">{p.ratio}</text>
-          </motion.g>
-        );
-      })}
-
-      {/* Vertical Time Levels */}
-      {result.timeLevels.map((t, i) => {
-        const x = scaleX(t.value);
-        return (
-          <motion.g key={`t-${i}`} initial={{ opacity: 0 }} animate={animated ? { opacity: 1 } : { opacity: 0 }} transition={{ delay: 1 + i * 0.1 }}>
-            <line x1={x} y1="0" x2={x} y2={height} stroke="rgba(34,211,238,0.4)" strokeWidth="1" filter="url(#matrixGlow)" />
-            <rect x={x - 20} y={height - 20} width="40" height="20" fill="rgba(34,211,238,0.1)" />
-            <text x={x} y={height - 5} fill="#67e8f9" fontSize="12" fontFamily="monospace" fontWeight="bold" textAnchor="middle">{t.ratio}</text>
-          </motion.g>
-        );
-      })}
-
-      {/* Kill Zones */}
-      <AnimatePresence>
-        {animated && result.killZones.map((kz, i) => {
-          const x = scaleX(kz.timeIndex);
-          const y = scaleY(kz.priceLevel);
-          const boxSize = 40;
-          return (
-            <motion.g key={`kz-${i}`}
-              initial={{ scale: 0, opacity: 0 }} animate={{ scale: [0, 1.2, 1], opacity: [0, 1, 0.8] }}
-              transition={{ delay: 2 + i * 0.2, duration: 0.8 }}>
-              <rect x={x - boxSize / 2} y={y - boxSize / 2} width={boxSize} height={boxSize}
-                fill="rgba(225,29,72,0.3)" stroke="#fb7185" strokeWidth="2"
-                filter="url(#killZoneGlow)" rx="8" />
-              <circle cx={x} cy={y} r="3" fill="#fff" />
-              <text x={x} y={y - boxSize / 2 - 5} fill="#fb7185" fontSize="10"
-                fontFamily="monospace" fontWeight="bold" textAnchor="middle">KILL ZONE</text>
-            </motion.g>
-          );
-        })}
-      </AnimatePresence>
-    </svg>
   );
 }

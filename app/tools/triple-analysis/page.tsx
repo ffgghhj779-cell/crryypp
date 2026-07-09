@@ -16,7 +16,7 @@ export default function TripleAnalysisPage() {
 
   const result = useMemo(() => {
     if (!candles || candles.length < 50) return null;
-    return calculateTripleAnalysis(symbol, candles);
+    return calculateTripleAnalysis(symbol, candles as any);
   }, [candles, symbol]);
 
   if (!tool) return notFound();

@@ -46,6 +46,7 @@ export interface WyckoffResult {
   structure: WyckoffStructure;
   springUtad: WyckoffSpringUTAD;
   conclusion: string;
+  klines: Kline[];
 }
 
 // ─── ATR helper ───────────────────────────────────────────────────────────────
@@ -289,5 +290,6 @@ export function analyzeWyckoff(klines: Kline[]): WyckoffResult {
     structure,
     springUtad,
     conclusion: classified.conclusion,
+    klines: recent
   };
 }

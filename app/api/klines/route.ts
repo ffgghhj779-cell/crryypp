@@ -12,6 +12,13 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+  ]);
+}
+
 interface KlineBar {
   time:   number;
   open:   number;
@@ -43,9 +50,12 @@ function toTDInterval(interval: string): string {
 // ── Twelve Data fetcher ───────────────────────────────────────────────────────
 async function fetchTwelveDataOnce(params: URLSearchParams): Promise<Response | null> {
   try {
-    return await fetch(
-      `https://api.twelvedata.com/time_series?${params}`,
-      { next: { revalidate: 3600 } },
+    return await withTimeout(
+      fetch(
+        `https://api.twelvedata.com/time_series?${params}`,
+        { next: { revalidate: 3600 } },
+      ),
+      8000
     );
   } catch (err: any) {
     console.error('[Twelve Data] fetch error:', err.message);
@@ -213,9 +223,12 @@ function generateOHLCV(
 // ── Spot price fetchers (used by GBM fallback) ────────────────────────────────
 async function fetchGoldSpot(): Promise<number | null> {
   try {
-    const res = await fetch('https://api.metals.live/v1/spot', {
-      headers: { Accept: 'application/json' }, next: { revalidate: 120 },
-    });
+    const res = await withTimeout(
+      fetch('https://api.metals.live/v1/spot', {
+        headers: { Accept: 'application/json' }, next: { revalidate: 120 },
+      }),
+      5000
+    );
     if (res.ok) {
       const data = await res.json();
       const arr  = Array.isArray(data) ? data : [data];
@@ -228,9 +241,28 @@ async function fetchGoldSpot(): Promise<number | null> {
 
 async function fetchUsdEgpRate(): Promise<number | null> {
   try {
-    const res = await fetch('https://open.er-api.com/v6/latest/USD', {
-      headers: { Accept: 'application/json' }, next: { revalidate: 3600 },
-    });
+    const res = await withTimeout(
+      fetch(
+        'https://query2.finance.yahoo.com/v7/finance/quote?symbols=USDEGP=X',
+        { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' },
+          next: { revalidate: 120 } },
+      ),
+      5000
+    );
+    if (res.ok) {
+      const data  = await res.json();
+      const price = data?.quoteResponse?.result?.[0]?.regularMarketPrice;
+      if (price && price > 1) return price;
+    }
+  } catch {}
+
+  try {
+    const res = await withTimeout(
+      fetch('https://open.er-api.com/v6/latest/USD', {
+        headers: { Accept: 'application/json' }, next: { revalidate: 3600 },
+      }),
+      5000
+    );
     if (res.ok) {
       const data = await res.json();
       const rate = data?.rates?.EGP;
@@ -242,10 +274,13 @@ async function fetchUsdEgpRate(): Promise<number | null> {
 
 async function fetchOilSpot(): Promise<number | null> {
   try {
-    const res = await fetch(
-      'https://query2.finance.yahoo.com/v7/finance/quote?symbols=CL=F',
-      { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' },
-        next: { revalidate: 120 } },
+    const res = await withTimeout(
+      fetch(
+        'https://query2.finance.yahoo.com/v7/finance/quote?symbols=CL=F',
+        { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' },
+          next: { revalidate: 120 } },
+      ),
+      5000
     );
     if (res.ok) {
       const data  = await res.json();
@@ -258,9 +293,28 @@ async function fetchOilSpot(): Promise<number | null> {
 
 async function fetchEurUsdRate(): Promise<number | null> {
   try {
-    const res = await fetch('https://open.er-api.com/v6/latest/EUR', {
-      headers: { Accept: 'application/json' }, next: { revalidate: 3600 },
-    });
+    const res = await withTimeout(
+      fetch(
+        'https://query2.finance.yahoo.com/v7/finance/quote?symbols=EURUSD=X',
+        { headers: { 'User-Agent': 'Mozilla/5.0', Accept: 'application/json' },
+          next: { revalidate: 120 } },
+      ),
+      5000
+    );
+    if (res.ok) {
+      const data  = await res.json();
+      const price = data?.quoteResponse?.result?.[0]?.regularMarketPrice;
+      if (price && price > 0.5) return price;
+    }
+  } catch {}
+
+  try {
+    const res = await withTimeout(
+      fetch('https://open.er-api.com/v6/latest/EUR', {
+        headers: { Accept: 'application/json' }, next: { revalidate: 3600 },
+      }),
+      5000
+    );
     if (res.ok) {
       const data = await res.json();
       const rate = data?.rates?.USD;
@@ -290,7 +344,7 @@ async function fetchBinanceKlines(
   symbol: string, interval: string, limit: number,
 ): Promise<KlineBar[]> {
   const url = `https://api.binance.com/api/v3/klines?symbol=${encodeURIComponent(symbol)}&interval=${encodeURIComponent(interval)}&limit=${limit}`;
-  const res = await fetch(url, { next: { revalidate: 10 } });
+  const res = await withTimeout(fetch(url, { next: { revalidate: 10 } }), 5000);
   if (!res.ok) throw new Error(`Binance error ${res.status}`);
   const raw: any[][] = await res.json();
   return raw.map(k => ({

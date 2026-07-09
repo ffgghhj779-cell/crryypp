@@ -28,6 +28,7 @@ export interface SMCResult {
   touches:          number;
   lastClose:        number;
   symbol:           string;
+  obIndex:          number;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -254,5 +255,6 @@ export function calculateSMC(klines: Kline[], symbol = 'BTCUSDT'): SMCResult {
     touches:           touchCount,
     lastClose:         fmt(lastClose),
     symbol,
+    obIndex
   };
 }

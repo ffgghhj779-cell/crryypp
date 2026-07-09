@@ -56,7 +56,7 @@ export default function TrendCompassPage() {
     };
     fetchInitial();
     return () => { mounted = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [symbol, timeframe]);
 
   // 2. Fetch new data when user explicitly clicks the button

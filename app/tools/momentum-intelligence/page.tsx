@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Brain, ScanSearch, AlertCircle } from 'lucide-react';
+import { Brain, ScanSearch, AlertCircle, Activity } from 'lucide-react';
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
 import { slugToTool } from '@/lib/tools/registry';
 import { fetchKlines, Kline } from '@/lib/binance/fetcher';
@@ -115,10 +115,11 @@ export default function MomentumIntelligencePage() {
     { name: 'ROC (10)', val: `${result.roc > 0 ? '+' : ''}${result.roc}%`, bull: result.roc > 0, detail: result.roc > 0 ? 'عائد موجب' : 'عائد سالب' },
   ];
 
-const tool = slugToTool('momentum-intelligence');
-  if (!tool) return notFound();
 
-    return (
+
+  const tool = slugToTool('momentum-intelligence');
+  if (!tool) return notFound();
+  return (
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
       <ToolPageHeader tool={tool} />
       <div className="px-5 pt-5 pb-4 flex flex-col gap-1">
@@ -141,20 +142,45 @@ const tool = slugToTool('momentum-intelligence');
           {result && (
             <motion.div initial={{opacity:0,scale:0.95}} animate={{opacity:1,scale:1}} exit={{opacity:0}} className="flex flex-col gap-4">
               
-              {/* ToolChart Component */}
-              <div className="rounded-2xl bg-[#050505] p-4 border border-purple-500/20 shadow-lg shadow-purple-500/5">
-                <div className="flex justify-between items-center mb-4">
-                  <p className="text-sm font-bold text-purple-500 uppercase tracking-widest flex items-center gap-2">
-                    <Brain className="w-4 h-4" /> Momentum View
-                  </p>
+              {/* Price Chart */}
+              <div className="rounded-2xl bg-[#050505] p-4 border border-white/[0.05]">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-xs font-bold text-white/50 uppercase tracking-widest">Price Action</p>
                   <p className="text-xs font-mono text-white/40">{symbol.toUpperCase()} • 1D</p>
                 </div>
+                <ToolChart klines={klines} height={200} />
+              </div>
+
+              {/* MACD Chart */}
+              <div className="rounded-2xl bg-[#050505] p-4 border border-purple-500/20 shadow-lg shadow-purple-500/5">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-xs font-bold text-purple-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <Brain className="w-3 h-3" /> MACD Histogram
+                  </p>
+                </div>
                 <ToolChart 
-                  klines={klines}
-                  height={300}
-                  overlays={[
-                    { type: 'line', data: indicatorData.rsiArr, color: '#c084fc', title: 'RSI(14)', priceScaleId: 'left', lineWidth: 2 },
-                    { type: 'histogram', data: indicatorData.macdHistArr, title: 'MACD Hist', priceScaleId: 'left' }
+                  klines={klines} 
+                  height={150} 
+                  hideCandles={true}
+                  overlays={[{ type: 'histogram', data: indicatorData.macdHistArr, title: 'MACD Hist' }]}
+                />
+              </div>
+
+              {/* RSI Chart */}
+              <div className="rounded-2xl bg-[#050505] p-4 border border-blue-500/20 shadow-lg shadow-blue-500/5">
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-xs font-bold text-blue-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <Activity className="w-3 h-3" /> RSI (14)
+                  </p>
+                </div>
+                <ToolChart 
+                  klines={klines} 
+                  height={150} 
+                  hideCandles={true}
+                  overlays={[{ type: 'line', data: indicatorData.rsiArr, color: '#60a5fa', title: 'RSI(14)', lineWidth: 2 }]}
+                  priceLines={[
+                    { price: 70, color: '#ef4444', title: 'OB', lineStyle: 2 },
+                    { price: 30, color: '#10b981', title: 'OS', lineStyle: 2 }
                   ]}
                 />
               </div>

@@ -21,15 +21,26 @@ export interface HorizontalLine {
   lineStyle?: number; // 0: Solid, 1: Dotted, 2: Dashed
 }
 
+export interface ChartMarker {
+  time: number;
+  position: 'aboveBar' | 'belowBar' | 'inBar';
+  shape: 'circle' | 'square' | 'arrowUp' | 'arrowDown';
+  color: string;
+  text?: string;
+  size?: number;
+}
+
 interface ToolChartProps {
   klines: Kline[];
   overlays?: OverlaySeries[];
   priceLines?: HorizontalLine[];
+  markers?: ChartMarker[];
   height?: number;
   hideGrid?: boolean;
+  hideCandles?: boolean;
 }
 
-export function ToolChart({ klines, overlays = [], priceLines = [], height = 400, hideGrid = true }: ToolChartProps) {
+export function ToolChart({ klines, overlays = [], priceLines = [], markers = [], height = 400, hideGrid = true, hideCandles = false }: ToolChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
 
@@ -72,6 +83,7 @@ export function ToolChart({ klines, overlays = [], priceLines = [], height = 400
       borderVisible: false,
       wickUpColor: '#10b981',
       wickDownColor: '#ef4444',
+      visible: !hideCandles,
     });
 
     const candleData = klines.map((k) => ({
@@ -80,6 +92,9 @@ export function ToolChart({ klines, overlays = [], priceLines = [], height = 400
       high: k.high,
       low: k.low,
       close: k.close,
+      color: k.color,
+      borderColor: k.borderColor,
+      wickColor: k.wickColor,
     }));
     
     // Sort by time just in case
@@ -96,6 +111,13 @@ export function ToolChart({ klines, overlays = [], priceLines = [], height = 400
     }
 
     candlestickSeries.setData(uniqueCandles);
+
+    if (markers.length > 0) {
+      (candlestickSeries as any).setMarkers(
+        markers.map(m => ({ ...m, time: (m.time / 1000) as Time }))
+               .sort((a, b) => (a.time as number) - (b.time as number))
+      );
+    }
 
     // 2. Add Horizontal Price Lines (e.g. Fib levels)
     for (const line of priceLines) {
@@ -184,7 +206,7 @@ export function ToolChart({ klines, overlays = [], priceLines = [], height = 400
         chartRef.current = null;
       }
     };
-  }, [klines, overlays, priceLines, height, hideGrid]);
+  }, [klines, overlays, priceLines, height, hideGrid, hideCandles, markers]);
 
   return (
     <div 

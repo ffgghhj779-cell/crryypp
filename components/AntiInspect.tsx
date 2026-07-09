@@ -64,7 +64,7 @@ export function AntiInspect() {
     // making dynamic analysis very tedious. Runs every 3 seconds.
     let devtoolsOpen = false;
     const debuggerTrap = setInterval(() => {
-      // eslint-disable-next-line no-debugger
+
       debugger;
       devtoolsOpen = false;
     }, 3000);

@@ -15,7 +15,7 @@ export default function PatternScannerPage() {
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [result, setResult] = useState<PatternResult | null>(null);
+  const [result, setResult] = useState<PatternResult | { detected: false } | null>(null);
   const [animated, setAnimated] = useState(false);
 
   const tool = slugToTool('pattern-scanner');
@@ -119,21 +119,13 @@ export default function PatternScannerPage() {
           triangleLower: [{ index: l1.index, price: l1.price }, { index: l2.index + 20, price: (l1.price + l2.price) / 2 }],
         };
       } else {
-        // fallback to scaled mock
-        const mock = generatePatternMockData('TRIANGLE');
-        const scale = currentPrice / 53000;
-        res = {
-          ...mock,
-          entryTrigger: mock.entryTrigger * scale,
-          target1: mock.target1 * scale,
-          target2: mock.target2 * scale,
-          stopLoss: mock.stopLoss * scale,
-          points: mock.points.map(p => ({ ...p, price: p.price * scale })),
-        };
+        res = { detected: false } as any;
       }
 
       setResult(res);
-      setTimeout(() => setAnimated(true), 100);
+      if (res.patternType) {
+        setTimeout(() => setAnimated(true), 100);
+      }
     } catch (err: any) {
       setError(err.message || 'حدث خطأ أثناء المسح.');
     } finally {
@@ -195,79 +187,92 @@ export default function PatternScannerPage() {
         <AnimatePresence>
           {result && (
             <motion.div
-              key={result.patternType}
+              key={'patternType' in result ? result.patternType : 'none'}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
               transition={{ type: 'spring', stiffness: 100, damping: 18 }}
               className="flex flex-col gap-6"
             >
-              {/* Status Card */}
-              <div className={`rounded-xl border p-6 flex flex-col gap-3 shadow-lg ${result.isBullish ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-orange-500/10 border-orange-500/20'}`}>
-                <div className="flex justify-between items-start">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-sm font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5"><Zap className="w-3 h-3" /> تم التعرف على هيكل</span>
-                    <span className={`text-lg font-black tracking-widest ${result.isBullish ? 'text-emerald-400' : 'text-orange-400'}`}>{result.patternNameAr}</span>
+              {!("detected" in result && result.detected === false) ? (() => {
+                const pResult = result as PatternResult;
+                return (
+                <>
+                  {/* Status Card */}
+                  <div className={`rounded-xl border p-6 flex flex-col gap-3 shadow-lg ${pResult.isBullish ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-orange-500/10 border-orange-500/20'}`}>
+                    <div className="flex justify-between items-start">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm font-bold text-white/50 uppercase tracking-widest flex items-center gap-1.5"><Zap className="w-3 h-3" /> تم التعرف على هيكل</span>
+                        <span className={`text-lg font-black tracking-widest ${pResult.isBullish ? 'text-emerald-400' : 'text-orange-400'}`}>{pResult.patternNameAr}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 px-3 py-4 rounded-lg bg-black/40 border border-white/[0.05]">
+                      <Rocket className={`w-6 h-6 ${pResult.isBullish ? 'text-emerald-500' : 'text-orange-500'}`} />
+                      <span className="text-sm font-bold text-white/80">{pResult.statusAr}</span>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-3 px-3 py-4 rounded-lg bg-black/40 border border-white/[0.05]">
-                  <Rocket className={`w-6 h-6 ${result.isBullish ? 'text-emerald-500' : 'text-orange-500'}`} />
-                  <span className="text-sm font-bold text-white/80">{result.statusAr}</span>
-                </div>
-              </div>
 
-              {/* Visual Pattern Chart */}
-              <div className="rounded-2xl border border-white/[0.08] bg-[#111] p-6 flex flex-col shadow-[0_0_30px_rgba(234,88,12,0.1)] relative overflow-hidden h-[420px]">
-                <p className="text-sm font-bold text-orange-500/50 uppercase tracking-widest mb-2 z-10">{result.patternNameEn} — بيانات حقيقية</p>
-                <div className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" style={{
-                  backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-                  backgroundSize: '20px 20px',
-                }} />
-                <PatternSVGChart result={result} animated={animated} />
-              </div>
+                  {/* Visual Pattern Chart */}
+                  <div className="rounded-2xl border border-white/[0.08] bg-[#111] p-6 flex flex-col shadow-[0_0_30px_rgba(234,88,12,0.1)] relative overflow-hidden h-[420px]">
+                    <p className="text-sm font-bold text-orange-500/50 uppercase tracking-widest mb-2 z-10">{pResult.patternNameEn} — بيانات حقيقية</p>
+                    <div className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" style={{
+                      backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+                      backgroundSize: '20px 20px',
+                    }} />
+                    <PatternSVGChart result={pResult} animated={animated} />
+                  </div>
 
-              {/* Trade Parameters */}
-              <div className="flex flex-col rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md overflow-hidden">
-                <div className="bg-white/[0.02] border-b border-white/[0.05] p-3">
-                  <span className="text-sm font-bold text-white/70 uppercase tracking-widest flex items-center gap-3"><Crosshair className="w-6 h-6 text-orange-400" /> إعدادات الصفقة المقترحة</span>
-                </div>
-                <div className="grid grid-cols-2 divide-x divide-x-reverse divide-white/[0.05]">
-                  <div className="flex flex-col p-6 gap-1">
-                    <span className="text-sm font-bold text-white/40 uppercase tracking-widest">Entry Trigger (الاختراق)</span>
-                    <span className="text-lg font-black text-white font-mono">{priceStr(result.entryTrigger)}</span>
+                  {/* Trade Parameters */}
+                  <div className="flex flex-col rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-md overflow-hidden">
+                    <div className="bg-white/[0.02] border-b border-white/[0.05] p-3">
+                      <span className="text-sm font-bold text-white/70 uppercase tracking-widest flex items-center gap-3"><Crosshair className="w-6 h-6 text-orange-400" /> إعدادات الصفقة المقترحة</span>
+                    </div>
+                    <div className="grid grid-cols-2 divide-x divide-x-reverse divide-white/[0.05]">
+                      <div className="flex flex-col p-6 gap-1">
+                        <span className="text-sm font-bold text-white/40 uppercase tracking-widest">Entry Trigger (الاختراق)</span>
+                        <span className="text-lg font-black text-white font-mono">{priceStr(pResult.entryTrigger)}</span>
+                      </div>
+                      <div className="flex flex-col p-6 gap-1">
+                        <span className="text-sm font-bold text-red-500/70 uppercase tracking-widest flex items-center gap-1"><ShieldAlert className="w-3 h-3" /> Stop Loss</span>
+                        <span className="text-lg font-black text-red-400 font-mono">{priceStr(pResult.stopLoss)}</span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 divide-x divide-x-reverse divide-white/[0.05] border-t border-white/[0.05] bg-emerald-500/5">
+                      <div className="flex flex-col p-6 gap-1">
+                        <span className="text-sm font-bold text-emerald-500/70 uppercase tracking-widest flex items-center gap-1"><Target className="w-3 h-3" /> Target 1</span>
+                        <span className="text-lg font-black text-emerald-400 font-mono">{priceStr(pResult.target1)}</span>
+                      </div>
+                      <div className="flex flex-col p-6 gap-1">
+                        <span className="text-sm font-bold text-emerald-500/70 uppercase tracking-widest flex items-center gap-1"><Target className="w-3 h-3" /> Target 2</span>
+                        <span className="text-lg font-black text-emerald-400 font-mono">{priceStr(pResult.target2)}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex flex-col p-6 gap-1">
-                    <span className="text-sm font-bold text-red-500/70 uppercase tracking-widest flex items-center gap-1"><ShieldAlert className="w-3 h-3" /> Stop Loss</span>
-                    <span className="text-lg font-black text-red-400 font-mono">{priceStr(result.stopLoss)}</span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 divide-x divide-x-reverse divide-white/[0.05] border-t border-white/[0.05] bg-emerald-500/5">
-                  <div className="flex flex-col p-6 gap-1">
-                    <span className="text-sm font-bold text-emerald-500/70 uppercase tracking-widest flex items-center gap-1"><Target className="w-3 h-3" /> Target 1</span>
-                    <span className="text-lg font-black text-emerald-400 font-mono">{priceStr(result.target1)}</span>
-                  </div>
-                  <div className="flex flex-col p-6 gap-1">
-                    <span className="text-sm font-bold text-emerald-500/70 uppercase tracking-widest flex items-center gap-1"><Target className="w-3 h-3" /> Target 2</span>
-                    <span className="text-lg font-black text-emerald-400 font-mono">{priceStr(result.target2)}</span>
-                  </div>
-                </div>
-              </div>
 
-              {/* Verdict Card */}
-              <div className="rounded-2xl border border-orange-500/20 bg-orange-500/10 p-5">
-                <p className="text-sm font-black text-orange-400 uppercase tracking-widest mb-2">الدليل الإرشادي الفني</p>
-                <div className="flex flex-col gap-1.5 text-sm text-white/70">
-                  <p>📊 النموذج: <span className="font-black text-white">{result.patternNameAr}</span> ({result.patternNameEn})</p>
-                  <p>🎯 نقطة الدخول عند الاختراق: <span className="font-black text-white font-mono">{priceStr(result.entryTrigger)}</span></p>
-                  <p>🛑 وقف الخسارة: <span className="font-black text-red-400 font-mono">{priceStr(result.stopLoss)}</span></p>
-                  <p>✅ الأهداف: <span className="font-black text-emerald-400 font-mono">{priceStr(result.target1)}</span> ثم <span className="font-black text-emerald-400 font-mono">{priceStr(result.target2)}</span></p>
-                  <p className="mt-1 pt-2 border-t border-white/10 text-white/50">
-                    {result.isBullish
-                      ? '💡 التوصية: انتظر اختراق نقطة الدخول بشمعة إغلاق حقيقية مع حجم مرتفع قبل الدخول شراءً.'
-                      : '💡 التوصية: انتظر كسر نقطة الدخول هبوطاً مع حجم مرتفع. لا تدخل بيعاً إلا بعد تأكيد الكسر.'}
-                  </p>
+                  {/* Verdict Card */}
+                  <div className="rounded-2xl border border-orange-500/20 bg-orange-500/10 p-5">
+                    <p className="text-sm font-black text-orange-400 uppercase tracking-widest mb-2">الدليل الإرشادي الفني</p>
+                    <div className="flex flex-col gap-1.5 text-sm text-white/70">
+                      <p>📊 النموذج: <span className="font-black text-white">{pResult.patternNameAr}</span> ({pResult.patternNameEn})</p>
+                      <p>🎯 نقطة الدخول عند الاختراق: <span className="font-black text-white font-mono">{priceStr(pResult.entryTrigger)}</span></p>
+                      <p>🛑 وقف الخسارة: <span className="font-black text-red-400 font-mono">{priceStr(pResult.stopLoss)}</span></p>
+                      <p>✅ الأهداف: <span className="font-black text-emerald-400 font-mono">{priceStr(pResult.target1)}</span> ثم <span className="font-black text-emerald-400 font-mono">{priceStr(pResult.target2)}</span></p>
+                      <p className="mt-1 pt-2 border-t border-white/10 text-white/50">
+                        {pResult.isBullish
+                          ? '💡 التوصية: انتظر اختراق نقطة الدخول بشمعة إغلاق حقيقية مع حجم مرتفع قبل الدخول شراءً.'
+                          : '💡 التوصية: انتظر كسر نقطة الدخول هبوطاً مع حجم مرتفع. لا تدخل بيعاً إلا بعد تأكيد الكسر.'}
+                      </p>
+                    </div>
+                  </div>
+                </>
+                );
+              })() : (
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center flex flex-col items-center gap-3">
+                  <ScanSearch className="w-12 h-12 text-white/20" />
+                  <p className="text-lg font-bold text-white/60">لم يتم رصد نماذج كلاسيكية واضحة</p>
+                  <p className="text-sm text-white/40">السوق لا يتحرك وفق نماذج (رأس وكتفين أو مثلثات) في الوقت الحالي. يفضل الانتظار وتحديث الفحص لاحقاً.</p>
                 </div>
-              </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

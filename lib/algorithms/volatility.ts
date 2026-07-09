@@ -37,6 +37,14 @@ export interface VolatilityResult {
   targetDn1: number;   // price - ATR × 1.5
   targetDn2: number;   // price - ATR × 2.5
   targetDn3: number;   // price - ATR × 4.0
+
+  // Chart Overlays Data
+  bbUpperArr: number[];
+  bbLowerArr: number[];
+  sma20Arr: number[];
+  kcUpperArr: number[];
+  kcLowerArr: number[];
+  atrArr: number[];
 }
 
 // ─── True Range list ──────────────────────────────────────────────────────────
@@ -95,28 +103,36 @@ export function calculateVolatility(symbol: string, klines: Kline[]): Volatility
   let squeezeIntensityPct = 0;
   let squeezeStateAr = 'لا ضغط';
 
+  const bbUpperArr: number[] = new Array(klines.length).fill(NaN);
+  const bbLowerArr: number[] = new Array(klines.length).fill(NaN);
+  const kcUpperArr: number[] = new Array(klines.length).fill(NaN);
+  const kcLowerArr: number[] = new Array(klines.length).fill(NaN);
+  const sma20Arr = calculateSMA(closes, 20);
+
   if (closes.length >= 20) {
-    const sma20Arr = calculateSMA(closes, 20);
-    const sma20    = sma20Arr[sma20Arr.length - 1];
-    const sigma    = isNaN(sma20)
-      ? 0
-      : (() => {
-          const slice = closes.slice(-20);
-          const mean  = slice.reduce((a, b) => a + b, 0) / slice.length;
-          return Math.sqrt(slice.reduce((a, v) => a + (v - mean) ** 2, 0) / slice.length);
-        })();
-
-    const bbUpper = sma20 + 2 * sigma;
-    const bbLower = sma20 - 2 * sigma;
-    const bbW     = bbUpper - bbLower;
-
-    // Keltner Channel (EMA20, ATR14, mult=1.5) — matches competitor
+    // Keltner Channel (EMA20, ATR14, mult=1.5)
     const ema20Arr = calculateEMA(closes, 20);
-    const ema20    = ema20Arr[ema20Arr.length - 1];
-    const kcMult   = 1.5;
-    const kcUpper  = ema20 + kcMult * atrValue;
-    const kcLower  = ema20 - kcMult * atrValue;
-    const kcW      = kcUpper - kcLower;
+    const kcMult = 1.5;
+
+    for (let i = 19; i < closes.length; i++) {
+      const slice = closes.slice(i - 19, i + 1);
+      const mean = slice.reduce((a, b) => a + b, 0) / 20;
+      const sigma = Math.sqrt(slice.reduce((a, v) => a + Math.pow(v - mean, 2), 0) / 20);
+      
+      bbUpperArr[i] = sma20Arr[i] + 2 * sigma;
+      bbLowerArr[i] = sma20Arr[i] - 2 * sigma;
+      
+      kcUpperArr[i] = ema20Arr[i] + kcMult * (atrArr[i] || atrValue);
+      kcLowerArr[i] = ema20Arr[i] - kcMult * (atrArr[i] || atrValue);
+    }
+
+    const bbUpper = bbUpperArr[bbUpperArr.length - 1];
+    const bbLower = bbLowerArr[bbLowerArr.length - 1];
+    const kcUpper = kcUpperArr[kcUpperArr.length - 1];
+    const kcLower = kcLowerArr[kcLowerArr.length - 1];
+    
+    const bbW = bbUpper - bbLower;
+    const kcW = kcUpper - kcLower;
 
     // Squeeze = BB inside KC
     inSqueeze = (bbUpper < kcUpper) && (bbLower > kcLower);
@@ -154,5 +170,11 @@ export function calculateVolatility(symbol: string, klines: Kline[]): Volatility
     targetDn1: parseFloat(targetDn1.toFixed(lastClose >= 1000 ? 1 : 4)),
     targetDn2: parseFloat(targetDn2.toFixed(lastClose >= 1000 ? 1 : 4)),
     targetDn3: parseFloat(targetDn3.toFixed(lastClose >= 1000 ? 1 : 4)),
+    bbUpperArr,
+    bbLowerArr,
+    sma20Arr,
+    kcUpperArr,
+    kcLowerArr,
+    atrArr
   };
 }

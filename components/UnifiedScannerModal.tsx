@@ -165,7 +165,7 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
 interface ScanResult { [key: string]: string | number | boolean }
 
 /** @deprecated Dead code — all 25 tools run live Binance algorithms via handleScan(). */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 function simulateScan(toolName: string, symbol: string, timeframe: string): ScanResult {
   const seed = symbol.charCodeAt(0) + symbol.charCodeAt(1) + timeframe.length;
   const bull = seed % 2 === 0;

@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { fetchKlines } from '@/lib/binance/fetcher';
 import { analyzeWyckoff, WyckoffResult } from '@/lib/algorithms/wyckoff';
 import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
 import { slugToTool } from '@/lib/tools/registry';
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
+import { ToolChart, ChartMarker, HorizontalLine } from '@/components/tools/ToolChart';
 import { notFound } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -77,9 +78,7 @@ export default function WyckoffMapPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const tool = slugToTool('wyckoff-map');
-  if (!tool) return notFound();
-
+  
   async function handleAnalyze() {
     setLoading(true);
     setError(null);
@@ -101,6 +100,43 @@ export default function WyckoffMapPage() {
 
   const activeMeta = activePhaseIdx >= 0 ? PHASE_META[activePhaseIdx] : null;
 
+  const chartProps = useMemo(() => {
+    if (!result || !result.klines || result.klines.length === 0) return { markers: [], priceLines: [] };
+    
+    // Calculate Volume Anomaly Markers
+    const markers: ChartMarker[] = [];
+    const vols = result.klines.map(k => k.volume);
+    const avgVol = vols.reduce((a,b) => a+b, 0) / vols.length;
+    
+    result.klines.forEach(k => {
+      if (k.volume > avgVol * 2.5) {
+        markers.push({
+          time: k.time,
+          position: k.close > k.open ? 'belowBar' : 'aboveBar',
+          shape: 'circle',
+          color: k.close > k.open ? '#34d399' : '#f87171',
+          text: 'Vol anomaly',
+          size: 1
+        });
+      }
+    });
+
+    // Calculate Trading Range
+    const highs = result.klines.map(k => k.high);
+    const lows = result.klines.map(k => k.low);
+    const rangeHigh = Math.max(...highs);
+    const rangeLow = Math.min(...lows);
+
+    const priceLines: HorizontalLine[] = [
+      { price: rangeHigh, color: '#f87171', title: 'Resistance (AR)', lineWidth: 2, lineStyle: 0 },
+      { price: rangeLow, color: '#34d399', title: 'Support (SC)', lineWidth: 2, lineStyle: 0 }
+    ];
+
+    return { markers, priceLines };
+  }, [result]);
+
+  const tool = slugToTool('wyckoff-map');
+  if (!tool) return notFound();
   return (
     <div
       className="flex flex-col h-full overflow-y-auto pb-14"
@@ -255,7 +291,8 @@ export default function WyckoffMapPage() {
                   const isPast = idx < activePhaseIdx;
                   const Icon = ph.icon;
 
-                  return (
+
+  return (
                     <div
                       key={ph.key}
                       className="relative z-10 flex flex-col items-center gap-2"
@@ -323,6 +360,27 @@ export default function WyckoffMapPage() {
                   );
                 })}
               </div>
+            </div>
+
+            {/* ── 2.5 ToolChart Visualizer ── */}
+            <div
+              className="rounded-2xl p-4"
+              style={{
+                background: '#050505',
+                border: '1px solid rgba(255,255,255,0.07)',
+              }}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <p className="text-sm font-bold text-white/70 uppercase tracking-widest flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-amber-500" /> خريطة السعر وحجم التداول (150 شمعة)
+                </p>
+              </div>
+              <ToolChart 
+                klines={result.klines}
+                markers={chartProps.markers}
+                priceLines={chartProps.priceLines}
+                height={350}
+              />
             </div>
 
             {/* ── 3. Analysis table ── */}

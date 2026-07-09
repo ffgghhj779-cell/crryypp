@@ -413,7 +413,9 @@ function DetailedCommodityChartModal({ card, onClose }: { card: CardDef; onClose
               <p className="text-zinc-400 font-mono text-xs animate-pulse">جاري سحب بيانات الشموع...</p>
             </div>
           )}
-          <div ref={ref} className="w-full h-full" />
+          <div className="relative w-full h-full">
+            <div ref={ref} className="absolute inset-0" />
+          </div>
         </div>
       </div>
     </motion.div>

@@ -4,12 +4,17 @@
 // Commodities: routed via /api/klines proxy (Twelve Data / GBM fallback)
 
 export interface Kline {
-  time:   number; // Unix seconds (open time)
-  open:   number;
-  high:   number;
-  low:    number;
-  close:  number;
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
   volume: number;
+  closeTime: number;
+  color?: string;
+  wickColor?: string;
+  borderColor?: string;
+  takerBuyVol?: number;
 }
 
 /** Raw tuple returned by Binance klines endpoint */
@@ -163,6 +168,8 @@ export async function fetchKlines(
     low:    parseFloat(k[3]),
     close:  parseFloat(k[4]),
     volume: parseFloat(k[5]),
+    closeTime: k[6],
+    takerBuyVol: parseFloat(k[9]),
   }));
 
   toCache(key, bars, normInterval);

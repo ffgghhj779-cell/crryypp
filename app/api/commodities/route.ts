@@ -195,8 +195,8 @@ export async function GET() {
   // Pick best gold — gold-api has changePct, prefer it
   const gold   = goldGoldApi  ?? goldMetals  ?? goldYahooV8 ?? goldYahooV7 ?? { price: 3345, changePct: 0 };
   const oil    = oilYahooV8   ?? oilYahooV7  ?? { price: 79.50, changePct: 0 };
-  const usdEgp = egpOpenEr    ?? egpYahooV8  ?? egpYahooV7  ?? { price: 50.85, changePct: 0 };
-  const eurUsd = eurOpenEr    ?? eurYahooV8  ?? eurYahooV7  ?? { price: 1.0850, changePct: 0 };
+  const usdEgp = egpYahooV8  ?? egpYahooV7  ?? egpOpenEr  ?? { price: 50.85, changePct: 0 };
+  const eurUsd = eurYahooV8  ?? eurYahooV7  ?? eurOpenEr  ?? { price: 1.0850, changePct: 0 };
 
   // Egyptian gold = XAU/USD × USD/EGP rate × 21k factor
   const egyptianGoldPrice   = calcEgyptianGold(gold.price, usdEgp.price);
@@ -237,8 +237,8 @@ export async function GET() {
     sources: {
       gold:   goldGoldApi ? 'gold-api.com' : goldMetals ? 'metals.live' : goldYahooV8 ? 'yahoo-v8' : goldYahooV7 ? 'yahoo-v7' : 'fallback',
       oil:    oilYahooV8 ? 'yahoo-v8' : oilYahooV7 ? 'yahoo-v7' : 'fallback',
-      usdEgp: egpOpenEr ? 'open.er-api' : egpYahooV8 ? 'yahoo-v8' : egpYahooV7 ? 'yahoo-v7' : 'fallback',
-      eurUsd: eurOpenEr ? 'open.er-api' : eurYahooV8 ? 'yahoo-v8' : eurYahooV7 ? 'yahoo-v7' : 'fallback',
+      usdEgp: egpYahooV8 ? 'yahoo-v8' : egpYahooV7 ? 'yahoo-v7' : egpOpenEr ? 'open.er-api' : 'fallback',
+      eurUsd: eurYahooV8 ? 'yahoo-v8' : eurYahooV7 ? 'yahoo-v7' : eurOpenEr ? 'open.er-api' : 'fallback',
     },
   };
 

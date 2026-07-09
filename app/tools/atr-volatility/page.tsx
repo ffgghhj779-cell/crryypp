@@ -7,7 +7,7 @@
  * Visualizes the current market volatility using ATR vs SMA(ATR).
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ScanSearch, AlertCircle, Activity, ChevronDown, ShieldAlert, Zap, TrendingUp, TrendingDown } from 'lucide-react';
 import { ToolPageHeader } from '@/components/tools/ToolPageHeader';
@@ -16,7 +16,7 @@ import { calculateVolatility, VolatilityResult } from '@/lib/algorithms/volatili
 import { fetchKlines, Kline } from '@/lib/binance/fetcher';
 import { notFound } from 'next/navigation';
 import { SymbolDropdown } from '@/components/tools/SymbolDropdown';
-import { ToolChart } from '@/components/tools/ToolChart';
+import { ToolChart, OverlaySeries } from '@/components/tools/ToolChart';
 
 export default function AtrVolatilityPage() {
   const [symbol, setSymbol] = useState('BTCUSDT');
@@ -28,9 +28,7 @@ export default function AtrVolatilityPage() {
   const [error, setError] = useState('');
   const [animated, setAnimated] = useState(false);
 
-  const tool = slugToTool('atr-volatility');
-  if (!tool) return notFound();
-
+  
   const handleCalculate = async () => {
     setError('');
     if (!symbol.trim()) return setError('أدخل اسم الأصل.');
@@ -59,6 +57,67 @@ export default function AtrVolatilityPage() {
     if (val >= 1) return val.toLocaleString(undefined, { maximumFractionDigits: 3 });
     return val.toLocaleString(undefined, { maximumFractionDigits: 6 });
   };
+
+  const chartOverlays: OverlaySeries[] = useMemo(() => {
+    if (!result || klines.length === 0) return [];
+    
+    // We expect the result arrays to match the klines length
+    const timeMapped = klines.map(k => k.time);
+    
+    const overlays: OverlaySeries[] = [];
+    
+    // 1. Bollinger Bands
+    if (result.bbUpperArr && result.bbUpperArr.length === klines.length) {
+      overlays.push({
+        type: 'line',
+        title: 'BB Upper',
+        color: '#60a5fa', // blue-400
+        lineWidth: 1,
+        data: result.bbUpperArr.map((v, i) => ({ time: timeMapped[i], value: v }))
+      });
+      overlays.push({
+        type: 'line',
+        title: 'BB Lower',
+        color: '#60a5fa',
+        lineWidth: 1,
+        data: result.bbLowerArr.map((v, i) => ({ time: timeMapped[i], value: v }))
+      });
+    }
+
+    // 2. Keltner Channels
+    if (result.kcUpperArr && result.kcUpperArr.length === klines.length) {
+      overlays.push({
+        type: 'line',
+        title: 'KC Upper',
+        color: '#c084fc', // purple-400
+        lineWidth: 1,
+        data: result.kcUpperArr.map((v, i) => ({ time: timeMapped[i], value: v }))
+      });
+      overlays.push({
+        type: 'line',
+        title: 'KC Lower',
+        color: '#c084fc',
+        lineWidth: 1,
+        data: result.kcLowerArr.map((v, i) => ({ time: timeMapped[i], value: v }))
+      });
+    }
+
+    // 3. SMA 20 (Basis)
+    if (result.sma20Arr && result.sma20Arr.length === klines.length) {
+      overlays.push({
+        type: 'line',
+        title: 'SMA 20',
+        color: '#f87171', // red-400
+        lineWidth: 2,
+        data: result.sma20Arr.map((v, i) => ({ time: timeMapped[i], value: v }))
+      });
+    }
+
+    return overlays;
+  }, [result, klines]);
+
+  const tool = slugToTool('atr-volatility');
+  if (!tool) return notFound();
 
   return (
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
@@ -155,6 +214,7 @@ export default function AtrVolatilityPage() {
                 <ToolChart 
                   klines={klines}
                   height={300}
+                  overlays={chartOverlays}
                   priceLines={[
                     { price: result.targetUp1, color: '#10b981', title: '+1.5 ATR', lineStyle: 2 },
                     { price: result.targetUp2, color: '#10b981', title: '+2.5 ATR', lineStyle: 2 },

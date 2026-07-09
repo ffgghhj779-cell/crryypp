@@ -17,6 +17,7 @@ export interface MFITimeframeResult {
   currentValue: number;
   status: 'Overbought' | 'Oversold' | 'Neutral';
   chartData: MFIChartPoint[];
+  klines: Kline[];
 }
 
 export interface MFIResult {
@@ -97,7 +98,8 @@ export function analyzeMFIMTF(symbol: string, klines1H: Kline[], klines4H: Kline
       timeframe: tf.name,
       currentValue: Math.round(currentMFI * 10) / 10,
       status,
-      chartData
+      chartData,
+      klines: tf.data
     });
   }
 

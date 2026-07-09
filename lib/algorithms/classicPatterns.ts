@@ -202,6 +202,8 @@ export interface TriangleResult {
   bias:       'BULLISH' | 'BEARISH' | 'NEUTRAL' | null;
   confidence: number;
   verdict:    string;
+  startPointTop?: {index: number, price: number};
+  startPointBottom?: {index: number, price: number};
 }
 
 export function detectTriangle(klines: Kline[]): TriangleResult {
@@ -248,13 +250,15 @@ export function detectTriangle(klines: Kline[]): TriangleResult {
 
   if (apexBars < 0) return NULL;
 
-  const conf = Math.round(60 + Math.min(25, Math.abs(us - ls) / 0.001 * 5));
+  const conf = Math.round(60 + Math.min(30, (30 / apexBars) * 15));
 
   return {
     detected: true, type, typeAr, upperSlope: parseFloat(us.toFixed(6)),
     lowerSlope: parseFloat(ls.toFixed(6)), apexBars: Math.min(apexBars, 100),
     bias, confidence: Math.min(90, conf),
-    verdict: `${typeAr}: التقاء الأضلاع خلال ≈${Math.min(apexBars,100)} شمعة. التحيز: ${bias === 'BULLISH' ? 'صعودي' : bias === 'BEARISH' ? 'هبوطي' : 'محايد'}.`,
+    verdict: `تم رصد ${typeAr}. السعر ينحسر وتقاطع الخطوط خلال ${Math.min(apexBars,100)} شمعة. الاتجاه المحتمل: ${bias === 'BULLISH' ? 'صاعد' : bias === 'BEARISH' ? 'هابط' : 'محايد، انتظر الكسر'}.`,
+    startPointTop: {index: rh[0].i, price: rh[0].p},
+    startPointBottom: {index: rl[0].i, price: rl[0].p}
   };
 }
 

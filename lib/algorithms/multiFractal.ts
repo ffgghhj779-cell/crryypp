@@ -24,6 +24,7 @@ export interface FractalResult {
   symbol: string;
   scales: FractalScaleResult[];
   verdict: string;
+  klines: Kline[];
 }
 
 function detectFractals(klines: Kline[], period: number): FractalLevel[] {
@@ -106,6 +107,7 @@ export function analyzeMultiFractal(symbol: string, klines: Kline[]): FractalRes
   return {
     symbol,
     scales: results,
-    verdict
+    verdict,
+    klines
   };
 }

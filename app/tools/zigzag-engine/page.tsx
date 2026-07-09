@@ -43,9 +43,7 @@ export default function ZigZagPage() {
     }
   }, [symbol, deviationPct]);
 
-  const tool = slugToTool('zigzag-engine');
-  if (!tool) return notFound();
-
+  
   const structureColor =
     result?.currentStructure?.includes('صاعد') ? 'text-emerald-400' :
     result?.currentStructure?.includes('هابط') ? 'text-red-400' : 'text-blue-400';
@@ -57,6 +55,8 @@ export default function ZigZagPage() {
       ? 'الهيكل هابط (LL+LH) — التوصية: ابحث عن فرص بيع عند كل LH جديد مع وقف خسارة فوق آخر HH.'
       : 'الهيكل عرضي — التوصية: انتظر كسر النطاق قبل الدخول. لا تتداول في نطاق المقاومة والدعم.';
 
+  const tool = slugToTool('zigzag-engine');
+  if (!tool) return notFound();
   return (
     <div className="flex flex-col h-full bg-[#0a0a0a] overflow-y-auto pb-10" dir="rtl">
       <ToolPageHeader tool={tool} />
@@ -235,7 +235,8 @@ function ZigZagChart({ rawData, pivots }: { rawData: DataPoint[]; pivots: PivotP
           let badgeColor = '#6b7280';
           if (p.structure === 'HH' || p.structure === 'HL') badgeColor = '#10b981';
           if (p.structure === 'LL' || p.structure === 'LH') badgeColor = '#ef4444';
-          return (
+
+  return (
             <motion.g key={`${p.index}-${i}`}
               initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 1.5 + i * 0.08, type: 'spring', stiffness: 200 }}>
