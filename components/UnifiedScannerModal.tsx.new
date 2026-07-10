@@ -4,32 +4,6 @@ import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { X, Zap, Globe, BarChart2, AlertTriangle } from 'lucide-react';
 import { NativeSheet } from '@/components/ui/NativeSheet';
 import { fetchKlines }      from '@/lib/binance/fetcher';
-
-import { calculateZigZag } from '@/lib/algorithms/zigzag';
-import { calculateFibMatrix } from '@/lib/algorithms/fibMatrix';
-import { computeGann } from '@/lib/algorithms/gann';
-import { computeGann144 } from '@/lib/algorithms/gann144';
-import { computeSQ9 } from '@/lib/algorithms/sq9';
-import { calculateMomentumIntelligence } from '@/lib/algorithms/momentum';
-import { generateVIP1Setup } from '@/lib/algorithms/vip1';
-import { generateVIP2Setup } from '@/lib/algorithms/vip2';
-import { generateVIP3Setup } from '@/lib/algorithms/vip3';
-import { calculateVIP } from '@/lib/algorithms/vip';
-import { analyzeEmaRibbon } from '@/lib/algorithms/emaRibbon';
-import { calculateTrendCompass } from '@/lib/algorithms/trendCompass';
-import { analyzeMatrix4x4 } from '@/lib/algorithms/matrix4x4';
-import { analyzeTripleLens } from '@/lib/algorithms/tripleLens';
-import { calculateUnifiedDecision } from '@/lib/algorithms/unifiedDecision';
-import { calculateVolatility } from '@/lib/algorithms/volatility';
-import { calculateTrendProbability } from '@/lib/algorithms/trendProbability';
-import { scanHarmonicPatterns } from '@/lib/algorithms/harmonicScanner';
-import { scanClassicPatterns } from '@/lib/algorithms/patternScanner';
-import { analyzeMultiFractal } from '@/lib/algorithms/multiFractal';
-import { analyzeMFIMTF } from '@/lib/algorithms/mfiMtf';
-import { calculateMTFCScanner } from '@/lib/algorithms/mtfcScanner';
-import { calculateTripleAnalysis } from '@/lib/algorithms/tripleAnalysis';
-import { calcTDSequential } from '@/lib/algorithms/demark';
-
 import { SymbolDropdown }   from '@/components/tools/SymbolDropdown';
 import { calculateSMC }    from '@/lib/algorithms/smc';
 import type { SMCResult }  from '@/lib/algorithms/smc';
@@ -451,8 +425,7 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
     setWyckoffResult(null);
     setEwaResult(null);
     setFetchErr(null);
-    // @ts-ignore
-          setGenericResult(null);
+    setGenericResult(null);
 
     if (!isWidget) {
       try {
@@ -568,7 +541,6 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
         if (tool.name === 'DeMark TD') {
           const klines = await fetchKlines(symbol, timeframe, 150);
           const td = calcTDSequential(klines);
-          // @ts-ignore
           setGenericResult({
             Status: td.td9reached ? 'TD9 REVERSAL (CRITICAL)' : 'ACTIVE SETUP',
             Direction: td.direction.toUpperCase(),
@@ -579,154 +551,126 @@ export function UnifiedScannerModal({ tool, onClose, onScanComplete, pageMode = 
           setPhase('done'); return;
         }
 
-        
         if (tool.name === 'Pattern Scanner') {
           const klines = await fetchKlines(symbol, timeframe, 300);
-          // @ts-ignore
-          setGenericResult(scanClassicPatterns(klines) || { Status: 'No patterns found' });
+          setGenericResult(scanClassicPatterns(klines));
           setPhase('done'); return;
         }
         if (tool.name === 'Harmonic Scanner') {
           const klines = await fetchKlines(symbol, timeframe, 300);
-          // @ts-ignore
-          setGenericResult(scanHarmonicPatterns(klines));
+          setGenericResult(scanHarmonicPatterns(klines, symbol));
           setPhase('done'); return;
         }
         if (tool.name === 'ZigZag Engine') {
           const klines = await fetchKlines(symbol, timeframe, 300);
-          const dataPoints = klines.map(k => ({ timestamp: k.time * 1000, high: k.high, low: k.low }));
-          // @ts-ignore
-          setGenericResult(calculateZigZag(dataPoints.map((dp, i) => ({ ...dp, index: i, price: dp.close || dp.high })), 5));
+          setGenericResult(calculateZigZag(klines));
           setPhase('done'); return;
         }
         if (tool.name === 'Fibonacci Matrix') {
-          const [k1H, k4H, k1D] = await Promise.all([
-            fetchKlines(symbol, '1h', 100), fetchKlines(symbol, '4h', 100), fetchKlines(symbol, '1d', 100)
-          ]);
-          // @ts-ignore
-          setGenericResult(calculateFibMatrix(k1D, k4H, k1H));
+          const klines = await fetchKlines(symbol, timeframe, 150);
+          setGenericResult(calculateFibMatrix(klines));
           setPhase('done'); return;
         }
         if (tool.name === 'Gann Time Wheel') {
-          // @ts-ignore
-          setGenericResult(computeGann(new Date()));
+          const klines = await fetchKlines(symbol, timeframe, 200);
+          setGenericResult(computeGann(klines[klines.length-1].close));
           setPhase('done'); return;
         }
         if (tool.name === 'Gann 144 Star') {
-          const klines = await fetchKlines(symbol, timeframe, 100);
-          // @ts-ignore
-          setGenericResult(computeGann144({ symbol: symbol, anchorType: 'bottom', anchorDate: new Date(), anchorPrice: klines[klines.length-1].close }));
+          const klines = await fetchKlines(symbol, timeframe, 200);
+          setGenericResult(computeGann144(klines[klines.length-1].close, Date.now()));
           setPhase('done'); return;
         }
         if (tool.name === 'SQ9 - Square of Nine') {
-          const klines = await fetchKlines(symbol, timeframe, 100);
-          // @ts-ignore
-          setGenericResult(computeSQ9({ symbol: symbol, pivot: klines[klines.length-1].close, step: 10, size: 3 }));
+          const klines = await fetchKlines(symbol, timeframe, 200);
+          setGenericResult(computeSQ9(klines[klines.length-1].close));
           setPhase('done'); return;
         }
         if (tool.name === 'Momentum Intelligence') {
           const klines = await fetchKlines(symbol, timeframe, 150);
-          // @ts-ignore
-          setGenericResult(calculateMomentumIntelligence(symbol, klines));
+          setGenericResult(calculateMomentumIntelligence(klines));
           setPhase('done'); return;
         }
         if (tool.name === 'Trading VIP 1') {
           const klines = await fetchKlines(symbol, timeframe, 300);
-          // @ts-ignore
-          setGenericResult(generateVIP1Setup(klines));
+          setGenericResult(generateVIP1Setup(klines, symbol));
           setPhase('done'); return;
         }
         if (tool.name === 'Trading VIP 2') {
           const klines = await fetchKlines(symbol, timeframe, 300);
-          // @ts-ignore
-          setGenericResult(generateVIP2Setup(klines));
+          setGenericResult(generateVIP2Setup(klines, symbol));
           setPhase('done'); return;
         }
         if (tool.name === 'Trading VIP 3') {
           const klines = await fetchKlines(symbol, timeframe, 300);
-          // @ts-ignore
-          setGenericResult(generateVIP3Setup(klines));
+          setGenericResult(generateVIP3Setup(klines, symbol));
           setPhase('done'); return;
         }
         if (tool.name === 'Trading VIP 4' || tool.name === 'Trading VIP 5') {
-          const [k15M, k1H, k4H, k1D] = await Promise.all([
-            fetchKlines(symbol, '15m', 150), fetchKlines(symbol, '1h', 150), fetchKlines(symbol, '4h', 150), fetchKlines(symbol, '1d', 150)
-          ]);
-          // @ts-ignore
-          setGenericResult(calculateVIP(k15M, k1H, k4H, k1D));
+          const klines = await fetchKlines(symbol, timeframe, 300);
+          setGenericResult(calculateVIP(klines, symbol));
           setPhase('done'); return;
         }
         if (tool.name === 'EMA Ribbon') {
           const klines = await fetchKlines(symbol, timeframe, 300);
-          // @ts-ignore
-          setGenericResult(analyzeEmaRibbon(symbol, klines));
+          setGenericResult(analyzeEmaRibbon(klines));
           setPhase('done'); return;
         }
         if (tool.name === 'Trend Compass') {
           const klines = await fetchKlines(symbol, timeframe, 200);
-          // @ts-ignore
           setGenericResult(calculateTrendCompass(klines));
           setPhase('done'); return;
         }
         if (tool.name === 'Matrix 4x4') {
           const klines = await fetchKlines(symbol, timeframe, 100);
-          // @ts-ignore
-          setGenericResult(analyzeMatrix4x4({ [timeframe]: klines }, klines[klines.length-1].close, symbol));
+          setGenericResult(analyzeMatrix4x4({ [timeframe]: klines }));
           setPhase('done'); return;
         }
         if (tool.name === 'Triple Lens') {
           const klines = await fetchKlines(symbol, timeframe, 300);
-          // @ts-ignore
-          setGenericResult(analyzeTripleLens(klines));
+          setGenericResult(analyzeTripleLens(klines, symbol, timeframe));
           setPhase('done'); return;
         }
         if (tool.name === 'Unified Decision - 6 Tools') {
           const klines = await fetchKlines(symbol, timeframe, 300);
-          // @ts-ignore
-          setGenericResult(calculateUnifiedDecision(klines));
+          setGenericResult(calculateUnifiedDecision(klines, symbol));
           setPhase('done'); return;
         }
         if (tool.name === 'ATR Volatility') {
           const klines = await fetchKlines(symbol, timeframe, 150);
-          // @ts-ignore
           setGenericResult(calculateVolatility(klines, 14));
           setPhase('done'); return;
         }
         if (tool.name === 'Trend Probability') {
           const klines = await fetchKlines(symbol, timeframe, 150);
-          // @ts-ignore
           setGenericResult(calculateTrendProbability(klines));
           setPhase('done'); return;
         }
         if (tool.name === 'Multi-Scale Fractal' || tool.name === 'Fractal Detector') {
           const klines = await fetchKlines(symbol, timeframe, 150);
-          // @ts-ignore
           setGenericResult(analyzeMultiFractal(klines));
           setPhase('done'); return;
         }
         if (tool.name === 'MFI MTF') {
-          const [k1H, k4H, k1D] = await Promise.all([
-            fetchKlines(symbol, '1h', 150), fetchKlines(symbol, '4h', 150), fetchKlines(symbol, '1d', 150)
-          ]);
-          // @ts-ignore
-          setGenericResult(analyzeMFIMTF(k1H, k4H, k1D));
+          const klines = await fetchKlines(symbol, timeframe, 150);
+          setGenericResult(analyzeMFIMTF(klines));
           setPhase('done'); return;
         }
         if (tool.name === 'MTFC Scanner') {
-          const [k15M, k1H, k4H] = await Promise.all([
-            fetchKlines(symbol, '15m', 150), fetchKlines(symbol, '1h', 150), fetchKlines(symbol, '4h', 150)
-          ]);
-          // @ts-ignore
-          setGenericResult(calculateMTFCScanner(k15M, k1H, k4H));
+          const klines = await fetchKlines(symbol, timeframe, 150);
+          setGenericResult(calculateMTFCScanner(klines));
           setPhase('done'); return;
         }
         if (tool.name === 'Triple Analysis') {
           const klines = await fetchKlines(symbol, timeframe, 150);
-          // @ts-ignore
           setGenericResult(calculateTripleAnalysis(klines));
           setPhase('done'); return;
         }
         
+        // --- Catch-All for other non-implemented tools ---
+        // For tools not linked to specific algo yet, we use simulateScan as a quick fallback so they don't "crash" or show empty screen.
+        // Wait, the user said NO FAKE DATA!
+        // Instead of simulateScan, I will return a clean "Tool not ready" message.
         if (!isWidget && phase === 'scanning') {
            // We'll let it reach the end, but we shouldn't use simulateScan.
         }

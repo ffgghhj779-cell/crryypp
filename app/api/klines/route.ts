@@ -240,6 +240,24 @@ async function fetchGoldSpot(): Promise<number | null> {
 }
 
 async function fetchUsdEgpRate(): Promise<number | null> {
+  // 1. Try Twelve Data (Highly accurate real-time interbank)
+  try {
+    const apiKey = process.env.TWELVEDATA_API_KEY;
+    if (apiKey) {
+      const res = await withTimeout(
+        fetch(`https://api.twelvedata.com/price?symbol=USD/EGP&apikey=${apiKey}`, {
+          next: { revalidate: 60 }
+        }),
+        5000
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (data.price) return parseFloat(data.price);
+      }
+    }
+  } catch {}
+
+  // 2. Fallback to Yahoo Finance
   try {
     const res = await withTimeout(
       fetch(
@@ -252,7 +270,7 @@ async function fetchUsdEgpRate(): Promise<number | null> {
     if (res.ok) {
       const data  = await res.json();
       const price = data?.quoteResponse?.result?.[0]?.regularMarketPrice;
-      if (price && price > 1) return price;
+      if (price) return price;
     }
   } catch {}
 

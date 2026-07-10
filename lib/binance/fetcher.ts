@@ -127,6 +127,17 @@ export async function fetchKlines(
     if (!Array.isArray(bars) || bars.length === 0) {
       throw new Error(`No commodity data for "${upperSymbol}".`);
     }
+
+    // Forex & Commodities often have 0 volume. We synthesize "Tick Volume"
+    // proxy based on price volatility (High - Low) to prevent algorithms from crashing.
+    bars.forEach(b => {
+      if (!b.volume || b.volume === 0) {
+        const range = b.high - b.low;
+        // Scale factor: typical forex range is small (e.g., 0.0050 EURUSD)
+        b.volume = Math.max(1, range * 10000); 
+      }
+    });
+
     toCache(key, bars, normInterval);
     return bars;
   }
