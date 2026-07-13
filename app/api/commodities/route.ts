@@ -119,6 +119,26 @@ async function fetchYahooV7(symbol: string): Promise<{ price: number; changePct:
 }
 
 // ─── USD/EGP from open.er-api.com ────────────────────────────────────────────
+
+async function fetchUsdEgpFromTwelveData(): Promise<{ price: number; changePct: number } | null> {
+  try {
+    const apiKey = process.env.TWELVEDATA_API_KEY;
+    if (!apiKey) return null;
+    const res = await withTimeout(
+      fetch(`https://api.twelvedata.com/price?symbol=USD/EGP&apikey=${apiKey}`, {
+        next: { revalidate: 60 }
+      }),
+      5000
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.price) return { price: parseFloat(data.price), changePct: 0 };
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchUsdEgpFromOpenEr(): Promise<{ price: number; changePct: number } | null> {
   try {
     const res = await withTimeout(
@@ -195,7 +215,7 @@ export async function GET() {
   // Pick best gold — gold-api has changePct, prefer it
   const gold   = goldGoldApi  ?? goldMetals  ?? goldYahooV8 ?? goldYahooV7 ?? { price: 3345, changePct: 0 };
   const oil    = oilYahooV8   ?? oilYahooV7  ?? { price: 79.50, changePct: 0 };
-  const usdEgp = egpYahooV8  ?? egpYahooV7  ?? egpOpenEr  ?? { price: 50.85, changePct: 0 };
+  const usdEgp = await fetchUsdEgpFromTwelveData() ?? egpYahooV8 ?? egpYahooV7 ?? egpOpenEr ?? { price: 50.85, changePct: 0 };
   const eurUsd = eurYahooV8  ?? eurYahooV7  ?? eurOpenEr  ?? { price: 1.0850, changePct: 0 };
 
   // Egyptian gold = XAU/USD × USD/EGP rate × 21k factor
@@ -237,7 +257,7 @@ export async function GET() {
     sources: {
       gold:   goldGoldApi ? 'gold-api.com' : goldMetals ? 'metals.live' : goldYahooV8 ? 'yahoo-v8' : goldYahooV7 ? 'yahoo-v7' : 'fallback',
       oil:    oilYahooV8 ? 'yahoo-v8' : oilYahooV7 ? 'yahoo-v7' : 'fallback',
-      usdEgp: egpYahooV8 ? 'yahoo-v8' : egpYahooV7 ? 'yahoo-v7' : egpOpenEr ? 'open.er-api' : 'fallback',
+      usdEgp: (await fetchUsdEgpFromTwelveData()) ? 'twelve-data' : egpYahooV8 ? 'yahoo-v8' : egpYahooV7 ? 'yahoo-v7' : egpOpenEr ? 'open.er-api' : 'fallback',
       eurUsd: eurYahooV8 ? 'yahoo-v8' : eurYahooV7 ? 'yahoo-v7' : eurOpenEr ? 'open.er-api' : 'fallback',
     },
   };

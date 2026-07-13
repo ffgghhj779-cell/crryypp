@@ -87,7 +87,7 @@ export function ToolChart({ klines, overlays = [], priceLines = [], markers = []
     });
 
     const candleData = klines.map((k) => ({
-      time: (k.time / 1000) as Time,
+      time: Math.floor(k.time) as Time,
       open: k.open,
       high: k.high,
       low: k.low,
@@ -114,7 +114,7 @@ export function ToolChart({ klines, overlays = [], priceLines = [], markers = []
 
     if (markers.length > 0) {
       (candlestickSeries as any).setMarkers(
-        markers.map(m => ({ ...m, time: (m.time / 1000) as Time }))
+        markers.map(m => ({ ...m, time: Math.floor(m.time) as Time }))
                .sort((a, b) => (a.time as number) - (b.time as number))
       );
     }
@@ -143,7 +143,7 @@ export function ToolChart({ klines, overlays = [], priceLines = [], markers = []
         
         const safeData = overlay.data
           .filter(d => !isNaN(d.value))
-          .map(d => ({ time: (d.time / 1000) as Time, value: d.value }));
+          .map(d => ({ time: Math.floor(d.time) as Time, value: d.value }));
           
         safeData.sort((a, b) => (a.time as number) - (b.time as number));
         
@@ -168,7 +168,7 @@ export function ToolChart({ klines, overlays = [], priceLines = [], markers = []
         
         const safeData = overlay.data
           .filter(d => !isNaN(d.value))
-          .map(d => ({ time: (d.time / 1000) as Time, value: d.value, color: d.color }));
+          .map(d => ({ time: Math.floor(d.time) as Time, value: d.value, color: d.color }));
           
         safeData.sort((a, b) => (a.time as number) - (b.time as number));
         
