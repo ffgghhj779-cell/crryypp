@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { createChart, ColorType, IChartApi, ISeriesApi, Time, CandlestickSeries, LineSeries, HistogramSeries } from 'lightweight-charts';
+import { createChart, ColorType, IChartApi, ISeriesApi, Time, CandlestickSeries, LineSeries, HistogramSeries, createSeriesMarkers } from 'lightweight-charts';
 import type { Kline } from '@/lib/binance/fetcher';
 
 export interface OverlaySeries {
@@ -113,10 +113,7 @@ export function ToolChart({ klines, overlays = [], priceLines = [], markers = []
     candlestickSeries.setData(uniqueCandles);
 
     if (markers.length > 0) {
-      (candlestickSeries as any).setMarkers(
-        markers.map(m => ({ ...m, time: Math.floor(m.time) as Time }))
-               .sort((a, b) => (a.time as number) - (b.time as number))
-      );
+      createSeriesMarkers(candlestickSeries, markers.map(m => ({ ...m, time: Math.floor(m.time) as Time })).sort((a, b) => (a.time as number) - (b.time as number)));
     }
 
     // 2. Add Horizontal Price Lines (e.g. Fib levels)
