@@ -124,7 +124,7 @@ export default function LinearRegressionPage() {
                   <p className="text-sm font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-2">
                     <AlignEndHorizontal className="w-4 h-4" /> Linear Regression Channel
                   </p>
-                  <p className="text-xs font-mono text-white/40">{symbol.toUpperCase()} • 1D</p>
+                  <p className="text-xs font-mono text-white/40">{symbol.toUpperCase()} • 1H</p>
                 </div>
                 <ToolChart 
                   klines={klines}
