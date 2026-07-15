@@ -125,14 +125,14 @@ async function fetchUsdEgpFromTwelveData(): Promise<{ price: number; changePct: 
     const apiKey = process.env.TWELVEDATA_API_KEY;
     if (!apiKey) return null;
     const res = await withTimeout(
-      fetch(`https://api.twelvedata.com/price?symbol=USD/EGP&apikey=${apiKey}`, {
+      fetch(`https://api.twelvedata.com/time_series?symbol=USD/EGP&interval=1h&outputsize=1&apikey=${apiKey}&format=JSON`, {
         next: { revalidate: 60 }
       }),
       5000
     );
     if (!res.ok) return null;
     const data = await res.json();
-    if (data.price) return { price: parseFloat(data.price), changePct: 0 };
+    if (data.values && data.values.length > 0) return { price: parseFloat(data.values[0].close), changePct: 0 };
     return null;
   } catch {
     return null;
