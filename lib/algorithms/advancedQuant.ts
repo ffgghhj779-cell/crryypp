@@ -246,3 +246,49 @@ export function analyzeFourier(klines: Kline[]): FourierResult {
     verdict: `الدورة المهيمنة المقدّرة: ${avgCycle} شمعة. القمة الأخيرة قبل ${lastPeakAge} شمعة. القمة التالية المتوقعة خلال ≈ ${nextPeak} شمعة.`,
   };
 }
+
+
+export function analyzeLinearRegressionRange(klines: Kline[], startIndex: number, endIndex: number): LinearRegressionResult {
+  // Ensure valid range
+  const start = Math.max(0, Math.min(startIndex, endIndex));
+  const end = Math.min(klines.length - 1, Math.max(startIndex, endIndex));
+  
+  if (end - start < 2) {
+    throw new Error('Not enough data points for linear regression.');
+  }
+
+  const slice = klines.slice(start, end + 1);
+  const n = slice.length;
+  const closes = slice.map(k => k.close);
+  const ref = closes[closes.length - 1];
+
+  // OLS
+  const sumX = (n * (n - 1)) / 2;
+  const sumX2 = (n * (n - 1) * (2 * n - 1)) / 6;
+  const sumY = closes.reduce((a, b) => a + b, 0);
+  const sumXY = closes.reduce((a, v, i) => a + i * v, 0);
+
+  const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+  const intercept = (sumY - slope * sumX) / n;
+
+  // Residuals & std-dev
+  const residuals = closes.map((v, i) => v - (intercept + slope * i));
+  const resSd = Math.sqrt(residuals.reduce((a, r) => a + r * r, 0) / n);
+
+  const currentFit = intercept + slope * (n - 1);
+  const upperChannel = fmtP(currentFit + 2 * resSd, ref);
+  const lowerChannel = fmtP(currentFit - 2 * resSd, ref);
+
+  const slopeNorm = parseFloat(slope.toFixed(6));
+  const isTrendUp = slope > 0;
+
+  return {
+    slope: slopeNorm,
+    intercept,
+    currentFit: fmtP(currentFit, ref),
+    upperChannel,
+    lowerChannel,
+    isTrendUp,
+    verdict: isTrendUp ? 'Trend Up' : 'Trend Down',
+  };
+}

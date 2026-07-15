@@ -123,6 +123,9 @@ export const ANALYSIS_TOOLS: ToolDef[] = [
   { name: 'Markov Model (HMM)',       tag: 'Quant',       category: 'math',     subtitle: 'Market regime classifier',         tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol', 'timeframe'] },
   { name: 'Fourier Transform',        tag: 'Quant',       category: 'math',     subtitle: 'Cycle & time period detection',    tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol', 'timeframe', 'period'] },
   { name: 'Linear Regression',        tag: 'Quant',       category: 'math',     subtitle: 'Fair value & channel estimation',  tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol', 'price_start', 'price_end', 'direction'] },
+  { name: 'Linear Regression 1H',        tag: 'Quant',       category: 'math',     subtitle: 'Fair value & channel estimation (1H)',  tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol', 'price_start', 'price_end', 'direction'] },
+  { name: 'Linear Regression 1H Custom', tag: 'Quant',       category: 'math',     subtitle: 'Custom range channel estimation',  tagColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', requiredInputs: ['symbol'] },
+
   { name: 'Elliott Wave (EWA)',        tag: 'EWA',         category: 'math',     subtitle: 'Quantitative 5-wave MTF engine',   tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20',   requiredInputs: ['symbol', 'timeframe'] },
   { name: 'Gann Time Wheel',          tag: 'Cycles',      category: 'math',     subtitle: 'W.D. Gann Annual Time Cycles',    tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20', requiredInputs: [] },
   { name: 'Gann 144 Star',            tag: 'Gann 144',    category: 'math',     subtitle: 'تربيع الزمن والسعر — عامل ١٤٤',  tagColor: 'text-orange-400 bg-orange-500/10 border-orange-500/20', requiredInputs: [] },
@@ -234,7 +237,12 @@ function simulateScan(toolName: string, symbol: string, timeframe: string): Scan
     case toolName === 'Linear Regression':
       return { fair_value: `$${price.toLocaleString()}`, upper_channel: `$${(price + 3100).toLocaleString()}`, lower_channel: `$${(price - 2900).toLocaleString()}`, slope: bull ? '+' + (0.12 + (seed % 10) / 100).toFixed(2) : '-' + (0.08 + (seed % 8) / 100).toFixed(2), r_squared: (0.72 + (seed % 20) / 100).toFixed(3), deviation: `${1.8 + (seed % 12) / 10}%` };
 
-    // Momentum
+    
+      case toolName === 'Linear Regression 1H':
+        return { fair_value: '$' + price.toLocaleString(), upper_channel: '$' + (price + 3100).toLocaleString(), lower_channel: '$' + (price - 2900).toLocaleString(), slope: bull ? '+' + (0.12 + (seed % 10) / 100).toFixed(2) : '-' + (0.08 + (seed % 8) / 100).toFixed(2), r_squared: (0.72 + (seed % 20) / 100).toFixed(3), deviation: (1.8 + (seed % 12) / 10) + '%' };
+      case toolName === 'Linear Regression 1H Custom':
+        return { fair_value: '$' + price.toLocaleString(), upper_channel: '$' + (price + 3100).toLocaleString(), lower_channel: '$' + (price - 2900).toLocaleString(), slope: bull ? '+' + (0.12 + (seed % 10) / 100).toFixed(2) : '-' + (0.08 + (seed % 8) / 100).toFixed(2) };
+// Momentum
     case toolName === 'Divergence Scanner': {
       const type = ['Regular Bullish', 'Regular Bearish', 'Hidden Bullish', 'Hidden Bearish'][seed % 4];
       return { rsi_div: type + ' RSI Divergence ✓', macd_div: seed % 3 === 0 ? 'Hidden Bearish MACD ✓' : 'Not Detected', strength: `${65 + seed % 25}%`, direction: type.includes('Bullish') ? 'BULLISH' : 'BEARISH' };
