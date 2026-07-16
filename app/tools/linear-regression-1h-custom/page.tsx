@@ -25,8 +25,14 @@ export default function LinearRegressionCustomPage() {
       if (fetchedKlines.length < 5) throw new Error('بيانات غير كافية');
       
       const len = fetchedKlines.length;
-      const actualStart = Math.max(0, len - 1 - startIdx);
-      const actualEnd = Math.max(actualStart + 1, len - 1 - endIdx);
+      let s = Number(startIdx);
+      let e = Number(endIdx);
+      if (isNaN(s) || s < 0) s = 100;
+      if (isNaN(e) || e < 0) e = 0;
+      if (s <= e) s = e + 10;
+      
+      const actualStart = Math.max(0, len - 1 - s);
+      const actualEnd = Math.max(actualStart + 1, len - 1 - e);
 
       const res = analyzeLinearRegressionRange(fetchedKlines, actualStart, actualEnd);
       setResult(res);
@@ -57,12 +63,12 @@ export default function LinearRegressionCustomPage() {
           <div className="flex gap-4">
             <div className="flex-1 flex flex-col gap-1">
               <label className="text-xs text-white/50">رقم البداية (شموع للخلف)</label>
-              <input type="number" value={startIdx} onChange={(e) => setStartIdx(Number(e.target.value))} 
+              <input type="number" value={startIdx} onChange={(e) => setStartIdx(e.target.value as any)} 
                 className="bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white font-bold outline-none focus:border-orange-500/50 w-full" />
             </div>
             <div className="flex-1 flex flex-col gap-1">
               <label className="text-xs text-white/50">رقم النهاية (شموع للخلف)</label>
-              <input type="number" value={endIdx} onChange={(e) => setEndIdx(Number(e.target.value))} 
+              <input type="number" value={endIdx} onChange={(e) => setEndIdx(e.target.value as any)} 
                 className="bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white font-bold outline-none focus:border-orange-500/50 w-full" />
             </div>
           </div>
