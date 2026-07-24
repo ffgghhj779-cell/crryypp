@@ -21,15 +21,20 @@ export default function LinearRegressionCustomPage() {
   const handleScan = useCallback(async () => {
     setError(''); setLoading(true); setResult(null);
     try {
-      const fetchedKlines = await fetchKlines(symbol.toUpperCase().trim(), '1h', 1000);
-      if (fetchedKlines.length < 5) throw new Error('بيانات غير كافية');
-      
-      const len = fetchedKlines.length;
       let s = Number(startIdx);
       let e = Number(endIdx);
       if (isNaN(s) || s < 0) s = 100;
       if (isNaN(e) || e < 0) e = 0;
       if (s <= e) s = e + 10;
+      
+      const fetchLimit = Math.min(5000, Math.max(1000, s + 10));
+      const fetchedKlines = await fetchKlines(symbol.toUpperCase().trim(), '1h', fetchLimit);
+      if (fetchedKlines.length < 5) throw new Error('بيانات غير كافية');
+      
+      const len = fetchedKlines.length;
+      if (e >= len) {
+        throw new Error(`النطاق المطلوب يتجاوز البيانات المتاحة (أقصى شموع متاحة لهذا الأصل: ${len}). يرجى إدخال رقم نهاية أصغر.`);
+      }
       
       const actualStart = Math.max(0, len - 1 - s);
       const actualEnd = Math.max(actualStart + 1, len - 1 - e);
