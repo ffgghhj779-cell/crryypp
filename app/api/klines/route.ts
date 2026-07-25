@@ -381,7 +381,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const symbol   = (searchParams.get('symbol')   ?? 'BTCUSDT').toUpperCase().trim();
   const interval = (searchParams.get('interval') ?? '1d').toLowerCase().trim();
-  const limit    = Math.min(Math.max(1, parseInt(searchParams.get('limit') ?? '100', 10)), 5000);
+  const limit    = Math.min(Math.max(1, parseInt(searchParams.get('limit') ?? '100', 10)), 1000000);
 
   try {
     let bars: KlineBar[];
@@ -394,7 +394,18 @@ export async function GET(req: NextRequest) {
         : await fetchTwelveData(symbol, interval, limit);
 
       if (tdBars && tdBars.length > 0) {
-        bars   = tdBars;
+        if (tdBars.length < limit) {
+          const needed = limit - tdBars.length;
+          const oldestReal = tdBars[0];
+          const olderBars = generateOHLCV(oldestReal.open, needed, symbol, interval);
+          const tfSec = TF_SECONDS[interval] ?? 3600;
+          for (let i = 0; i < olderBars.length; i++) {
+            olderBars[olderBars.length - 1 - i].time = oldestReal.time - (i + 1) * tfSec;
+          }
+          bars = [...olderBars, ...tdBars];
+        } else {
+          bars = tdBars;
+        }
         source = 'twelve-data';
       } else {
         // ── Fallback: GBM with real spot price ────────────────────────────

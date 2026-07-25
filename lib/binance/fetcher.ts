@@ -100,7 +100,7 @@ export async function fetchKlines(
   limit:    number = 100,
 ): Promise<Kline[]> {
   const upperSymbol  = symbol.toUpperCase().trim();
-  const clampedLimit = Math.min(Math.max(1, limit), 1000);
+  const clampedLimit = Math.min(Math.max(1, limit), 1000000);
   const normInterval = normaliseInterval(interval);
 
   // ── Cache lookup ──────────────────────────────────────────────────────────
@@ -143,48 +143,66 @@ export async function fetchKlines(
   }
 
   // ── Crypto path (original Binance logic) ───────────────────────────────────
-  const url = [
-    'https://api.binance.com/api/v3/klines',
-    `?symbol=${encodeURIComponent(upperSymbol)}`,
-    `&interval=${encodeURIComponent(normInterval)}`,
-    `&limit=${clampedLimit}`,
-  ].join('');
+  let remaining = clampedLimit;
+  let allBars: Kline[] = [];
+  let endTimeParam = '';
 
-  let res: Response;
-  try {
-    res = await fetch(url, { cache: 'no-store' });
-  } catch {
-    throw new Error('Network error — check your connection and try again.');
-  }
+  while (remaining > 0) {
+    const batchLimit = Math.min(remaining, 1000);
+    const url = [
+      'https://api.binance.com/api/v3/klines',
+      `?symbol=${encodeURIComponent(upperSymbol)}`,
+      `&interval=${encodeURIComponent(normInterval)}`,
+      `&limit=${batchLimit}`,
+      endTimeParam
+    ].join('');
 
-  if (!res.ok) {
-    let detail = `HTTP ${res.status}`;
+    let res: Response;
     try {
-      const body = await res.json() as { msg?: string };
-      if (body?.msg) detail = body.msg;
-    } catch { /* ignore */ }
-    throw new Error(`Binance API error: ${detail}`);
+      res = await fetch(url, { cache: 'no-store' });
+    } catch {
+      if (allBars.length > 0) break;
+      throw new Error('Network error — check your connection and try again.');
+    }
+
+    if (!res.ok) {
+      if (allBars.length > 0) break;
+      let detail = `HTTP ${res.status}`;
+      try {
+        const body = await res.json() as { msg?: string };
+        if (body?.msg) detail = body.msg;
+      } catch { /* ignore */ }
+      throw new Error(`Binance API error: ${detail}`);
+    }
+
+    const raw: RawKline[] = await res.json();
+    if (!Array.isArray(raw) || raw.length === 0) break;
+
+    const batch = raw.map((k): Kline => ({
+      time:   Math.floor(k[0] / 1000),
+      open:   parseFloat(k[1]),
+      high:   parseFloat(k[2]),
+      low:    parseFloat(k[3]),
+      close:  parseFloat(k[4]),
+      volume: parseFloat(k[5]),
+      closeTime: k[6],
+      takerBuyVol: parseFloat(k[9]),
+    }));
+
+    allBars = batch.concat(allBars);
+    remaining -= batch.length;
+
+    if (batch.length < batchLimit) break;
+    const oldestTimeMs = raw[0][0];
+    endTimeParam = `&endTime=${oldestTimeMs - 1}`;
   }
 
-  const raw: RawKline[] = await res.json();
-
-  if (!Array.isArray(raw) || raw.length === 0) {
+  if (allBars.length === 0) {
     throw new Error(`No data returned for symbol "${symbol}". Verify the pair is listed on Binance.`);
   }
 
-  const bars = raw.map((k): Kline => ({
-    time:   Math.floor(k[0] / 1000),
-    open:   parseFloat(k[1]),
-    high:   parseFloat(k[2]),
-    low:    parseFloat(k[3]),
-    close:  parseFloat(k[4]),
-    volume: parseFloat(k[5]),
-    closeTime: k[6],
-    takerBuyVol: parseFloat(k[9]),
-  }));
-
-  toCache(key, bars, normInterval);
-  return bars;
+  toCache(key, allBars, normInterval);
+  return allBars;
 }
 
 /**

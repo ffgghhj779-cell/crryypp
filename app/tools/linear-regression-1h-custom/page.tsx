@@ -27,12 +27,12 @@ export default function LinearRegressionCustomPage() {
       if (isNaN(e) || e < 0) e = 0;
       if (s <= e) s = e + 10;
       
-      const fetchLimit = Math.min(5000, Math.max(1000, s + 10));
+      const fetchLimit = Math.max(1000, s + 10);
       const fetchedKlines = await fetchKlines(symbol.toUpperCase().trim(), '1h', fetchLimit);
       if (fetchedKlines.length < 5) throw new Error('بيانات غير كافية');
       
       const len = fetchedKlines.length;
-      if (e >= len) {
+      if (e >= len && len < s) {
         throw new Error(`النطاق المطلوب يتجاوز البيانات المتاحة (أقصى شموع متاحة لهذا الأصل: ${len}). يرجى إدخال رقم نهاية أصغر.`);
       }
       
