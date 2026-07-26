@@ -35,6 +35,7 @@ const TD_SYMBOL: Record<string, string> = {
   BRENTUSD: 'BRN/USD',
   USDEGP:   'USD/EGP',
   EURUSD:   'EUR/USD',
+  DXY:      'DXY',
 };
 
 // Twelve Data interval mapping (our format → TD format)
@@ -374,7 +375,7 @@ async function fetchBinanceKlines(
 }
 
 // ── Commodity symbols set ─────────────────────────────────────────────────────
-const COMMODITY_SYMBOLS = new Set(['XAUUSD', 'WTIUSD', 'BRENTUSD', 'USDEGP', 'EGYXAU', 'EURUSD']);
+const COMMODITY_SYMBOLS = new Set(['XAUUSD', 'WTIUSD', 'BRENTUSD', 'USDEGP', 'EGYXAU', 'EURUSD', 'DXY']);
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
