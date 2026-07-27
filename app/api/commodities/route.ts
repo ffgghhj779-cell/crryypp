@@ -197,6 +197,8 @@ export async function GET() {
     eurOpenEr,
     eurYahooV8,
     eurYahooV7,
+    dxyYahooV8,
+    dxyYahooV7,
   ] = await Promise.all([
     fetchGoldFromGoldApi(),
     fetchGoldFromMetalsLive(),
@@ -210,6 +212,8 @@ export async function GET() {
     fetchEurUsdFromOpenEr(),
     fetchYahooV8('EURUSD=X'),
     fetchYahooV7('EURUSD=X'),
+    fetchYahooV8('DX-Y.NYB'),
+    fetchYahooV7('DX-Y.NYB'),
   ]);
 
   // Pick best gold — gold-api has changePct, prefer it
@@ -217,6 +221,7 @@ export async function GET() {
   const oil    = oilYahooV8   ?? oilYahooV7  ?? { price: 79.50, changePct: 0 };
   const usdEgp = await fetchUsdEgpFromTwelveData() ?? egpYahooV8 ?? egpYahooV7 ?? egpOpenEr ?? { price: 50.85, changePct: 0 };
   const eurUsd = eurYahooV8  ?? eurYahooV7  ?? eurOpenEr  ?? { price: 1.0850, changePct: 0 };
+  const dxy    = dxyYahooV8  ?? dxyYahooV7  ?? { price: 104.0, changePct: 0 };
 
   // Egyptian gold = XAU/USD × USD/EGP rate × 21k factor
   const egyptianGoldPrice   = calcEgyptianGold(gold.price, usdEgp.price);
@@ -245,6 +250,11 @@ export async function GET() {
       price:     eurUsd.price,
       changePct: eurUsd.changePct,
     },
+    dxy: {
+      symbol:    'DXY',
+      price:     dxy.price,
+      changePct: dxy.changePct,
+    },
     egyptianGold: {
       symbol:    'XAU/EGP',
       price:     egyptianGoldPrice,
@@ -259,6 +269,7 @@ export async function GET() {
       oil:    oilYahooV8 ? 'yahoo-v8' : oilYahooV7 ? 'yahoo-v7' : 'fallback',
       usdEgp: (await fetchUsdEgpFromTwelveData()) ? 'twelve-data' : egpYahooV8 ? 'yahoo-v8' : egpYahooV7 ? 'yahoo-v7' : egpOpenEr ? 'open.er-api' : 'fallback',
       eurUsd: eurYahooV8 ? 'yahoo-v8' : eurYahooV7 ? 'yahoo-v7' : eurOpenEr ? 'open.er-api' : 'fallback',
+      dxy:    dxyYahooV8 ? 'yahoo-v8' : dxyYahooV7 ? 'yahoo-v7' : 'fallback',
     },
   };
 

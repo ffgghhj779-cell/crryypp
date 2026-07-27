@@ -262,6 +262,7 @@ interface CommodityData {
   oil:          CommodityItem | null;
   usdEgp:       CommodityItem | null;
   eurUsd:       CommodityItem | null;
+    dxy:          CommodityItem | null;
   egyptianGold: CommodityItem | null;
 }
 
@@ -425,7 +426,7 @@ function DetailedCommodityChartModal({ card, onClose }: { card: CardDef; onClose
 function CommoditiesPanel() {
   const [selectedCard, setSelectedCard] = useState<CardDef | null>(null);
   const [data, setData] = useState<CommodityData>({
-    gold: null, oil: null, usdEgp: null, eurUsd: null, egyptianGold: null,
+    gold: null, oil: null, usdEgp: null, eurUsd: null, egyptianGold: null, dxy: null,
   });
   const [loading, setLoading]         = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>('');
@@ -445,6 +446,7 @@ function CommoditiesPanel() {
             oil:          d.oil          ?? null,
             usdEgp:       d.usdEgp       ?? null,
             eurUsd:       d.eurUsd       ?? null,
+              dxy:          d.dxy          ?? null,
             egyptianGold: d.egyptianGold ?? null,
           });
           setLoading(false);
@@ -520,8 +522,19 @@ function CommoditiesPanel() {
       accentCls: 'border-violet-500/30 bg-gradient-to-br from-violet-950/40 via-black to-zinc-950',
       glowCls:   'bg-violet-500/10',
       lineColor: '#8b5cf6', klinesSymbol: 'EURUSD',
-      loaded: !!data.eurUsd,
-    },
+        loaded: !!data.eurUsd,
+      },
+      {
+        id: 'dxy', icon: '🌍',
+        labelAr: 'مؤشر الدولار', labelEn: 'U.S. Dollar Index',
+        price: data.dxy ? data.dxy.price.toFixed(3) : '---',
+        unit: 'نقطة',
+        changePct: data.dxy?.changePct ?? 0,
+        accentCls: 'border-slate-500/30 bg-gradient-to-br from-slate-950/40 via-black to-zinc-950',
+        glowCls:   'bg-slate-500/10',
+        lineColor: '#64748b', klinesSymbol: 'DXY',
+        loaded: !!data.dxy,
+      },
   ];
 
   return (
