@@ -343,6 +343,71 @@ async function fetchEurUsdRate(): Promise<number | null> {
   return null;
 }
 
+
+// ─── Yahoo Finance Klines Fallback ──────────────────────────────────────────
+const YAHOO_SYMBOLS: Record<string, string> = {
+  XAUUSD: 'GC=F',
+  WTIUSD: 'CL=F',
+  BRENTUSD: 'BZ=F',
+  USDEGP: 'USDEGP=X',
+  EURUSD: 'EURUSD=X',
+  DXY: 'DX-Y.NYB',
+};
+
+async function fetchYahooKlines(symbol: string, interval: string, limit: number): Promise<KlineBar[] | null> {
+  const ySymbol = YAHOO_SYMBOLS[symbol];
+  if (!ySymbol) return null;
+
+  const intMap: Record<string, string> = {
+    '1m': '1m', '5m': '5m', '15m': '15m', '30m': '30m',
+    '1h': '1h', '2h': '1h', '4h': '1h',
+    '1d': '1d', '1w': '1wk',
+  };
+  const yInterval = intMap[interval.toLowerCase()] ?? '1d';
+  
+  let range = '1y';
+  if (interval.includes('m') || interval.includes('h')) {
+    range = interval === '1m' ? '5d' : '1mo';
+  } else if (interval === '1w') {
+    range = '5y';
+  }
+
+  try {
+    const res = await withTimeout(
+      fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${ySymbol}?range=${range}&interval=${yInterval}`, {
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+        next: { revalidate: 300 }
+      }),
+      5000
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    const result = data?.chart?.result?.[0];
+    if (!result || !result.timestamp) return null;
+
+    const timestamps = result.timestamp;
+    const quotes = result.indicators.quote[0];
+
+    const bars: KlineBar[] = [];
+    for (let i = 0; i < timestamps.length; i++) {
+      if (quotes.open[i] == null || quotes.close[i] == null) continue;
+      bars.push({
+        time: timestamps[i],
+        open: quotes.open[i],
+        high: quotes.high[i],
+        low: quotes.low[i],
+        close: quotes.close[i],
+        volume: quotes.volume[i] || 0,
+      });
+    }
+
+    if (bars.length === 0) return null;
+    return bars.slice(-limit);
+  } catch (err) {
+    return null;
+  }
+}
+
 async function fetchCommoditySpot(symbol: string): Promise<number> {
   switch (symbol) {
     case 'XAUUSD':   return (await fetchGoldSpot())   ?? 3340;
