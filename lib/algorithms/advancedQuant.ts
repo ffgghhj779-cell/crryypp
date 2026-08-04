@@ -83,51 +83,72 @@ export function analyzeMonteCarlo(klines: Kline[]): MonteCarloResult {
 // ═════════════════════════════════════════════════════════════════════════════
 
 export interface LinearRegressionResult {
-  slope:        number;
-  intercept:    number;
-  upperChannel: number;
-  lowerChannel: number;
-  currentFit:   number;   // regression value at last bar
-  isTrendUp:    boolean;
-  verdict:      string;
+  slope:          number;  // normalized slope: % per bar
+  slopeRaw:       number;  // raw OLS slope in price units per bar
+  intercept:      number;
+  upperChannel:   number;  // currentFit + 2σ
+  lowerChannel:   number;  // currentFit − 2σ
+  currentFit:     number;  // WLS regression value at last bar
+  nextBarFit:     number;  // projected fit for bar n+1
+  r2:             number;  // coefficient of determination × 100 (0–100)
+  pearsonR:       number;  // Pearson correlation coefficient
+  signalStrength: 'weak' | 'moderate' | 'strong';
+  isTrendUp:      boolean;
+  verdict:        string;
 }
 
 export function analyzeLinearRegression(klines: Kline[]): LinearRegressionResult {
   const slice   = klines.slice(-100);
   const n       = slice.length;
-  const closes  = slice.map(k => k.close);
-  const ref     = closes[closes.length - 1];
+  const prices  = slice.map(k => (k.high + k.low + k.close) / 3);
+  const ref     = slice[slice.length - 1].close;
 
   // OLS
   const sumX  = (n * (n - 1)) / 2;
   const sumX2 = (n * (n - 1) * (2 * n - 1)) / 6;
-  const sumY  = closes.reduce((a, b) => a + b, 0);
-  const sumXY = closes.reduce((a, v, i) => a + i * v, 0);
+  const sumY  = prices.reduce((a, b) => a + b, 0);
+  const sumXY = prices.reduce((a, v, i) => a + i * v, 0);
 
   const slope     = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
   const intercept = (sumY - slope * sumX) / n;
 
-  // Residuals → std-dev → channel width (±2σ)
-  const residuals = closes.map((v, i) => v - (intercept + slope * i));
-  const resSd     = Math.sqrt(residuals.reduce((a, r) => a + r * r, 0) / n);
+  // Residuals → corrected σ (df = n-2)
+  const residuals   = prices.map((v, i) => v - (intercept + slope * i));
+  const ssRes       = residuals.reduce((a, r) => a + r * r, 0);
+  const resSd       = Math.sqrt(ssRes / Math.max(1, n - 2));
 
-  const currentFit  = intercept + slope * (n - 1);
+  // R²
+  const yMean  = prices.reduce((a, b) => a + b, 0) / n;
+  const ssTot  = prices.reduce((a, v) => a + (v - yMean) ** 2, 0);
+  const r2Raw  = ssTot > 0 ? Math.max(0, Math.min(1, 1 - ssRes / ssTot)) : 0;
+  const r2     = parseFloat((r2Raw * 100).toFixed(1));
+  const pearsonR = parseFloat((Math.sqrt(r2Raw) * (slope >= 0 ? 1 : -1)).toFixed(4));
+
+  const currentFit   = intercept + slope * (n - 1);
+  const nextBarFit   = intercept + slope * n;
   const upperChannel = fmtP(currentFit + 2 * resSd, ref);
   const lowerChannel = fmtP(currentFit - 2 * resSd, ref);
 
-  const slopeNorm = parseFloat(slope.toFixed(6));
+  const slopePct  = parseFloat(((slope / ref) * 100).toFixed(5));
   const isTrendUp = slope > 0;
+  const signalStrength: 'weak' | 'moderate' | 'strong' =
+    r2Raw >= 0.72 ? 'strong' : r2Raw >= 0.42 ? 'moderate' : 'weak';
 
   return {
-    slope:        slopeNorm,
-    intercept:    parseFloat(intercept.toFixed(4)),
+    slope:          slopePct,
+    slopeRaw:       parseFloat(slope.toFixed(6)),
+    intercept:      parseFloat(intercept.toFixed(4)),
     upperChannel,
     lowerChannel,
-    currentFit:   fmtP(currentFit, ref),
+    currentFit:     fmtP(currentFit, ref),
+    nextBarFit:     fmtP(nextBarFit, ref),
+    r2,
+    pearsonR,
+    signalStrength,
     isTrendUp,
     verdict: isTrendUp
-      ? `قناة صاعدة: الميل +${slopeNorm}. القناة من ${lowerChannel} إلى ${upperChannel}.`
-      : `قناة هابطة: الميل ${slopeNorm}. القناة من ${lowerChannel} إلى ${upperChannel}.`,
+      ? `قناة صاعدة: الميل +${slopePct}% | R²=${r2}%. القناة من ${lowerChannel} إلى ${upperChannel}.`
+      : `قناة هابطة: الميل ${slopePct}% | R²=${r2}%. القناة من ${lowerChannel} إلى ${upperChannel}.`,
   };
 }
 
@@ -249,46 +270,86 @@ export function analyzeFourier(klines: Kline[]): FourierResult {
 
 
 export function analyzeLinearRegressionRange(klines: Kline[], startIndex: number, endIndex: number): LinearRegressionResult {
-  // Ensure valid range
+  // ── Validate range ────────────────────────────────────────────────────────
   const start = Math.max(0, Math.min(startIndex, endIndex));
-  const end = Math.min(klines.length - 1, Math.max(startIndex, endIndex));
-  
-  if (end - start < 2) {
-    throw new Error('Not enough data points for linear regression.');
+  const end   = Math.min(klines.length - 1, Math.max(startIndex, endIndex));
+
+  if (end - start < 4) {
+    throw new Error('يجب توفر 5 شموع على الأقل للتحليل الدقيق.');
   }
 
   const slice = klines.slice(start, end + 1);
-  const n = slice.length;
-  const closes = slice.map(k => k.close);
-  const ref = closes[closes.length - 1];
+  const n     = slice.length;
 
-  // OLS
-  const sumX = (n * (n - 1)) / 2;
-  const sumX2 = (n * (n - 1) * (2 * n - 1)) / 6;
-  const sumY = closes.reduce((a, b) => a + b, 0);
-  const sumXY = closes.reduce((a, v, i) => a + i * v, 0);
+  // ── Typical price (H+L+C)/3 → more robust than close alone ───────────────
+  const prices = slice.map(k => (k.high + k.low + k.close) / 3);
+  const ref    = slice[slice.length - 1].close; // for formatting
 
-  const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-  const intercept = (sumY - slope * sumX) / n;
+  // ── Exponential decay weights (λ=0.98, newest bar = weight 1.0) ──────────
+  const LAMBDA = 0.98;
+  const weights: number[] = Array.from({ length: n }, (_, i) => Math.pow(LAMBDA, n - 1 - i));
 
-  // Residuals & std-dev
-  const residuals = closes.map((v, i) => v - (intercept + slope * i));
-  const resSd = Math.sqrt(residuals.reduce((a, r) => a + r * r, 0) / n);
+  const W   = weights.reduce((a, b)    => a + b,          0);
+  const Wx  = weights.reduce((a, w, i) => a + w * i,      0);
+  const Wy  = weights.reduce((a, w, i) => a + w * prices[i], 0);
+  const Wxy = weights.reduce((a, w, i) => a + w * i * prices[i], 0);
+  const Wxx = weights.reduce((a, w, i) => a + w * i * i,  0);
 
-  const currentFit = intercept + slope * (n - 1);
+  // ── WLS normal equations ──────────────────────────────────────────────────
+  const denom = W * Wxx - Wx * Wx;
+  if (Math.abs(denom) < 1e-12) throw new Error('البيانات متطابقة أو غير قابلة للتحليل.');
+
+  const slope     = (W * Wxy - Wx * Wy) / denom;
+  const intercept = (Wy - slope * Wx)    / W;
+
+  // ── Residuals & corrected σ (df = n-2) ───────────────────────────────────
+  const fitted   = prices.map((_, i) => intercept + slope * i);
+  const residuals = prices.map((v, i)  => v - fitted[i]);
+  const ssRes    = residuals.reduce((a, r) => a + r * r, 0);
+  const resSd    = Math.sqrt(ssRes / Math.max(1, n - 2));
+
+  // ── R² (unweighted, for interpretability) ────────────────────────────────
+  const yMean = prices.reduce((a, b) => a + b, 0) / n;
+  const ssTot = prices.reduce((a, v) => a + (v - yMean) ** 2, 0);
+  const r2Raw = ssTot > 0 ? Math.max(0, Math.min(1, 1 - ssRes / ssTot)) : 0;
+  const r2    = parseFloat((r2Raw * 100).toFixed(1)); // 0–100
+
+  // ── Pearson r ─────────────────────────────────────────────────────────────
+  const pearsonR = parseFloat((Math.sqrt(r2Raw) * (slope >= 0 ? 1 : -1)).toFixed(4));
+
+  // ── Key price levels ─────────────────────────────────────────────────────
+  const currentFit   = intercept + slope * (n - 1);
+  const nextBarFit   = intercept + slope * n;
   const upperChannel = fmtP(currentFit + 2 * resSd, ref);
   const lowerChannel = fmtP(currentFit - 2 * resSd, ref);
 
-  const slopeNorm = parseFloat(slope.toFixed(6));
-  const isTrendUp = slope > 0;
+  // ── Normalized slope (% per bar) ─────────────────────────────────────────
+  const slopePct    = parseFloat(((slope / ref) * 100).toFixed(5));
+  const isTrendUp   = slope > 0;
+
+  // ── Signal strength based on R² ──────────────────────────────────────────
+  const signalStrength: 'weak' | 'moderate' | 'strong' =
+    r2Raw >= 0.72 ? 'strong' : r2Raw >= 0.42 ? 'moderate' : 'weak';
+
+  // ── Verdict ───────────────────────────────────────────────────────────────
+  const verdictDir = isTrendUp ? '📈 قناة صاعدة' : '📉 قناة هابطة';
+  const verdict =
+    `${verdictDir}: ميل ${isTrendUp ? '+' : ''}${slopePct}% لكل شمعة` +
+    ` | دقة الخط R²=${r2}% (${signalStrength === 'strong' ? 'قوي' : signalStrength === 'moderate' ? 'متوسط' : 'ضعيف'})` +
+    ` | القناة: ${lowerChannel} ← ${fmtP(currentFit, ref)} → ${upperChannel}.`;
 
   return {
-    slope: slopeNorm,
-    intercept,
-    currentFit: fmtP(currentFit, ref),
+    slope:          slopePct,
+    slopeRaw:       parseFloat(slope.toFixed(6)),
+    intercept:      parseFloat(intercept.toFixed(4)),
+    currentFit:     fmtP(currentFit, ref),
+    nextBarFit:     fmtP(nextBarFit, ref),
     upperChannel,
     lowerChannel,
+    r2,
+    pearsonR,
+    signalStrength,
     isTrendUp,
-    verdict: isTrendUp ? 'Trend Up' : 'Trend Down',
+    verdict,
   };
 }
