@@ -77,7 +77,24 @@ function getLimit(pathname: string) {
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // ── Telegram access gate ───────────────────────────────────────────────────
+  // ── KILL SWITCH: set SERVICE_ACTIVE=false in Vercel env to suspend the app ──
+  if (process.env.SERVICE_ACTIVE === 'false') {
+    return new NextResponse(
+      `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"/>
+      <title>تحت الصيانة</title>
+      <style>body{margin:0;background:#000;color:#fff;font-family:sans-serif;
+      display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px}
+      h1{font-size:3rem;font-weight:900;color:#f97316}p{color:rgba(255,255,255,0.4);text-align:center;max-width:320px}
+      </style></head><body>
+      <h1>⚠️</h1>
+      <p>الخدمة متوقفة مؤقتاً للصيانة.</p>
+      <p style="font-size:12px">Service is temporarily suspended. Please try again later.</p>
+      </body></html>`,
+      { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+    );
+  }
+
+
   // Public paths bypass the gate entirely
   const isPublic = [...PUBLIC_PATHS].some(p => pathname === p || pathname.startsWith(p + '/'));
   if (!isPublic) {
