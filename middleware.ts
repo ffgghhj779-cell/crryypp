@@ -77,8 +77,11 @@ function getLimit(pathname: string) {
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // ── KILL SWITCH: set SERVICE_ACTIVE=false in Vercel env to suspend the app ──
-  if (process.env.SERVICE_ACTIVE === 'false') {
+  // ── KILL SWITCH ──────────────────────────────────────────────────────────────
+  // To SUSPEND the app: set this to true and redeploy.
+  // To RESTORE the app: set this to false and redeploy.
+  const SERVICE_SUSPENDED = true;
+  if (SERVICE_SUSPENDED) {
     return new NextResponse(
       `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"/>
       <title>تحت الصيانة</title>
